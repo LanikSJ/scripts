@@ -334,9 +334,34 @@ update_npm() {
     return 0
   fi
   
-  # Update global npm
+  # Update corepack separately as it requires special handling
+  log_info "${NPM_ICON} Updating corepack"
+  npm install -g corepack@latest || log_warning "Failed to update corepack"
+  
+  # Update global npm packages
   log_info "${NPM_ICON} Updating NPM global packages"
-  npm update -g || log_warning "Failed to update global npm packages"
+  
+  # Get list of outdated global packages
+  local outdated_packages
+  if outdated_packages=$(npm outdated -g --json 2>/dev/null | jq -r 'keys[]' 2>/dev/null); then
+    if [[ -z "$outdated_packages" ]]; then
+      log_success "All global NPM packages are up to date"
+    else
+      # Update each package individually
+      for pkg in $outdated_packages; do
+        # Skip corepack as it's already updated separately
+        if [[ "$pkg" == "corepack" ]]; then
+          continue
+        fi
+        
+        log_info "Updating global package: $pkg"
+        npm install -g "$pkg@latest" || log_warning "Failed to update global package: $pkg"
+      done
+      log_success "Global NPM packages updated"
+    fi
+  else
+    log_warning "Failed to check for outdated global npm packages"
+  fi
   
   # Determine NPM modules directory
   local NPM_DIR
