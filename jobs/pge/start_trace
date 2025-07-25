@@ -1,0 +1,7 @@
+#/bin/bash
+
+echo "Starting traces on all lines"
+for i in $( seq 1 192 ) do 
+	amustart -v52 -p$i 
+done
+echo "Traces started, run the end_trace to stop"

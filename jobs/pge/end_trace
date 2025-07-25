@@ -1,0 +1,6 @@
+#/bin/sh
+echo "Stoping traces on all lines. "
+for i in $( seq 1 192 ) do
+	amuend -v52 -l$i
+done
+echo "Traces stopped, run the start_trace to start them again. "

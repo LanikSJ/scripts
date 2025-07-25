@@ -1,0 +1,90 @@
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-09c341a2b0fdd6d93",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-0e27c41358aa77239",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-03c1cdcfac7a80e07",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-0d3dcca61ca230fde",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-0c50945be70a1f247",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-0c6814cdf83822811",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-01d74e1e248163935",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-03d3c9cb4a747e3c1",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}
+{
+    "Tags": [
+        {
+            "Key": "cstag-owner",
+            "ResourceId": "sg-04f27160dd8764fae",
+            "ResourceType": "security-group",
+            "Value": "techops-cicd"
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# Copyright Jobvite Inc., 2013
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 2, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING. If not, write to the
+# Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+# MA 02139, USA.
+#
+# Author: Ilan Erenstein
+#
+# chkconfig: 2345 99 02
+# description: Actuate Server 
+# processname: actuate
+# pidfile: /var/lock/subsys/actuate
+#
+
+# Source Function Library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog=Actuate
+START="/home/actuate/AcServer/bin/start_srvr.sh"
+STOP="/home/actuate/AcServer/bin/shutdown_srvr.sh -t0 -y"
+LOGS=/var/log/actuate/
+
+start() {
+        echo -n "Starting $prog:"
+        sudo -u actuate $START > $LOGS/startup.log && success || failure
+        echo
+}
+
+stop() {
+        echo -n "Stopping $prog: "
+        sudo -u actuate $STOP > $LOGS/shutdown.log && success || failure
+        echo
+}
+
+case "$1" in
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        restart)
+            stop
+            start
+            ;;
+
+        *)
+            echo $"Usage: $0 {start|stop|restart}"
+            exit 1
+
+esac

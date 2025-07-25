@@ -1,0 +1,69 @@
+# chkconfig: 2345 86 15
+# description: QMetry Service
+# Shell script for starting xampp and jasperserver services.
+
+
+# Source fucntion library
+. /etc/init.d/functions
+
+start() {
+        echo -n "Starting QMetry: "
+
+        cd /opt/lampp
+		./lampp start
+		cd /opt/jasperserver-3.5.0
+		./jasperctl.sh start
+        return
+}
+
+stop() {
+        echo -n "Stopping QMetry: "
+
+		cd /opt/lampp
+		./lampp stop
+		cd /opt/jasperserver-3.5.0
+		./jasperctl.sh start
+        return
+}
+
+restart() {
+        echo -n "Restarting QMetry: "
+
+		cd /opt/lampp
+		./lampp restart
+		cd /opt/jasperserver-3.5.0
+		./jasperctl.sh restart
+        return
+}
+
+status() {
+		cd /opt/lampp
+		./lampp status
+        return
+}
+
+case "$1" in
+
+    start)
+        start
+        ;;
+		
+    stop)
+        stop
+        ;;
+		
+    status)
+		status
+        ;;
+		
+    restart|reload)
+        restart
+        ;;
+		
+    *)
+        echo "Usage:  {start|stop|status|reload|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

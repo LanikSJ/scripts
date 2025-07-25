@@ -1,0 +1,52 @@
+#! /bin/bash
+#
+# Directory Server Startup Script
+#
+# chkconfig: 2345 99 04
+# description: start jira
+#
+
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog="jira"
+
+SERVER_ID=`hostname -s`
+JAVA_HOME=/usr/java/default
+#JAVA_OPTS=-server -Xms512m -Xmx1024m
+export JAVA_HOME
+export JAVA_OPTS
+
+start() {
+	echo -n "Starting $prog:"
+        su - jira -c /jira/jira/bin/startup.sh > /jira/jira/logs/startup.log && success || failure
+        echo
+}
+
+stop() {
+        echo -n "Stopping $prog: "
+	su - jira -c /jira/jira/bin/shutdown.sh > /jira/jira/logs/shutdown.log && success || failure
+	echo
+}
+
+case "$1" in
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        restart)
+            stop
+            start
+            ;;
+
+        *)
+            echo $"Usage: $0 {start|stop|restart}"
+            exit 1
+
+esac

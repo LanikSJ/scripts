@@ -1,0 +1,6 @@
+Key=cstag-accounting,Value=cogs
+Key=cstag-application,Value=cicd-artifactory-edge-prod
+Key=cstag-business,Value=Platform
+Key=cstag-department,Value=Cloud Engineering - 431500
+Key=cstag-owner,Value=techops-cicd
+Key=cstag-product,Value=Host Platform

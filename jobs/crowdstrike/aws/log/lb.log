@@ -1,0 +1,138 @@
+{
+    "TagDescriptions": [
+        {
+            "ResourceArn": "arn:aws:elasticloadbalancing:us-west-2:292230061137:loadbalancer/net/mav-util-main-p-cicd-art-edge/c5ba7141824fc949",
+            "Tags": [
+                {
+                    "Key": "crowdstrike.com/auto-tag/creation/id",
+                    "Value": "arn:aws:iam::292230061137:user/jpugh"
+                },
+                {
+                    "Key": "crowdstrike.com/auto-tag/creation/tag-ownership",
+                    "Value": "auto-tagger"
+                },
+                {
+                    "Key": "cstag-business",
+                    "Value": "Platform"
+                },
+                {
+                    "Key": "crowdstrike.com/pool",
+                    "Value": "util"
+                },
+                {
+                    "Key": "crowdstrike.com/swimlane",
+                    "Value": "p"
+                },
+                {
+                    "Key": "crowdstrike.com/cloud/callsign",
+                    "Value": "mav"
+                },
+                {
+                    "Key": "cstag-department",
+                    "Value": "Cloud Engineering - 431500"
+                },
+                {
+                    "Key": "crowdstrike.com/created-by",
+                    "Value": "Terraform"
+                },
+                {
+                    "Key": "crowdstrike.com/auto-tag/last-modified-by/user/date",
+                    "Value": "2021-06-04 15:51:37 UTC"
+                },
+                {
+                    "Key": "cstag-application",
+                    "Value": "base"
+                },
+                {
+                    "Key": "cstag-accounting",
+                    "Value": "cogs"
+                },
+                {
+                    "Key": "crowdstrike.com/auto-tag/last-modified-by/user/api",
+                    "Value": "ModifyLoadBalancerAttributes"
+                },
+                {
+                    "Key": "cstag-owner",
+                    "Value": "techops-cicd"
+                },
+                {
+                    "Key": "cstag-product",
+                    "Value": "Host Platform"
+                },
+                {
+                    "Key": "crowdstrike.com/auto-tag/creation/date",
+                    "Value": "2021-06-04 15:49:16 UTC"
+                },
+                {
+                    "Key": "name",
+                    "Value": "mav-util-main-p-cicd-artifactory-edge"
+                },
+                {
+                    "Key": "crowdstrike.com/auto-tag/last-modified-by/user/id",
+                    "Value": "arn:aws:iam::292230061137:user/jpugh"
+                },
+                {
+                    "Key": "crowdstrike.com/cloud/id",
+                    "Value": "mav.prod.aws.us-west-2"
+                }
+            ]
+        }
+    ]
+}
+{
+    "TagDescriptions": [
+        {
+            "ResourceArn": "arn:aws:elasticloadbalancing:us-west-2:292230061137:loadbalancer/net/viper-util-main-p-cicd-art-edge/eeac241201c13e07",
+            "Tags": [
+                {
+                    "Key": "cstag-accounting",
+                    "Value": "cogs"
+                },
+                {
+                    "Key": "cstag-business",
+                    "Value": "Platform"
+                },
+                {
+                    "Key": "cstag-owner",
+                    "Value": "techops-cicd"
+                },
+                {
+                    "Key": "crowdstrike.com/pool",
+                    "Value": "util"
+                },
+                {
+                    "Key": "cstag-product",
+                    "Value": "Host Platform"
+                },
+                {
+                    "Key": "name",
+                    "Value": "viper-util-main-p-cicd-artifactory-edge"
+                },
+                {
+                    "Key": "crowdstrike.com/swimlane",
+                    "Value": "p"
+                },
+                {
+                    "Key": "crowdstrike.com/cloud/callsign",
+                    "Value": "viper"
+                },
+                {
+                    "Key": "cstag-department",
+                    "Value": "Dev Ops - 110000"
+                },
+                {
+                    "Key": "crowdstrike.com/cloud/id",
+                    "Value": "viper.cm.aws.us-west-2"
+                },
+                {
+                    "Key": "crowdstrike.com/created-by",
+                    "Value": "Terraform"
+                },
+                {
+                    "Key": "cstag-application",
+                    "Value": "base"
+                }
+            ]
+        }
+    ]
+}

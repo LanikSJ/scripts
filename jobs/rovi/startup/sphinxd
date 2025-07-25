@@ -1,0 +1,99 @@
+#
+# Copyright Red Hat Inc., 2002
+# Copyright Mission Critical Linux, 2000
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 2, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING. If not, write to the
+# Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+# MA 02139, USA.
+#
+#
+# Author: Gregory P. Myrdal
+# Contributor: Ilan Erenstein
+#
+# chkconfig: 2345 99 01
+# description: Sphinx Search
+#
+# This file contains a template that you can use to create a script
+# that will start, stop and monitor an application used in a cluster \\
+# service.
+#
+
+# source function library
+. /etc/init.d/functions
+
+START="-c /var/lib/sphinx/etc/sphinx.conf > /dev/null 2>&1"
+STOP="-c /var/lib/sphinx/etc/sphinx.conf --stop > /dev/null 2>&1"
+
+RETVAL=0
+prog="Sphinx Search"
+
+start() {
+        echo -n $"Starting $prog: "
+        if [ $UID -ne 0 ]; then
+                RETVAL=1
+                failure
+        else
+                daemon --user=sphinx /var/lib/sphinx/bin/searchd $START
+                RETVAL=$?
+                [ $RETVAL -eq 0 ] && touch /var/lock/subsys/searchd
+        fi;
+        echo
+        return $RETVAL
+}
+
+stop() {
+        echo -n $"Stopping $prog: "
+        if [ $UID -ne 0 ]; then
+                RETVAL=1
+                failure
+        else
+                #killproc /var/lib/sphinx/bin/searchd
+                daemon --user=sphinx /var/lib/sphinx/bin/searchd $STOP
+                RETVAL=$?
+                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/searchd
+        fi;
+        echo
+        return $RETVAL
+}
+
+status() {
+        su - sphinx -c '/var/lib/sphinx/bin/searchd -c /var/lib/sphinx/etc/sphinx.conf --status'
+        echo
+    RETVAL=$?
+    return $RETVAL
+}
+
+case "$1" in
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        status)
+            status
+            ;;
+
+        restart)
+            stop
+            start
+            ;;
+
+        *)
+            echo $"Usage: $0 {start|stop|status|restart}"
+            exit 1
+
+esac

@@ -1,0 +1,88 @@
+#
+# Copyright ROVI Corporation, 2012
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 2, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING. If not, write to the
+# Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+# MA 02139, USA.
+#
+# Author: Ilan Erenstein
+#
+# chkconfig: 2345 99 01
+# description: Cluster Manager Tool Service
+#
+# This file contains a template that you can use to create a script
+# that will start, stop and monitor an application used in a cluster 
+# service.
+#
+
+# source function library
+. /etc/init.d/functions
+
+prog="Cluster Manager Tool"
+mui_home="/opt/mui/cluster_manager"
+LOGS="$mui_home/logs"
+START="$mui_home/bin/start.sh > $LOGS/startup.log"
+STOP="$mui_home/bin/stop.sh > $LOGS/shutdown.log"
+
+mkdir -p $LOGS
+
+RETVAL=0
+
+start() {
+        echo -n $"Starting $prog: "
+        if [ $UID -ne 0 ]; then
+                RETVAL=1
+                failure
+        else
+                daemon $START
+                RETVAL=$?
+                [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cmtd
+        fi;
+        echo
+        return $RETVAL
+}
+
+stop() {
+        echo -n $"Stopping $prog: "
+        if [ $UID -ne 0 ]; then
+                RETVAL=1
+                failure
+        else
+                daemon $STOP
+                RETVAL=$?
+                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/cmtd
+        fi;
+        echo
+        return $RETVAL
+}
+
+case "$1" in
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        restart)
+            stop
+            start
+            ;;
+
+        *)
+            echo $"Usage: $0 {start|stop|restart}"
+            exit 1
+
+esac

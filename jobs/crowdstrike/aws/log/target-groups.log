@@ -1,0 +1,26 @@
+{
+    "TagDescriptions": [
+        {
+            "ResourceArn": "arn:aws:elasticloadbalancing:us-west-2:292230061137:targetgroup/mav-util-main-p-cicd-art-edge/1ce39cc3fc6190bb",
+            "Tags": [
+                {
+                    "Key": "cstag-owner",
+                    "Value": "techops-cicd"
+                }
+            ]
+        }
+    ]
+}
+{
+    "TagDescriptions": [
+        {
+            "ResourceArn": "arn:aws:elasticloadbalancing:us-west-2:292230061137:targetgroup/viper-util-main-p-cicd-art-edge/46e0ba0eca4e22a4",
+            "Tags": [
+                {
+                    "Key": "cstag-owner",
+                    "Value": "techops-cicd"
+                }
+            ]
+        }
+    ]
+}
