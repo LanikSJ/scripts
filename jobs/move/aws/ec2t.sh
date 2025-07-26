@@ -3,6 +3,8 @@
 # Usage: ec2t AccountName
 
 # Variables
+export username=`whoami`
+
 IFS=_ read -a account <<< "$1"
 export NAME=${account[0]}
 export ENVIRONMENT=${account[1]}
@@ -36,7 +38,7 @@ if [[ -z $role ]]; then
   echo && echo "AWS Role is blank. Please try again! " && exit 1
 fi
 
-$getawskeys -u "$USER" -r "$role" -p "${1}"
+$getawskeys -u $username -r $role -p ${1}
 if [[ $? != "0" ]]; then
   echo "AWS Auth failed check script path or permissions and try again! "
   echo "Repo should be checked out in ~/GitHub/Move-AWS-tools/ " && exit 1

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# This script adds custom certificates to colima
 
 # Remove Old Config Directory
 rm -rf ~/.colima
@@ -26,7 +25,7 @@ provision:
       systemctl restart docker
 EOF
 
-# Stop Colima
+# Stop Colima 
 colima stop
 
 # Start Colima with the New Configuration

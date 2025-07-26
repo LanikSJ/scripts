@@ -2,6 +2,7 @@
 # This script will launch an EC2 in the specified account
 # Usage: ./script AccountName
 
+export username=`whoami`
 export INSTANCE_SIZE='t3.micro'
 export SUBNET='Private-A'
 export SG='-sg-private*'
@@ -12,7 +13,7 @@ export ENVIRONMENT=${account[1]}
 export getawskeys=$(find ~/GitHub/ -iname get-aws-keys.py |sort -d |head -1)
 export AWSACCTS=$(find ~/GitHub/ -iname aws-account-list.csv |sort -d |head -1)
 export ARN_ACCOUNT=$(grep $NAME $AWSACCTS |grep $ENVIRONMENT |cut -d "," -f 3)
-export NAME_TAG="Key=Name,Value=$USER-test"
+export NAME_TAG="Key=Name,Value=$username-test"
 export COMPONENT_TAG="Key=component,Value=test"
 export PRODUCT_TAG="Key=product,Value=move"
 export OWNER_TAG="Key=owner,Value=ilan.erenstein@move.com"
@@ -117,7 +118,7 @@ if [[ -z $role ]]; then
   echo && echo "AWS Role is blank. Please try again! " && exit 1
 fi
 
-$getawskeys -u $USER -r $role -p ${1}
+$getawskeys -u $username -r $role -p ${1}
 if [[ $? != "0" ]]; then
   echo "AWS Auth failed check script path or permissions and try again! "
   echo "Repo should be checked out somewhere under ~/GitHub " && exit 1
