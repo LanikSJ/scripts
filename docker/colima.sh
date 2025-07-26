@@ -1,34 +1,47 @@
 #!/usr/bin/env bash
+# 🐳🔒 Improved: Add custom certificates to Colima with safety and idempotence
 
-# Remove Old Config Directory
-rm -rf ~/.colima
+set -euo pipefail
 
-# Create Directories
-mkdir -p "${XDG_CONFIG_HOME}"/colima/default/.ca-certificates
+# 📁 Variables
+COLIMA_CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/colima/default"
+CERTS_DIR="$COLIMA_CONF_DIR/.ca-certificates"
+COLIMA_YAML="$COLIMA_CONF_DIR/colima.yaml"
+ROOT_CERTS="$CERTS_DIR/root_certs.pem"
 
-# Export Certificates from Keychain
-security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain > "${XDG_CONFIG_HOME}"/colima/default/.ca-certificates/root_certs.pem
-security find-certificate -a -p /Library/Keychains/System.keychain >> "${XDG_CONFIG_HOME}"/colima/default/.ca-certificates/root_certs.pem
+# 📂 Ensure Colima config directory exists
+mkdir -p "$CERTS_DIR"
 
-# Update Default Colima Config
-sed -i "s/provision: \[\]/# provision: \[\]/" "${XDG_CONFIG_HOME}"/colima/default/colima.yaml
+# 📜 Export certificates from Keychain
+echo "🔑 Exporting system certificates..."
+security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain > "$ROOT_CERTS"
+security find-certificate -a -p /Library/Keychains/System.keychain >> "$ROOT_CERTS"
 
-# Create or Update Colima Configuration
-cat << EOF >> "${XDG_CONFIG_HOME}"/colima/default/colima.yaml
+# 💾 Backup existing colima.yaml if it exists
+if [[ -f "$COLIMA_YAML" ]]; then
+    cp "$COLIMA_YAML" "$COLIMA_YAML.bak.$(date +%s)"
+fi
+
+# 🧹 Remove any existing provision block to avoid duplicates
+if [[ -f "$COLIMA_YAML" ]]; then
+    awk '/^provision:/ {flag=1} flag && /^ *[^- ]/ {flag=0} !flag || !/^provision:/' "$COLIMA_YAML" > "$COLIMA_YAML.tmp" && mv "$COLIMA_YAML.tmp" "$COLIMA_YAML"
+fi
+
+# ➕ Append new provision block
+cat << EOF >> "$COLIMA_YAML"
 provision:
   - mode: system
     script: |
-      CERTS="${XDG_CONFIG_HOME}/colima/default/.ca-certificates"
+      CERTS="${CERTS_DIR}"
       cp -aR \${CERTS}/* /usr/local/share/ca-certificates/
       update-ca-certificates
       systemctl daemon-reload
       systemctl restart docker
 EOF
 
-# Stop Colima 
-colima stop
-
-# Start Colima with the New Configuration
+# 🔄 Restart Colima
+echo "🔄 Restarting Colima..."
+colima stop || true
 colima start
 
-echo && echo "Certificates Exported and Colima Configured and Restarted!"
+echo -e "\n✅ Certificates exported and Colima restarted successfully.\n"
