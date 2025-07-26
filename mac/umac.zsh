@@ -280,7 +280,6 @@ update_python() {
   
   # Update packages for different Python versions
   python_module_upgrade "python3"
-  python_module_upgrade "python3.12"
   python_module_upgrade "python3.13"
   
   # Freeze Python 3 packages

@@ -13,7 +13,7 @@ CONFIG_ICON="⚙️ "
 
 # Default configuration
 typeset -a EXCLUDE_PACKAGES=("types-setuptools")
-typeset -a PYTHON_VERSIONS=("python3.12" "python3.13")
+typeset -a PYTHON_VERSIONS=("python3.13")
 VERBOSE=false
 DRY_RUN=false
 
