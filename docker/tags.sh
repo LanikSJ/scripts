@@ -1,51 +1,36 @@
 #!/usr/bin/env bash
-# 🐳🔖 List all tags for a Docker image on Docker Hub, with optional filtering
+# 🐳🔖 tags  --  List all tags for a Docker image on Docker Hub, with optional filtering
 
 set -euo pipefail
 
-if ! command -v jq &>/dev/null; then
+if ! command -v jq &>/dev/null
+then
   echo "❌ jq is required but not installed. Please install jq."
   exit 2
 fi
 
-if [[ $# -lt 1 ]]; then
-  cat << 'HELP'
-🐳🔖 tags  --  List all tags for a Docker image on Docker Hub.
+# Check if at least one argument is provided
+if [[ $# -lt 1 ]]
+then
+  cat << HELP
 
-📦 EXAMPLES:
-    - List all tags for ubuntu:
-        tags ubuntu
+tags  --  list all tags for a Docker image on a remote registry.
 
-    - List all php tags containing apache:
-        tags php apache
+EXAMPLE:
+    - list all tags for ubuntu:
+       tags ubuntu
 
-🛠️ USAGE:
-    tags <image> [filter]
+    - list all php tags containing apache:
+       tags php apache
 
 HELP
-  exit 1
 fi
 
-IMAGE="$1"
-FILTER="${2:-}"
+tags=$(curl https://hub.docker.com/v2/repositories/"$1"/tags | jq -r '.results.[].name')
 
-# 🌐 Fetch all tags (paginated)
-TAGS=()
-URL="https://hub.docker.com/v2/repositories/${IMAGE}/tags?page_size=100"
-echo "🔎 Fetching tags for image: $IMAGE ..."
-while [[ -n "$URL" ]]; do
-  RESP=$(curl -fsSL "$URL")
-  mapfile -t NEW_TAGS < <(echo "$RESP" | jq -r '.results[].name')
-  TAGS+=("${NEW_TAGS[@]}")
-  URL=$(echo "$RESP" | jq -r '.next')
-  [[ "$URL" == "null" ]] && URL=""
-done
-
-# 🔍 Filter tags if a filter is provided
-if [[ -n "$FILTER" ]]; then
-  echo "${TAGS[@]}" | tr ' ' '\n' | grep --color=auto -i "$FILTER" || echo "⚠️ No tags found matching '$FILTER'."
-else
-  echo "📋 All tags for $IMAGE:"
-  printf '%s\n' "${TAGS[@]}" | sort -u
+if [[ -n "$2" ]]
+then
+  tags=$(echo "${tags}" | grep "$2")
 fi
-echo "✅ Tags fetched successfully."
+
+echo "${tags}"
