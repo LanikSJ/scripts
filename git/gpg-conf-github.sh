@@ -12,7 +12,7 @@ ORIGINAL_DIR="$(pwd)"
 
 # Check if Git is installed
 if ! command -v git &> /dev/null; then
-    echo "Error: Git is not installed. Please install Git and try again."
+    echo "❌ Error: Git is not installed. Please install Git and try again."
     exit 1
 fi
 
@@ -22,23 +22,23 @@ configure_git() {
     local repo_name="$2"
     
     if [ ! -d "$repo_dir" ]; then
-        echo "Warning: Directory $repo_dir does not exist. Skipping."
+        echo "⚠️  Warning: Directory $repo_dir does not exist. Skipping."
         return
     fi
     
-    echo "Configuring Git settings for $repo_name repositories..."
+    echo "🔧 Configuring Git settings for $repo_name repositories..."
     
     # Use find to properly handle directory names with spaces
     find "$repo_dir" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
-        echo "  - Setting up $(basename "$dir")"
+        echo "  📁 Setting up $(basename "$dir")"
         if ! cd "$dir" 2>/dev/null; then
-            echo "    Warning: Could not access $dir. Skipping."
+            echo "    ⚠️  Warning: Could not access $dir. Skipping."
             continue
         fi
         
         # Check if it's a Git repository
         if [ ! -d ".git" ] && ! git rev-parse --git-dir > /dev/null 2>&1; then
-            echo "    Warning: $dir is not a Git repository. Skipping."
+            echo "    ⚠️  Warning: $dir is not a Git repository. Skipping."
             continue
         fi
         
@@ -46,12 +46,12 @@ configure_git() {
         git config user.name "$GIT_NAME"
         git config user.email "$GIT_EMAIL"
         git config user.signingkey "$GIT_SIGNING_KEY"
-        echo "    Successfully configured Git settings."
+        echo "    ✅ Successfully configured Git settings."
     done
 }
 
 # Main execution
-echo "Starting Git configuration for multiple repositories..."
+echo "🚀 Starting Git configuration for multiple repositories..."
 
 # Configure GitHub repositories
 configure_git "$HOME/GitHub/LanikSJ" "GitHub"
@@ -63,6 +63,6 @@ configure_git "/opt/homebrew/Library/Taps/homebrew" "Homebrew"
 configure_git "$HOME/GitLab/Lanik" "GitLab"
 
 # Return to the original directory
-cd "$ORIGINAL_DIR" || echo "Warning: Could not return to original directory."
+cd "$ORIGINAL_DIR" || echo "⚠️  Warning: Could not return to original directory."
 
-echo "Git configuration completed successfully."
+echo "✨ Git configuration completed successfully."
