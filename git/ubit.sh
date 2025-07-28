@@ -8,14 +8,45 @@
 set -e  # Exit on error
 set -u  # Treat unset variables as errors
 
+# Icons
+REPO_ICON="📦"
+BRANCH_ICON="🔖"
+SUCCESS_ICON="✅"
+ERROR_ICON="❌"
+WARNING_ICON="⚠️"
+UPDATE_ICON="🔄"
+ORG_ICON="🏢"
+CLEAN_ICON="🧹"
+
 # Variables
 BITBUCKET_DIR="${HOME}/BitBucket/"
 ORG_LIST=$(ls -lh "${BITBUCKET_DIR}" | grep drwx | awk '{print $NF}')
 CURRENT_DIR=$(pwd)
 
-# Log messages with timestamp
+# Log messages
 log_message() {
-  echo -e "\n[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+  local icon=""
+  
+  # Determine icon based on message content
+  if [[ "$1" == *"ERROR"* ]]; then
+    icon="${ERROR_ICON} "
+  elif [[ "$1" == *"WARNING"* ]]; then
+    icon="${WARNING_ICON} "
+  elif [[ "$1" == *"Updating"* ]]; then
+    icon="${UPDATE_ICON} "
+  elif [[ "$1" == *"Cleaning"* ]]; then
+    icon="${CLEAN_ICON} "
+  elif [[ "$1" == *"Processing organization"* ]]; then
+    icon="${ORG_ICON} "
+  elif [[ "$1" == *"Starting"* || "$1" == *"completed"* ]]; then
+    icon="${SUCCESS_ICON} "
+  elif [[ "$1" == *"Found repository"* ]]; then
+    icon="${REPO_ICON} "
+  else
+    icon=""
+  fi
+  
+  echo -e "\n${icon}$1"
 }
 
 # Update a git repository
@@ -23,11 +54,11 @@ git_update() {
   local repo_name=$1
   local branch_name=$2
   
-  log_message "Updating ${repo_name} repo on ${branch_name}"
+  log_message "Updating ${repo_name} repo on ${BRANCH_ICON} ${branch_name}"
   
   # Switch to the appropriate branch
   git checkout "${branch_name}" || {
-    log_message "ERROR: Failed to checkout branch ${branch_name}"
+    log_message "ERROR: Failed to checkout branch ${BRANCH_ICON} ${branch_name}"
     return 1
   }
   
@@ -43,7 +74,7 @@ git_update() {
   # Clean up local branches (excluding the current branch)
   log_message "Cleaning up old branches"
   git branch | grep -v "${branch_name}" | awk '{print $NF}' | while read -r local_branch; do
-    git branch -D "${local_branch}" || log_message "WARNING: Failed to delete branch ${local_branch}"
+    git branch -D "${local_branch}" || log_message "WARNING: Failed to delete branch ${BRANCH_ICON} ${local_branch}"
   done
   
   return 0
