@@ -7,7 +7,7 @@ DATE=$(date +"%Y%m%d")
 TARGET_DIR="$HOME/Drive-Gov/Artifactory/Scan"
 ART_VER=$(curl -X GET "https://releases-docker.jfrog.io/artifactory/api/search/latestVersion?g=org.artifactory.pro.docker&a=jfrog-artifactory-pro" |xargs)
 
-if colima status; then
+if colima status > /dev/null 2>&1; then
   echo && echo "Colima Already Running!"
 else
   colima start
@@ -33,6 +33,6 @@ echo "Done!"
 echo && echo "Prunning old Images ..."  && echo
 docker system prune -af && echo
 
-if colima status; then
+if colima status > /dev/null 2>&1; then
   colima stop
 fi
