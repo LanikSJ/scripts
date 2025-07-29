@@ -47,43 +47,43 @@ if [[ $# = 0 ]] || [[ $1 = -h ]] ; then
     exit 0
 fi
 
-cd $REPOLOC
+cd "$REPOLOC" || exit
 if [[ $1 == qfetch ]] || [[ $1 == fetch ]] || [[ $1 == status ]] || [[ $1 == branch ]]; then
-    for file in $(ls); do
-        if [[ -d $REPOLOC/$file/.git ]]; then
-            cd $REPOLOC/$file
+    for file in *; do
+        if [[ -d "$REPOLOC/$file/.git" ]]; then
+            cd "$REPOLOC/$file" || exit
             git fetch -q &
             spawned+=($!)
         fi
     done
 
     echo -n "Waiting for all repos to report: "
-    for pid in ${spawned[@]}; do
-        wait $pid
+    for pid in "${spawned[@]}"; do
+        wait "$pid"
     done
     echo "done"
 fi
 
 if [[ $1 == pfetch ]]; then
-  for file in $(ls); do
-    if [[ -d $REPOLOC/$file/.git ]]; then
-      cd $REPOLOC/$file
+  for file in *; do
+    if [[ -d "$REPOLOC/$file/.git" ]]; then
+      cd "$REPOLOC/$file" || exit
       git fetch -p &
       spawned+=($!)
     fi
   done
 
   echo -n "Waiting for all repos to report: "
-  for pid in ${spawned[@]}; do
-    wait $pid
+  for pid in "${spawned[@]}"; do
+    wait "$pid"
   done
   echo "done"
 fi
 
-cd $REPOLOC
-for file in $(ls); do
-    if [[ -d $REPOLOC/$file/.git ]]; then
-        cd $REPOLOC/$file
+cd "$REPOLOC" || exit
+for file in *; do
+    if [[ -d "$REPOLOC/$file/.git" ]]; then
+        cd "$REPOLOC/$file" || exit
         echo -n "$(tput setaf $var)${txtbold}"
 
         if [[ $1 == status ]] || [[ $1 == qstatus ]]; then
@@ -132,7 +132,7 @@ for file in $(ls); do
 
         elif [[ $1 == merge ]]; then
             echo -n "Merging $file: "
-            cd $REPOLOC/$file
+            cd "$REPOLOC/$file" || exit
             if [[ -n $(git rev-list HEAD..origin) ]]; then
                 echo "$txtrst$(tput setaf $var)"
                 git merge origin/master
@@ -142,11 +142,11 @@ for file in $(ls); do
 
         elif [[ $1 == pull ]]; then
             echo  -n "Pulling $file: "
-            cd $REPOLOC/$file
+            cd "$REPOLOC/$file" || exit
             echo -n "$txtrst$(tput setaf $var)"
 
             if ! git pull; then
-                echo $txtrst
+                echo "$txtrst"
                 exit 1
             fi
         
@@ -160,12 +160,11 @@ for file in $(ls); do
             exit 1
         fi
 
-        echo -n $txtrst
+        echo -n "$txtrst"
 
         [ $var = 6 ] && var=8
-        var=$(( ( RANDOM % $maxvar ) + 1 ))
+        var=$(( ( RANDOM % maxvar ) + 1 ))
         # var=$(((var+1)%maxvar))
         # echo $var
     fi
 done
-

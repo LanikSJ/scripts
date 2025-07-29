@@ -1,3 +1,4 @@
+#!/bin/bash
 curl -ORL https://github.com/oliver006/redis_exporter/releases/download/v1.52.0/redis_exporter-v1.52.0.linux-amd64.tar.gz
 curl -ORL https://github.com/oliver006/redis_exporter/releases/download/v1.52.0/sha256sums.txt
 
