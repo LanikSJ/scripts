@@ -34,32 +34,21 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Set default log file
-LOG_FILE="$HOME/.umac_log"
-
 # Log functions for consistent output
 log_info() {
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
   echo -e "\n${BLUE}${INFO_ICON} INFO:${NC} $1"
-  echo "[$timestamp] INFO: $1" >> "$LOG_FILE"
 }
 
 log_success() {
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
   echo -e "${GREEN}${SUCCESS_ICON} SUCCESS:${NC} $1"
-  echo "[$timestamp] SUCCESS: $1" >> "$LOG_FILE"
 }
 
 log_warning() {
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
   echo -e "${YELLOW}${WARNING_ICON} WARNING:${NC} $1"
-  echo "[$timestamp] WARNING: $1" >> "$LOG_FILE"
 }
 
 log_error() {
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
   echo -e "${RED}${ERROR_ICON} ERROR:${NC} $1"
-  echo "[$timestamp] ERROR: $1" >> "$LOG_FILE"
 }
 
 # Check if a command exists
@@ -233,6 +222,39 @@ update_python() {
   # Define excluded packages (can be a regex pattern)
   local exclude="(types-setuptools|pip|setuptools|wheel)"
   
+  # Function to detect installed Python versions
+  detect_python_versions() {
+    log_info "${PYTHON_ICON} Auto-detecting Python versions" >&2
+    local detected_versions=()
+    
+    # Check for python3
+    if command_exists python3; then
+      detected_versions+=("python3")
+    fi
+    
+    # Check for specific Python 3 versions (3.7 through 3.13)
+    for version in {7..13}; do
+      if command_exists "python3.$version"; then
+        detected_versions+=("python3.$version")
+      fi
+    done
+    
+    # If no Python versions found, warn the user
+    if [[ ${#detected_versions[@]} -eq 0 ]]; then
+      log_warning "No Python versions detected on this system." >&2
+      return 1
+    fi
+    
+    log_success "Detected Python versions: ${detected_versions[*]}" >&2
+    
+    # Return the detected versions as a space-separated string
+    local output=""
+    for version in "${detected_versions[@]}"; do
+      output+="$version "
+    done
+    echo -n "${output% }"  # Remove trailing space
+  }
+  
   # Function to upgrade Python modules
   python_module_upgrade() {
     local python_version="$1"
@@ -278,9 +300,20 @@ update_python() {
     done
   }
   
-  # Update packages for different Python versions
-  python_module_upgrade "python3"
-  python_module_upgrade "python3.13"
+  # Auto-detect Python versions
+  local python_versions=()
+  IFS=' ' read -A python_versions <<< "$(detect_python_versions)"
+  
+  # If no Python versions were detected, exit
+  if [[ ${#python_versions[@]} -eq 0 ]]; then
+    log_error "No Python versions found. Please install Python."
+    return 1
+  fi
+  
+  # Update packages for each detected Python version
+  for python_version in "${python_versions[@]}"; do
+    python_module_upgrade "$python_version"
+  done
   
   # Freeze Python 3 packages
   log_info "${PYTHON_ICON} Freezing Python 3 packages"
@@ -458,15 +491,11 @@ main() {
       --only=*)
         run_only=${1#*=}
         ;;
-      --log=*)
-        custom_log_file=${1#*=}
-        ;;
       --help)
         echo "Usage: $0 [options]"
         echo "Options:"
         echo "  --skip=COMPONENT   Skip updating specified component (xcode, brew, omz, zinit, python, ruby, npm, git)"
         echo "  --only=COMPONENT   Only update specified component (xcode, brew, omz, zinit, python, ruby, npm, git)"
-        echo "  --log=FILE         Specify a custom log file (default: ~/.umac_log)"
         echo "  --help             Show this help message"
         return 0
         ;;
@@ -477,16 +506,7 @@ main() {
     shift
   done
   
-  # Set custom log file if provided
-  if [[ -n "$custom_log_file" ]]; then
-    LOG_FILE="$custom_log_file"
-  fi
-  
-  # Create or truncate log file
-  echo "# UMAC Log - $(date)" > "$LOG_FILE"
-  
   log_info "🚀 Starting system update process"
-  log_info "Logging to $LOG_FILE"
   
   # Check for dependencies
   check_dependencies
