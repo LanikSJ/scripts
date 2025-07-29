@@ -16,7 +16,9 @@ elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
 fi
 
 # If we made it this far, all of the required elements exist.
-# Calculate the SMTP password.
-(echo -en $VERSION; echo -n $MESSAGE \
-  | openssl dgst -sha256 -hmac $AWS_SECRET_ACCESS_KEY -binary) \
+# Calculate the SMTP password using AWS Signature Version 4.
+# This involves concatenating the version byte with the HMAC-SHA256 hash
+# of the message, then base64 encoding the result.
+(echo -en "$VERSION"; echo -n "$MESSAGE" \
+  | openssl dgst -sha256 -hmac "$AWS_SECRET_ACCESS_KEY" -binary) \
   | openssl enc -base64

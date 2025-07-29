@@ -1,5 +1,0 @@
-ec2-54-219-5-246.us-west-1.compute.amazonaws.com
-ec2-50-18-100-15.us-west-1.compute.amazonaws.com
-ec2-50-18-28-97.us-west-1.compute.amazonaws.com
-ec2-54-177-74-15.us-west-1.compute.amazonaws.com
-ec2-54-176-82-226.us-west-1.compute.amazonaws.com

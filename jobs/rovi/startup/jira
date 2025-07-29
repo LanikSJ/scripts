@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #
 # Directory Server Startup Script
 #
@@ -6,47 +6,61 @@
 # description: start jira
 #
 
-
-# source function library
+# Source function library for success/failure functions
+# shellcheck disable=SC1091
 . /etc/rc.d/init.d/functions
 
-RETVAL=0
 prog="jira"
 
-SERVER_ID=`hostname -s`
 JAVA_HOME=/usr/java/default
-#JAVA_OPTS=-server -Xms512m -Xmx1024m
+# JAVA_OPTS=-server -Xms512m -Xmx1024m
 export JAVA_HOME
 export JAVA_OPTS
 
+# Use absolute path variables for easier maintenance
+JIRA_HOME="/jira/jira"
+STARTUP_SCRIPT="${JIRA_HOME}/bin/startup.sh"
+SHUTDOWN_SCRIPT="${JIRA_HOME}/bin/shutdown.sh"
+STARTUP_LOG="${JIRA_HOME}/logs/startup.log"
+SHUTDOWN_LOG="${JIRA_HOME}/logs/shutdown.log"
+
 start() {
-	echo -n "Starting $prog:"
-        su - jira -c /jira/jira/bin/startup.sh > /jira/jira/logs/startup.log && success || failure
-        echo
+    echo -n "Starting $prog: "
+    if su - jira -c "${STARTUP_SCRIPT}" > "${STARTUP_LOG}" 2>&1; then
+        success
+    else
+        failure
+    fi
+    echo
 }
 
 stop() {
-        echo -n "Stopping $prog: "
-	su - jira -c /jira/jira/bin/shutdown.sh > /jira/jira/logs/shutdown.log && success || failure
-	echo
+    echo -n "Stopping $prog: "
+    if su - jira -c "${SHUTDOWN_SCRIPT}" > "${SHUTDOWN_LOG}" 2>&1; then
+        success
+    else
+        failure
+    fi
+    echo
 }
 
-case "$1" in
-        start)
-            start
-            ;;
+usage() {
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+}
 
-        stop)
-            stop
-            ;;
-
-        restart)
-            stop
-            start
-            ;;
-
-        *)
-            echo $"Usage: $0 {start|stop|restart}"
-            exit 1
-
+case "${1:-}" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        usage
+        ;;
 esac

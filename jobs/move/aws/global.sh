@@ -2,39 +2,43 @@
 # This script will run a script on all AWS Accounts
 # Borrowed HEAVILY from Ben K's "global runner"
 # Usage: ./script FileName
+# shellcheck disable=SC1090,SC2004
 
 # Variables
-export getawskeys=$(find ~/GitHub -iname get-aws-keys.py |sort -d |head -1)
-export acctslist=$(find ~/GitHub -iname aws-account-list.csv |sort -d |head -1)
-export moveawstools=$(find ~/GitHub -iname move-aws-tools |sort -d |head -1)
-export awsaccts=$(find ~/GitHub -iname aws-accounts |sort -d |head -1)
+export moveawstools="${HOME}/GitHub/Move-AWS-Tools"
+export getawskeys="${moveawstools}/get-aws-keys.py"
+export awsaccts="${HOME}/GitHub/aws-accounts"
+export acctslist="${awsaccts}/aws-account-list.csv"
 
 # Set File and PATH Location
 FILE=$1
-DIR=$PWD
 
 # Check for if File is passed
 if [ -z "$1" ]; then
-  echo "You must provide a shell script to run across all accounts." && exit 1;
+  echo "Error: You must provide a shell script to run across all accounts."
+  exit 1
 fi
 
 if [ ! -f "$FILE" ]; then
-  echo && echo "You must provide a shell script file to run across all accounts." && exit 1;
+  echo "Error: You must provide a valid shell script file to run across all accounts."
+  exit 1
 fi
 
-# Check if variables are present
-if [[ -z $getawskeys ]]; then
-  mkdir -p ~/GitHub/ && git clone --depth 1 git@github.move.com:IT-Operations/Move-AWS-Tools.git ~/GitHub/
-  export getawskeys="~/GitHub/Move-AWS-Tools/get-aws-keys.py"
+# Ensure necessary repositories are cloned and up-to-date
+if [ ! -d "$moveawstools" ]; then
+  echo "Cloning Move-AWS-Tools..."
+  mkdir -p "${HOME}/GitHub/" && git clone --depth 1 git@github.move.com:IT-Operations/Move-AWS-Tools.git "$moveawstools"
 else
-  echo && echo "Pulling latest copy of Move-AWS-Tools" && cd $moveawstools && git pull && cd $DIR
+  echo "Pulling latest copy of Move-AWS-Tools..."
+  pushd "$moveawstools" > /dev/null && git pull && popd > /dev/null || exit
 fi
 
-if [[ -z $acctslist ]]; then
-  mkdir -p ~/GitHub/ && git clone --depth 1 git@github.move.com:IT-Operations/aws-accounts.git ~/GitHub/
-  export acctslist="~/GitHub/aws-accounts/aws-account-list.csv"
+if [ ! -d "$awsaccts" ]; then
+  echo "Cloning aws-accounts..."
+  mkdir -p "${HOME}/GitHub/" && git clone --depth 1 git@github.move.com:IT-Operations/aws-accounts.git "$awsaccts"
 else
-  echo && echo "Pulling latest copy of aws-accounts" && cd $awsaccts && git pull && cd $DIR
+  echo "Pulling latest copy of aws-accounts..."
+  pushd "$awsaccts" > /dev/null && git pull && popd > /dev/null || exit
 fi
 
 # More Variables to Declare
@@ -43,24 +47,34 @@ declare -a account_name
 declare -a account_environment
 
 # Read in the Accounts List
-ii=1
+ii=0 # Start index from 0 for bash arrays
 
 while IFS=$',' read -r accountName environment accountID
 do
+  # Skip header row if present (assuming header is "accountName,environment,accountID")
+  if [[ "$accountName" == "accountName" && "$environment" == "environment" && "$accountID" == "accountID" ]]; then
+    continue
+  fi
   account_id[$ii]=$accountID
   account_name[$ii]=$accountName
   account_environment[$ii]=$environment
-  ii=$ii+1
+  ii=$((ii+1))
 done < "$acctslist"
 
-for aid in ${account_id[@]}
+# Construct the account list string for ACCOUNTLIST variable
+al=""
+first_account=true
+for aid in "${account_id[@]}"
 do
-  al="$al, \"$aid\""
+  if [ "$first_account" = true ]; then
+    al="\"$aid\""
+    first_account=false
+  else
+    al+=", \"$aid\""
+  fi
 done
 
-al="${al:2}"
-
-for key in ${!account_id[@]};
+for key in "${!account_id[@]}";
 do
   echo ""
   echo "-----------------------------------------------------------------------------"
@@ -72,27 +86,28 @@ do
   # Old ec2 tools use other env vars
   unset AWS_ACCESS_KEY AWS_SECRET_KEY AWS_DELEGATION_TOKEN
 
-  ACCOUNT="${account_id[$key]}"
-  ACCOUNTNAME="${account_name[$key]}_${account_environment[$key]}"
-  ENVIRONMENT="${account_environment[$key]}"
-  ACCOUNTLIST=${al}
+  export ACCOUNT="${account_id[$key]}"
+  export ACCOUNTNAME="${account_name[$key]}_${account_environment[$key]}"
+  export ENVIRONMENT="${account_environment[$key]}"
+  export ACCOUNTLIST="${al}" # Use the constructed string
 
-  if [[ $ACCOUNTNAME == "infosec_dev" ]]; then
+  ROLE="Move-SE" # Default role
+  if [[ "$ACCOUNTNAME" == "infosec_dev" ]]; then
     ROLE="User"
-  else
-    ROLE="Move-SE"
   fi
 
   # Check for Accounts that have no Move-SE Role
-  if [[ $ACCOUNTNAME == "move_backup" ]] ||
-  [[ $ACCOUNTNAME == "move_qa" ]] ||
-  [[ $ACCOUNTNAME == "rdc_local" ]]; then
-    echo && echo "Skipping ..."
-  else
-    # Assume Role in Given Account
-    $getawskeys -r $ROLE -p $ACCOUNTNAME
+  case "$ACCOUNTNAME" in
+    "move_backup"|"move_qa"|"rdc_local")
+      echo "Skipping account: $ACCOUNTNAME"
+      continue # Skip to the next iteration of the loop
+      ;;
+    *)
+      # Assume Role in Given Account
+      "${getawskeys}" -r "${ROLE}" -p "${ACCOUNTNAME}"
 
-    # Run Script
-    source $FILE
-  fi
+      # Run Script
+      source "${FILE}"
+      ;;
+  esac
 done

@@ -1,15 +1,14 @@
 #!/bin/bash
 
-#locate host-manager |grep webapps |grep '/host-manager' &> /dev/null || locate manager |grep webapps |grep '/manager' &> /dev/null
-find / -name *manager |grep webapps
+# Suppress permission denied errors for cleaner output
+# Using -iname to ignore case when matching "manager"
 
-if [ "$?" -eq "0" ]; then 
-	exit 5
+# Check if any path contains "manager" (case-insensitive) and "webapps" (case-sensitive)
+if find / -iname '*manager*' -path '*webapps*' -print -quit 2>/dev/null | grep -q .; then
+    exit 5
 fi
 
-#locate host-manager |grep -i catalina |grep '/host-manager' &> /dev/null || locate manager |grep -i catalina |grep '/manager' &> /dev/null
-find / -name *manager |grep -i catalina
-
-if [ "$?" -eq "0" ]; then 
-	exit 5
+# Check if any path contains "manager" (case-insensitive) and "catalina" (case-insensitive)
+if find / -iname '*manager*' -ipath '*catalina*' -print -quit 2>/dev/null | grep -q .; then
+    exit 5
 fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright Red Hat Inc., 2002
 # Copyright Mission Critical Linux, 2000
@@ -30,40 +30,94 @@
 # service.
 #
 
+# shellcheck disable=SC1091
 . /etc/rc.d/init.d/functions
 
-# Set Tomcat environment.
 USER=root
 PROG=tomcat
-LOCKFILE=/var/lock/$PROG
-export BASEDIR=/data/$PROG
-export TOMCAT_HOME=$BASEDIR
-export CATALINA_PID=/var/run/$PROG.pid
-#export CATALINA_OPTS="-DHOME=$BASEDIR/home -Xmx512m -Djava.awt.headless=true"
+LOCKFILE="/var/lock/${PROG}"
+export BASEDIR="/data/${PROG}"
+export TOMCAT_HOME="${BASEDIR}"
+export CATALINA_PID="/var/run/${PROG}.pid"
+# export CATALINA_OPTS="-DHOME=${BASEDIR}/home -Xmx512m -Djava.awt.headless=true"
 
-case "$1" in
-  start)
-        echo -n "Starting $PROG: "
-        status -p $CATALINA_PID $PROG > /dev/null && failure || (su -p -s /bin/sh $USER -c "$TOMCAT_HOME/bin/catalina.sh start" > /dev/null && (touch $LOCKFILE ; success))
+show_usage() {
+    echo "Usage: $0 {start|stop|restart|condrestart|status}"
+    exit 1
+}
+
+start() {
+    echo -n "Starting $PROG: "
+    if status -p "$CATALINA_PID" "$PROG" > /dev/null 2>&1 ; then
+        failure
         echo
-        ;;
-  stop)
-        echo -n "Shutting down $PROG: "
-        status -p $CATALINA_PID $PROG > /dev/null && su -p -s /bin/sh $USER -c "$TOMCAT_HOME/bin/catalina.sh stop" > /dev/null && (rm -f $LOCKFILE ; success) || failure
+        return 1
+    fi
+
+    if su -p -s /bin/sh "$USER" -c "\"${TOMCAT_HOME}/bin/catalina.sh\" start" > /dev/null 2>&1 ; then
+        touch "$LOCKFILE"
+        success
         echo
+        return 0
+    else
+        failure
+        echo
+        return 1
+    fi
+}
+
+stop() {
+    echo -n "Shutting down $PROG: "
+    if status -p "$CATALINA_PID" "$PROG" > /dev/null 2>&1 ; then
+        if su -p -s /bin/sh "$USER" -c "\"${TOMCAT_HOME}/bin/catalina.sh\" stop" > /dev/null 2>&1 ; then
+            rm -f "$LOCKFILE"
+            success
+            echo
+            return 0
+        else
+            failure
+            echo
+            return 1
+        fi
+    else
+        failure
+        echo
+        return 1
+    fi
+}
+
+restart() {
+    stop
+    start
+}
+
+condrestart() {
+    if [ -f "$LOCKFILE" ]; then
+        restart
+    fi
+}
+
+status_tomcat() {
+    status -p "$CATALINA_PID" "$PROG"
+}
+
+case "${1:-}" in
+    start)
+        start
         ;;
-  restart)
-        $0 stop
-        $0 start
+    stop)
+        stop
         ;;
-  condrestart)
-       [ -e $LOCKFILE ] && $0 restart
-       ;;
-  status)
-        status -p $CATALINA_PID $PROG
+    restart)
+        restart
         ;;
-  *)
-        echo "Usage: $0 {start|stop|restart|condrestart|status}"
-        exit 1
+    condrestart)
+        condrestart
+        ;;
+    status)
+        status_tomcat
+        ;;
+    *)
+        show_usage
         ;;
 esac

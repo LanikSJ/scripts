@@ -3,14 +3,19 @@
 # Usage: ec2t AccountName
 
 # Variables
-export username=`whoami`
+username=$(whoami)
+export username
 
-IFS=_ read -a account <<< "$1"
+IFS=_
+read -r -a account <<< "$1"
 export NAME=${account[0]}
 export ENVIRONMENT=${account[1]}
-export getawskeys=$(find ~/GitHub/ -iname get-aws-keys.py |sort -d |head -1)
-export AWSACCTS=$(find ~/GitHub/ -iname aws-account-list.csv |sort -d |head -1)
-export ARN_ACCOUNT=$(grep $NAME $AWSACCTS |grep $ENVIRONMENT |cut -d "," -f 3)
+getawskeys=$(find ~/GitHub/ -iname get-aws-keys.py |sort -d |head -1)
+export getawskeys
+AWSACCTS=$(find ~/GitHub/ -iname aws-account-list.csv |sort -d |head -1)
+export AWSACCTS
+ARN_ACCOUNT=$(grep "$NAME" "$AWSACCTS" |grep "$ENVIRONMENT" |cut -d "," -f 3)
+export ARN_ACCOUNT
 
 # Make sure both required variables are present
 if [[ -z $getawskeys ]]; then
@@ -38,14 +43,14 @@ if [[ -z $role ]]; then
   echo && echo "AWS Role is blank. Please try again! " && exit 1
 fi
 
-$getawskeys -u $username -r $role -p ${1}
-if [[ $? != "0" ]]; then
+if ! "$getawskeys" -u "$username" -r "$role" -p "${1}"; then
   echo "AWS Auth failed check script path or permissions and try again! "
   echo "Repo should be checked out in ~/GitHub/Move-AWS-tools/ " && exit 1
 fi
 
 # Get Instance ID
-export INSTANCE_ID=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters Name=instance-state-name,Values=running Name=tag:Name,Values=$username-test --output text)
+INSTANCE_ID=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --filters Name=instance-state-name,Values=running Name=tag:Name,Values="$username"-test --output text)
+export INSTANCE_ID
 
 # If no instances left no need to go any further
 if [[ -z ${INSTANCE_ID} ]]; then
@@ -53,12 +58,11 @@ if [[ -z ${INSTANCE_ID} ]]; then
 else
   # Terminate Instance
   echo && echo "Terminating Instance ..."
-  aws ec2 terminate-instances --instance-ids ${INSTANCE_ID} 2>&1
+  aws ec2 terminate-instances --instance-ids "${INSTANCE_ID}" 2>&1
 
   # Wait for all instances to die
   echo && echo "Waiting for the instance to die ..."
-  aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}
-  if [[ "$?" == "0" ]]; then
+  if aws ec2 wait instance-terminated --instance-ids "${INSTANCE_ID}"; then
     echo && echo -e "Ok - ec2 instance terminated"
   else
     echo -e "Instance doesn't exist, nothing to terminate! "

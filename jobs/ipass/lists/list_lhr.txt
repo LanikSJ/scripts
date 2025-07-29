@@ -1,3 +1,0 @@
-emea-lhr-ts0
-emea-lhr-ts1
-emea-lhr-ts2

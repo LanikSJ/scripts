@@ -1,66 +1,149 @@
 #!/bin/bash
+# This script performs system setup and configuration tasks.
 
-# create directories
-mkdir /root/src
-mkdir /local
+set -eu
 
-# place config files in required paths
-wget -P /root/src  http://ks1.sjc.trymedia.com/post/dli/conf/iptables
-cp -f /root/src/iptables /etc/sysconfig/
+# --- Configuration Variables ---
+BASE_URL="http://ks1.sjc.trymedia.com/post"
+TEMP_DIR="/tmp/run_post_script_temp_$$" # Unique temporary directory
 
-# amhttpd
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/logs.conf
-cp -f /root/src/logs.conf /etc/httpd/conf.d/
-wget -P /root/src http://ks1.sjc.trymedia.com/post/src/trymedia/amhttpd_2.6.tgz
-tar -C /root/src -xzvf /root/src/amhttpd_2.6.tgz
-cp -rf /root/src/amhttpd_2.6/* /
-/bin/bash /root/src/amhttpd_2.6/install.sh
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/amhttpd
-cp -f /root/src/amhttpd /etc/logrotate.d/
-chmod -R 777 /var/log/amhttpd
-chown -R root.root /var/log/amhttpd
-chkconfig --add amhttpd
+# --- Helper Functions ---
 
-# httpd.conf
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/httpd.conf
-mv -f /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.orig
-cp -f /root/src/httpd.conf /etc/httpd/conf/
+# download_and_copy <src_on_server> <dest_path> <permissions> <owner>
+download_and_copy() {
+    local src_path_on_server="$1"
+    local dest_path="$2"
+    local permissions="${3:-}" # Optional: permissions (e.g., 644)
+    local owner="${4:-}"      # Optional: owner (e.g., root:root)
 
-# set up catalog sync
-useradd -s /bin/bash -c "uploadr, APP" -m -k /etc/skel -d /home/uploadr uploadr
-wget -P /root/src http://ks1.sjc.trymedia.com/post/src/trymedia/rsync.tgz
-tar -C /root/src -xzvf /root/src/rsync.tgz
-cp -rf /root/src/rsync /home/uploadr
-chown -R uploadr.uploadr /home/uploadr/
-mkdir /catalog
-chown -R uploadr.uploadr /catalog
-chmod -R 777 /catalog
+    echo "Downloading ${BASE_URL}${src_path_on_server} to ${TEMP_DIR} and copying to ${dest_path}"
+    wget -q -P "${TEMP_DIR}" "${BASE_URL}${src_path_on_server}"
+    local filename
+    filename="$(basename "${src_path_on_server}")"
 
-# set up rrd
-wget -P /root/src http://ks1.sjc.trymedia.com/post/src/trymedia/rrd.tgz
-tar -C /root/src -xzvf /root/src/rrd.tgz
-cp -rf /root/src/rrd/* /
+    # Use install for better control over permissions and ownership
+    if [[ -n "$permissions" && -n "$owner" ]]; then
+        install -m "$permissions" -o "${owner%:*}" -g "${owner#*:}" "${TEMP_DIR}/${filename}" "${dest_path}"
+    elif [[ -n "$permissions" ]]; then
+        install -m "$permissions" "${TEMP_DIR}/${filename}" "${dest_path}"
+    else
+        cp -f "${TEMP_DIR}/${filename}" "${dest_path}"
+    fi
+}
 
-# schedule rrd and rsync
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/crontab
-cp -f /root/src/crontab /etc
+# download_extract_and_copy <src_on_server> <dest_path>
+download_extract_and_copy() {
+    local src_path_on_server="$1"
+    local dest_path="$2"
 
-# 3ware-utils and client tools
-wget -P /root/src http://ks1.sjc.trymedia.com/post/src/trymedia/3ware-utils.tgz
-tar -C /root/src -xzvf /root/src/3ware-utils.tgz
-cp -rf /root/src/3ware-utils/* /
-chkconfig --add 3dm2
-mkdir /local/3ware_twi
-wget -P /root/src http://ks1.sjc.trymedia.com/post/src/trymedia/tw_cli-linux-x86-9.3.0.7.tgz
-tar -C /local/3ware_twi -xzvf /root/src/tw_cli-linux-x86-9.3.0.7.tgz
+    echo "Downloading and extracting ${BASE_URL}${src_path_on_server} to ${TEMP_DIR}, then copying to ${dest_path}"
+    wget -q -P "${TEMP_DIR}" "${BASE_URL}${src_path_on_server}"
+    local filename
+    filename="$(basename "${src_path_on_server}")"
+    local extract_dir
+    extract_dir="${TEMP_DIR}/$(basename "${filename}" .tgz)"
 
-# copy fstab into place
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/fstab
-cp -f /root/src/fstab /etc
+    mkdir -p "${extract_dir}"
+    tar -C "${extract_dir}" -xzvf "${TEMP_DIR}/${filename}" >/dev/null
 
-#prepare for the future
-sed 's/^/#/' /etc/sysconfig/network-scripts/ifcfg-eth0 > /etc/sysconfig/network-scripts/ifcfg-eth0:1
-mkdir /root/.ssh
-wget -P /root/src http://ks1.sjc.trymedia.com/post/dli/conf/authorized_keys
-cp -f /root/src/authorized_keys /root/.ssh
+    # Find top-level extracted content
+    local extracted_content
+    extracted_content=()
+    while IFS= read -r -d '' item; do
+        extracted_content+=("$item")
+    done < <(find "${extract_dir}" -mindepth 1 -maxdepth 1 -print0)
 
+    if [[ ${#extracted_content[@]} -eq 1 && -d "${extracted_content[0]}" ]]; then
+        cp -rf "${extracted_content[0]}/." "${dest_path}/"
+    else
+        cp -rf "${extract_dir}/." "${dest_path}/"
+    fi
+}
+
+# --- Main Script Execution ---
+
+echo "Starting system setup script..."
+
+mkdir -p "${TEMP_DIR}"
+cleanup() {
+    echo "Cleaning up temporary directory: ${TEMP_DIR}"
+    rm -rf "${TEMP_DIR}"
+}
+trap cleanup EXIT
+
+echo "Creating system directories..."
+mkdir -p /root/src
+mkdir -p /local
+
+echo "Setting up iptables configuration..."
+download_and_copy "/dli/conf/iptables" "/etc/sysconfig/" "644" "root:root"
+
+echo "Setting up amhttpd..."
+download_and_copy "/dli/conf/logs.conf" "/etc/httpd/conf.d/" "644" "root:root"
+download_extract_and_copy "/src/trymedia/amhttpd_2.6.tgz" "/"
+
+if [[ -f "/amhttpd_2.6/install.sh" ]]; then
+    echo "Running amhttpd install script..."
+    /bin/bash "/amhttpd_2.6/install.sh"
+else
+    echo "Warning: amhttpd install script not found at /amhttpd_2.6/install.sh"
+fi
+
+download_and_copy "/dli/conf/amhttpd" "/etc/logrotate.d/" "644" "root:root"
+
+echo "Setting permissions for /var/log/amhttpd..."
+mkdir -p /var/log/amhttpd
+chmod -R 755 /var/log/amhttpd
+chown -R root:root /var/log/amhttpd
+
+echo "Adding amhttpd to chkconfig..."
+chkconfig --add amhttpd || echo "amhttpd already added to chkconfig or failed."
+
+echo "Setting up httpd.conf..."
+if [[ -f "/etc/httpd/conf/httpd.conf" ]]; then
+    echo "Backing up existing httpd.conf..."
+    mv -f /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.orig
+fi
+download_and_copy "/dli/conf/httpd.conf" "/etc/httpd/conf/" "644" "root:root"
+
+echo "Setting up catalog sync user and directories..."
+if ! id "uploadr" &>/dev/null; then
+    useradd -s /bin/bash -c "uploadr, APP" -m -k /etc/skel -d /home/uploadr uploadr
+else
+    echo "User 'uploadr' already exists."
+fi
+
+download_extract_and_copy "/src/trymedia/rsync.tgz" "/home/uploadr"
+chown -R uploadr:uploadr /home/uploadr/rsync
+
+mkdir -p /catalog
+chown -R uploadr:uploadr /catalog
+chmod -R 755 /catalog
+
+echo "Setting up RRD..."
+download_extract_and_copy "/src/trymedia/rrd.tgz" "/"
+
+echo "Scheduling RRD and Rsync via crontab..."
+download_and_copy "/dli/conf/crontab" "/etc/" "644" "root:root"
+
+echo "Setting up 3ware-utils and client tools..."
+download_extract_and_copy "/src/trymedia/3ware-utils.tgz" "/"
+chkconfig --add 3dm2 || echo "3dm2 already added to chkconfig or failed."
+
+mkdir -p /local/3ware_twi
+download_extract_and_copy "/src/trymedia/tw_cli-linux-x86-9.3.0.7.tgz" "/local/3ware_twi"
+
+echo "Copying fstab configuration..."
+download_and_copy "/dli/conf/fstab" "/etc/" "644" "root:root"
+
+echo "Preparing for future network configuration and SSH access..."
+if [[ -f "/etc/sysconfig/network-scripts/ifcfg-eth0" ]]; then
+    sed 's/^/#/' /etc/sysconfig/network-scripts/ifcfg-eth0 > /etc/sysconfig/network-scripts/ifcfg-eth0:1
+else
+    echo "Warning: /etc/sysconfig/network-scripts/ifcfg-eth0 not found."
+fi
+
+mkdir -p /root/.ssh
+download_and_copy "/dli/conf/authorized_keys" "/root/.ssh/" "600" "root:root"
+
+echo "Script execution completed."

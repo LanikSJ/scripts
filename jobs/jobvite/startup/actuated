@@ -26,24 +26,34 @@
 #
 
 # Source Function Library
+
+# shellcheck disable=SC1091
+
 . /etc/rc.d/init.d/functions
 
-RETVAL=0
 prog=Actuate
 START="/home/actuate/AcServer/bin/start_srvr.sh"
 STOP="/home/actuate/AcServer/bin/shutdown_srvr.sh -t0 -y"
 LOGS=/var/log/actuate/
 
 start() {
-        echo -n "Starting $prog:"
-        sudo -u actuate $START > $LOGS/startup.log && success || failure
-        echo
+        printf "Starting %s:" "$prog"
+        if sudo -u actuate $START | sudo tee $LOGS/startup.log >/dev/null; then
+            success
+        else
+            failure
+        fi
+        printf "\n"
 }
 
 stop() {
-        echo -n "Stopping $prog: "
-        sudo -u actuate $STOP > $LOGS/shutdown.log && success || failure
-        echo
+        printf "Stopping %s: " "$prog"
+        if sudo -u actuate "$STOP" | sudo tee $LOGS/shutdown.log >/dev/null; then
+            success
+        else
+            failure
+        fi
+        printf "\n"
 }
 
 case "$1" in
@@ -61,7 +71,7 @@ case "$1" in
             ;;
 
         *)
-            echo $"Usage: $0 {start|stop|restart}"
+            echo "Usage: $0 {start|stop|restart}"
             exit 1
 
 esac

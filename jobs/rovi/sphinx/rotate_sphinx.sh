@@ -1,27 +1,41 @@
 #!/bin/bash
+set -euo pipefail
 
-# Check for lock file
-if [ -f /var/lock/sphinxlockfile ]; then
-	# Make sure its owned by sphinx
-	/bin/chown sphinx:sphinx /var/lock/sphinxlockfile
-else 
-	# Create the file if it doesn't exist
-	/bin/touch /var/lock/sphinxlockfile && /bin/chown sphinx:sphinx /var/lock/sphinxlockfile
-fi
-# Check what user is running the script
-if [ "$(id -u)" != "5111" ]; then 
-   echo "*****                                              *****" 1>&2
-   echo "*****      This script must be run as sphinx!      *****" 1>&2
-   echo "*****      This script will sudo to sphinx now!    *****" 1>&2
-   echo "*****                                              *****" 1>&2
-# Add a pause so the above text can be read
-	function pause(){
-   	read -p "$*"
-	}
-   pause "***** Press any key to continue or Ctrl+C to exit  *****" 1>&2
-# sudo to sphinx and run the command
-   /usr/bin/sudo /bin/su - sphinx -c "/usr/bin/flock -n -x /var/lock/sphinxlockfile -c '/var/lib/sphinx/bin/indexer --config /var/lib/sphinx/etc/sphinx.conf --all --rotate'"
+LOCKFILE="/var/lock/sphinxlockfile"
+SPHINX_USER="sphinx"
+INDEXER="/var/lib/sphinx/bin/indexer"
+CONFIG="/var/lib/sphinx/etc/sphinx.conf"
+
+# Ensure lock file exists and is owned by sphinx
+if [[ -e "$LOCKFILE" ]]; then
+    /bin/chown "${SPHINX_USER}:${SPHINX_USER}" "$LOCKFILE"
 else
-# Otherwise run the command normally
-   /usr/bin/flock -n -x /var/lock/sphinxlockfile -c '/var/lib/sphinx/bin/indexer --config /var/lib/sphinx/etc/sphinx.conf --all --rotate'
+    /bin/touch "$LOCKFILE"
+    /bin/chown "${SPHINX_USER}:${SPHINX_USER}" "$LOCKFILE"
 fi
+
+# Function to pause with a prompt
+pause() {
+    read -r -p "$*" 1>&2
+}
+
+# Check if current user is sphinx (user id 5111)
+if [[ "$(id -u)" != "5111" ]]; then
+    cat >&2 <<-'EOF'
+    *****                                              *****
+    *****      This script must be run as sphinx!      *****
+    *****      This script will sudo to sphinx now!    *****
+    *****                                              *****
+EOF
+
+    pause "***** Press any key to continue or Ctrl+C to exit  *****"
+
+    # Run indexer via sudo and flock as sphinx
+    /usr/bin/sudo /bin/su - "${SPHINX_USER}" -c \
+    "/usr/bin/flock -n -x '$LOCKFILE' -c \"$INDEXER --config $CONFIG --all --rotate\""
+
+    exit 0
+fi
+
+# If already running as sphinx, run indexer directly
+/usr/bin/flock -n -x "$LOCKFILE" -c "$INDEXER --config $CONFIG --all --rotate"

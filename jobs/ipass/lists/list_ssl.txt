@@ -1,9 +1,0 @@
-r.ipass.com
-t.ipass.com
-SalesDemo.ipass.com
-sqm.ipass.com
-symphonyqa.ipass.com
-www.ipass.com
-upload.ipass.com
-Portal.ipass.com
-OM-datacollector.ipass.com

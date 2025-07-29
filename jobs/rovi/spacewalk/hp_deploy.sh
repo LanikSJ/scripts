@@ -1,31 +1,50 @@
 #!/bin/bash
-if grep -qs '/staging' /proc/mounts; then
-umount /staging
+set -euo pipefail
+
+# Directory to mount remote NFS share
+MOUNT_POINT="/staging"
+
+# Check if $MOUNT_POINT is mounted, and unmount if so
+if grep -qs "$MOUNT_POINT" /proc/mounts; then
+    umount "$MOUNT_POINT"
 fi
 
-mkdir -p /staging
+# Ensure mount point directory exists
+mkdir -p "$MOUNT_POINT"
+
+# Update NRPE config and restart service
 rhncfg-client get /etc/nagios/nrpe.cfg
 service nrpe restart
 
-if [ `alias |grep cp > /dev/null 2>&1; echo $?` -eq 0 ]; then
-unalias cp
+# Unalias cp if it exists
+if alias cp &>/dev/null; then
+    unalias cp
 fi
 
-if [ `hostname |grep tul > /dev/null 2>&1; echo $?` -eq 0 ]; then
-BUILD="10.202.51.32"
-elif [ `hostname |grep lux > /dev/null 2>&1; echo $?` -eq 0 ]; then
-BUILD="10.110.212.14"
-elif [ `hostname |grep scl > /dev/null 2>&1; echo $?` -eq 0 ] || [ `hostname |grep sjc > /dev/null 2>&1; echo $?` -eq 0 ] || [ `hostname |grep amgsj > /dev/null 2>&1; echo $?` -eq 0 ]; then
-BUILD="10.28.208.20"
+# Get lowercase hostname once
+hostname_lower=$(hostname | tr '[:upper:]' '[:lower:]')
+
+# Determine BUILD IP based on hostname pattern
+if grep -q 'tul' <<< "$hostname_lower"; then
+    BUILD="10.202.51.32"
+elif grep -q 'lux' <<< "$hostname_lower"; then
+    BUILD="10.110.212.14"
+elif grep -qE 'scl|sjc|amgsj' <<< "$hostname_lower"; then
+    BUILD="10.28.208.20"
 else
-BUILD="10.202.51.32"
+    BUILD="10.202.51.32"
 fi
 
-if [ `cat /var/spool/cron/root |grep hp_disk > /dev/null 2>&1; echo $?` -ne 0 ]; then
-echo "00 */1 * * * /usr/sbin/hp_disk.sh > /var/log/hp_disk_check.log" >> /var/spool/cron/root
+CRON_FILE="/var/spool/cron/root"
+CRON_JOB="00 */1 * * * /usr/sbin/hp_disk.sh > /var/log/hp_disk_check.log"
+
+# Add the cron job if missing
+if ! grep -qF -- "$CRON_JOB" "$CRON_FILE"; then
+    echo "$CRON_JOB" >> "$CRON_FILE"
 fi
 
-mount -o ro,soft,nolock $BUILD:/var/linux/redhat/misc/6Server/scripts/ /staging
-cp /staging/HP/hp_disk.sh /usr/sbin/
+# Mount remote NFS share, copy script, set permissions, and unmount
+mount -o ro,soft,nolock "${BUILD}:/var/linux/redhat/misc/6Server/scripts/" "$MOUNT_POINT"
+cp "$MOUNT_POINT/HP/hp_disk.sh" /usr/sbin/
 chmod 700 /usr/sbin/hp_disk.sh
-umount /staging
+umount "$MOUNT_POINT"

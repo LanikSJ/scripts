@@ -17,23 +17,29 @@
 #   3 = Unknown
 
 STATE_OK=0
-STATE_WARNING=1
 STATE_CRITICAL=2
 STATE_UNKNOWN=3
 
 # Set our variables
 HPCLI='/usr/sbin/hpacucli'
-STATUS='$HPCLI ctrl all show config|grep -i fail'
 
-# Check make sure CLI is installed
-[ -f $HPCLI ] || echo "$HPCLI doesn't exist!" && echo $STATE_UNKNOWN
+# Check if CLI exists
+if [ ! -x "$HPCLI" ]; then
+    echo "UNKNOWN: $HPCLI doesn't exist or is not executable."
+    exit $STATE_UNKNOWN
+fi
 
-# Run the check and produce output
-echo $STATUS
-if [ "$?" = "0" ]; then
-	echo "Critical: $STATUS"
-	echo $STATE_CRITICAL
+# Run the hpacucli command and check for failures
+# We capture the output of the drive status grep command
+
+# Note: Run the command without quotes so it executes, not just as a string
+failures=$($HPCLI ctrl all show config | grep -i fail || true)
+
+if [[ -n $failures ]]; then
+    echo "CRITICAL: Drive failures detected:"
+    echo "$failures"
+    exit $STATE_CRITICAL
 else
-	echo "OK: No Drive Failures Detected."
-	echo $STATE_OK
+    echo "OK: No Drive Failures Detected."
+    exit $STATE_OK
 fi

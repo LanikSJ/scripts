@@ -1,5 +1,12 @@
 #!/bin/bash
-find / -name *manager |grep webapps |grep -v tmp |grep -v cache
-if [ "$?" -eq "0" ]; then exit 5; fi
-find / -name *manager |grep -i catalina |grep -v tmp |grep -v cache
-if [ "$?" -eq "0" ]; then exit 5; fi
+set -euo pipefail
+
+# Search for paths containing 'manager' with 'webapps', excluding 'tmp' and 'cache'
+if find / -name '*manager*' 2>/dev/null | grep -q 'webapps' | grep -vqE 'tmp|cache'; then
+    exit 5
+fi
+
+# Search for paths containing 'manager' with 'catalina' (case-insensitive), excluding 'tmp' and 'cache'
+if find / -name '*manager*' 2>/dev/null | grep -i 'catalina' | grep -vqE 'tmp|cache'; then
+    exit 5
+fi

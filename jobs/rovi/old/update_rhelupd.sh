@@ -1,5 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
-for i in $( echo rhelupd1 ; echo rhelupd2 ) ; do
-	scp ~/scripts/ldap-client.sh ~/scripts/change_home_dir.sh ~/scripts/revert_ldap.sh $i:
+# List of target hosts
+hosts=("rhelupd1" "rhelupd2")
+
+# Scripts to copy
+scripts=(
+  ~/scripts/ldap-client.sh
+  ~/scripts/change_home_dir.sh
+  ~/scripts/revert_ldap.sh
+)
+
+for host in "${hosts[@]}"; do
+  echo "Copying scripts to $host..."
+  if ! scp "${scripts[@]}" "${host}:"; then
+    echo "Failed to copy scripts to $host"
+  fi
 done

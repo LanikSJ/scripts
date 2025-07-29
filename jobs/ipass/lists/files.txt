@@ -1,8 +1,0 @@
-/etc/nsswitch.conf
-/etc/security/access.conf
-/etc/ldap.conf
-/etc/nslcd.conf
-/etc/nscd.conf
-/etc/pam.d/common-*
-/etc/pam.d/login
-/etc/pam.d/sshd

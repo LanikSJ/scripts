@@ -26,6 +26,9 @@
 #
 
 # Source Function Library
+
+# shellcheck disable=SC1091
+
 . /etc/rc.d/init.d/functions
 
 # Set PostgreSQL environment
@@ -46,28 +49,28 @@ STOP="$pgsql_home/bin/pg_ctl stop -D $encyc_data > $LOGS/shutdown.log &"
 RETVAL=0
 
 start() {
-        echo -n $"Starting $prog: "
-        if [ $UID -ne 0 ]; then
+        printf "%s" "Starting $prog: "
+        if [ "$(id -u)" -ne 0 ]; then
                 RETVAL=1
                 failure
         else
-                daemon --user=actuate $START
+                daemon --user=actuate "$START"
                 RETVAL=$?
-                [ $RETVAL -eq 0 ] && touch /var/lock/subsys/postgres
+                [ "$RETVAL" -eq 0 ] && touch /var/lock/subsys/postgres
         fi;
         echo
         return $RETVAL
 }
 
 stop() {
-        echo -n $"Stopping $prog: "
-        if [ $UID -ne 0 ]; then
+        printf "%s" "Stopping $prog: "
+        if [ "$(id -u)" -ne 0 ]; then
                 RETVAL=1
                 failure
         else
-                daemon --user=actuate $STOP
+                daemon --user=actuate "$STOP"
                 RETVAL=$?
-                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/postgres
+                [ "$RETVAL" -eq 0 ] && rm -f /var/lock/subsys/postgres
         fi;
         echo
         return $RETVAL
@@ -89,7 +92,7 @@ case "$1" in
             ;;
 
         *)
-            echo $"Usage: $0 {start|stop|restart}"
+            echo "Usage: $0 {start|stop|restart}"
             exit 1
 
 esac

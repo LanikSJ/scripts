@@ -16,4 +16,4 @@ SERVERS="lweb1-va.jobvite.com		\
 	lweb8-va.jobvite.com		\
 	lweb9-va.jobvite.com		\
             lweb10-va.jobvite.com"
-for i in $SERVERS; do ssh ierenstein@$i "date" && ssh ierenstein@$i "hostname"; done
+for i in $SERVERS; do ssh ierenstein@"$i" "date" && ssh ierenstein@"$i" "hostname"; done

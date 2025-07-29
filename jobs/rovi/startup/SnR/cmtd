@@ -1,22 +1,4 @@
-#
-# Copyright ROVI Corporation, 2012
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 2, or (at your option) any
-# later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING. If not, write to the
-# Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
-# MA 02139, USA.
-#
-# Author: Ilan Erenstein
+#!/bin/bash
 #
 # chkconfig: 2345 99 01
 # description: Cluster Manager Tool Service
@@ -26,63 +8,67 @@
 # service.
 #
 
-# source function library
+# Source function library
+
+# shellcheck disable=SC1091
 . /etc/init.d/functions
 
 prog="Cluster Manager Tool"
 mui_home="/opt/mui/cluster_manager"
 LOGS="$mui_home/logs"
-START="$mui_home/bin/start.sh > $LOGS/startup.log"
-STOP="$mui_home/bin/stop.sh > $LOGS/shutdown.log"
+START_CMD="$mui_home/bin/start.sh"
+STOP_CMD="$mui_home/bin/stop.sh"
+START_LOG="$LOGS/startup.log"
+STOP_LOG="$LOGS/shutdown.log"
 
-mkdir -p $LOGS
+# Ensure logs directory exists
+mkdir -p "$LOGS"
 
 RETVAL=0
 
 start() {
-        echo -n $"Starting $prog: "
-        if [ $UID -ne 0 ]; then
-                RETVAL=1
-                failure
-        else
-                daemon $START
-                RETVAL=$?
-                [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cmtd
-        fi;
-        echo
-        return $RETVAL
+    echo -n $"Starting $prog: "
+    if [[ $EUID -ne 0 ]]; then
+        RETVAL=1
+        failure
+    else
+        # Use daemon to run start script, redirect output to log
+        daemon bash -c "\"$START_CMD\" > \"$START_LOG\" 2>&1"
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cmtd
+    fi
+    echo
+    return $RETVAL
 }
 
 stop() {
-        echo -n $"Stopping $prog: "
-        if [ $UID -ne 0 ]; then
-                RETVAL=1
-                failure
-        else
-                daemon $STOP
-                RETVAL=$?
-                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/cmtd
-        fi;
-        echo
-        return $RETVAL
+    echo -n $"Stopping $prog: "
+    if [[ $EUID -ne 0 ]]; then
+        RETVAL=1
+        failure
+    else
+        # Use daemon to run stop script, redirect output to log
+        daemon bash -c "\"$STOP_CMD\" > \"$STOP_LOG\" 2>&1"
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/cmtd
+    fi
+    echo
+    return $RETVAL
 }
 
 case "$1" in
-        start)
-            start
-            ;;
-
-        stop)
-            stop
-            ;;
-
-        restart)
-            stop
-            start
-            ;;
-
-        *)
-            echo $"Usage: $0 {start|stop|restart}"
-            exit 1
-
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}" >&2
+        exit 1
+        ;;
 esac

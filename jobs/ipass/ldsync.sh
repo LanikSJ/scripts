@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Syncing Certs"
 rsync -avpr --delete ~/Configs/ldap/nss/certs/ ~/Drive/Cloud\ Services/Cloud\ Systems/LDAP/certs/
 echo "Syncing RHEL5"

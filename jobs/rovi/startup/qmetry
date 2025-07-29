@@ -1,68 +1,83 @@
+#!/bin/bash
 # chkconfig: 2345 86 15
 # description: QMetry Service
 # Shell script for starting xampp and jasperserver services.
 
-
-# Source fucntion library
+# Source function library for success/failure functions
+# shellcheck disable=SC1091
 . /etc/init.d/functions
 
-start() {
-        echo -n "Starting QMetry: "
+prog="QMetry"
+LAMPP_DIR="/opt/lampp"
+JASPER_DIR="/opt/jasperserver-3.5.0"
 
-        cd /opt/lampp
-		./lampp start
-		cd /opt/jasperserver-3.5.0
-		./jasperctl.sh start
-        return
+start() {
+    echo -n "Starting $prog: "
+    
+    if (
+        cd "$LAMPP_DIR" && ./lampp start &&
+        cd "$JASPER_DIR" && ./jasperctl.sh start
+    ); then
+        success
+    else
+        failure
+    fi
+    echo
 }
 
 stop() {
-        echo -n "Stopping QMetry: "
+    echo -n "Stopping $prog: "
 
-		cd /opt/lampp
-		./lampp stop
-		cd /opt/jasperserver-3.5.0
-		./jasperctl.sh start
-        return
+    if (
+        cd "$LAMPP_DIR" && ./lampp stop &&
+        cd "$JASPER_DIR" && ./jasperctl.sh stop
+    ); then
+        success
+    else
+        failure
+    fi
+    echo
 }
 
 restart() {
-        echo -n "Restarting QMetry: "
+    echo -n "Restarting $prog: "
 
-		cd /opt/lampp
-		./lampp restart
-		cd /opt/jasperserver-3.5.0
-		./jasperctl.sh restart
-        return
+    if (
+        cd "$LAMPP_DIR" && ./lampp restart &&
+        cd "$JASPER_DIR" && ./jasperctl.sh restart
+    ); then
+        success
+    else
+        failure
+    fi
+    echo
 }
 
 status() {
-		cd /opt/lampp
-		./lampp status
-        return
+    cd "$LAMPP_DIR" && ./lampp status
+    # Optionally, check JasperServer status here as well
 }
 
-case "$1" in
+usage() {
+    echo "Usage: $0 {start|stop|status|restart|reload}"
+    exit 1
+}
 
+case "${1:-}" in
     start)
         start
         ;;
-		
     stop)
         stop
         ;;
-		
     status)
-		status
+        status
         ;;
-		
     restart|reload)
         restart
         ;;
-		
     *)
-        echo "Usage:  {start|stop|status|reload|restart}"
-        exit 1
+        usage
         ;;
 esac
 

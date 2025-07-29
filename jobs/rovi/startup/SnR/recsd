@@ -1,22 +1,4 @@
-#
-# Copyright ROVI Corporation, 2012
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 2, or (at your option) any
-# later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING. If not, write to the
-# Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
-# MA 02139, USA.
-#
-# Author: Ilan Erenstein
+#!/bin/bash
 #
 # chkconfig: 2345 99 01
 # description: Recommendations Service
@@ -26,69 +8,73 @@
 # service.
 #
 
-# source function library
+# Source function library
+
+# shellcheck disable=SC1091
 . /etc/init.d/functions
 
+prog="Recommendations Service"
+
+# Detect mui_home directory
 if [ -d /home/recservice ]; then
-	mui_home="/home/recservice"
+    mui_home="/home/recservice"
 else
-	mui_home="/opt/recservice"
+    mui_home="/opt/recservice"
 fi
 
 LOGS="$mui_home/logs"
-START="cd $mui_home; mui_control/start.sh > $LOGS/startup.log"
-STOP="cd $mui_home; mui_control/stop.sh > $LOGS/shutdown.log"
-prog="Recommendations Service"
+START_CMD="cd \"$mui_home\" && ./mui_control/start.sh > \"$LOGS/startup.log\" 2>&1"
+STOP_CMD="cd \"$mui_home\" && ./mui_control/stop.sh > \"$LOGS/shutdown.log\" 2>&1"
 
 RETVAL=0
 
-mkdir -p $LOGS
-chown -R recservice:recservice $LOGS
+# Ensure logs directory exists and owned by recservice
+mkdir -p "$LOGS"
+chown -R recservice:recservice "$LOGS"
 
 start() {
-        echo -n $"Starting $prog: "
-        if [ $UID -ne 0 ]; then
-                RETVAL=1
-                failure
-        else
-                daemon --user=recservice $START
-                RETVAL=$?
-                [ $RETVAL -eq 0 ] && touch /var/lock/subsys/recsd
-        fi;
-        echo
-        return $RETVAL
+    echo -n $"Starting $prog: "
+    if [ "$EUID" -ne 0 ]; then
+        RETVAL=1
+        failure
+    else
+        # Run start command as recservice user via daemon
+        daemon --user=recservice bash -c "$START_CMD"
+        RETVAL=$?
+        [ "$RETVAL" -eq 0 ] && touch /var/lock/subsys/recsd
+    fi
+    echo
+    return $RETVAL
 }
 
 stop() {
-        echo -n $"Stopping $prog: "
-        if [ $UID -ne 0 ]; then
-                RETVAL=1
-                failure
-        else
-                daemon --user=recservice $STOP
-                RETVAL=$?
-                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/recsd
-        fi;
-        echo
-        return $RETVAL
+    echo -n $"Stopping $prog: "
+    if [ "$EUID" -ne 0 ]; then
+        RETVAL=1
+        failure
+    else
+        # Run stop command as recservice user via daemon
+        daemon --user=recservice bash -c "$STOP_CMD"
+        RETVAL=$?
+        [ "$RETVAL" -eq 0 ] && rm -f /var/lock/subsys/recsd
+    fi
+    echo
+    return $RETVAL
 }
 
 case "$1" in
-        start)
-            start
-            ;;
-
-        stop)
-            stop
-            ;;
-
-        restart)
-            stop
-            start
-            ;;
-
-        *)
-            echo $"Usage: $0 {start|stop|restart}"
-            exit 1
-
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}" >&2
+        exit 1
+        ;;
 esac

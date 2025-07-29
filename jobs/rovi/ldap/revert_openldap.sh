@@ -1,81 +1,121 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Ilan Erenstein 06/01/2010
-# Version:  1.10
+# Version:  1.20 (Improved by Cline)
 #
 # Changelog:
 #
 # 06/01/2010 -- Changed the copy from bath to /root/backup
+# 07/29/2025 -- Refactored for better error handling, readability, and reduced redundancy.
 #
 # This script will revert LDAP client installation changes to OpenLDAP.
 #
 
-# Enviroment variables
-#date=$(date "+%Y%m%d_%H%M")
+# Environment variables
+# date=$(date "+%Y%m%d_%H%M") # Uncomment if date is needed for logging
 backup="/root/backup"
-dir="/home"
+home_dir="/home" # Renamed 'dir' to 'home_dir' for clarity
 
-USERID=`id -u`
-if [ "$USERID" -ne 0 ]; then echo -e "Sorry, You must be root to run this script." && exit 1 fi
+# --- Functions ---
+
+# Function to check if the script is run as root
+check_root() {
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "Error: You must be root to run this script." >&2
+        exit 1
+    fi
+}
+
+# Function to pause script execution
+pause() {
+    printf "%s" "$*"
+    read -r _
+}
+
+# Function to restore a file from backup
+restore_file() {
+    source_path="$backup/$1"
+    dest_path="$2"
+    echo "Restoring $dest_path"
+    if cp -f "$source_path" "$dest_path"; then
+        echo "Done!"
+    else
+        echo "Error: Failed to restore $dest_path. Backup file $source_path might not exist." >&2
+        exit 1
+    fi
+}
+
+# Function to handle permissions for home directories
+handle_home_permissions() {
+    echo "Checking if $home_dir is empty..."
+    if [ -z "$(ls -A "$home_dir")" ]; then
+        echo "$home_dir is empty!"
+        return 0
+    fi
+
+    echo "Changing user/group permissions on home directories...."
+    # Iterate over actual user home directories, excluding special entries like 'lost+found'
+    for user_home in "$home_dir"/*; do
+        if [ -d "$user_home" ]; then # Ensure it's a directory
+            username=$(basename "$user_home")
+            if id -u "$username" >/dev/null 2>&1; then # Check if user exists
+                echo "Processing user: $username"
+                if chown -R "$username" "$user_home" && chmod 700 "$user_home"; then
+                    echo "User permissions for $username are Done!"
+                else
+                    echo "Error: Failed to change user permissions for $username." >&2
+                fi
+
+                groupname=$(id -gn "$username")
+                if [ -n "$groupname" ]; then # Ensure group name is not empty
+                    if chgrp -R "$groupname" "$user_home"; then
+                        echo "Group permissions for $username are Done!"
+                    else
+                        echo "Error: Failed to change group permissions for $username." >&2
+                    fi
+                else
+                    echo "Warning: Could not determine group for user $username." >&2
+                fi
+            else
+                echo "Warning: User $username does not exist, skipping permissions for $user_home." >&2
+            fi
+        fi
+    done
+}
+
+# --- Main Script Execution ---
+
+check_root
 
 # Add a pause so the above text can be read
-        function pause(){
-        read -p "$*"
-        }
+pause "Press [Enter] to start the LDAP client restoration..."
 
-echo -e "Restoring /etc/issue"
-cp -f $backup/issue /etc/issue
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/issue backup doesn't exist! " && exit 1 fi
+# Files to be restored
+declare -A files_to_restore=(
+    ["issue"]="/etc/issue"
+    ["sshd_config"]="/etc/ssh/sshd_config"
+    ["sendmail.cf"]="/etc/mail/sendmail.cf"
+    ["submit.cf"]="/etc/mail/submit.cf"
+    ["aliases"]="/etc/aliases"
+    ["ldap.conf"]="/etc/ldap.conf"
+    ["nsswitch.conf"]="/etc/nsswitch.conf"
+    ["system-auth"]="/etc/pam.d/system-auth"
+    ["access.conf"]="/etc/security/access.conf"
+)
 
-echo -e "Restoring /etc/ssh/sshd_config" 
-cp -f $backup/sshd_config /etc/ssh/sshd_config
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/ssh/sshd_config backup doesn't exist! " && exit 1 fi
+for file_base in "${!files_to_restore[@]}"; do
+    restore_file "$file_base" "${files_to_restore[$file_base]}"
+done
 
-echo -e "Restoring /etc/mail/sendmail.cf" 
-cp -f $backup/sendmail.cf /etc/mail/sendmail.cf
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/mail/sendmail.cf backup doesn't exist! " && exit 1 fi
+echo "All files have been restored."
 
-echo -e "Restoring /etc/mail/submit.cf" 
-cp -f $backup/submit.cf /etc/mail/submit.cf
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/mail/submit.cf backup doesn't exist! " && exit 1 fi
+handle_home_permissions
 
-echo -e "Restoring /etc/aliases" 
-cp -f $backup/aliases /etc/aliases
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/aliases backup doesn't exist! " && exit 1 fi
-
-echo -e "Restoring /etc/ldap.conf" 
-cp -f $backup/ldap.conf /etc/ldap.conf
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/ldap.conf backup doesn't exist! " && exit 1 fi
-
-echo -e "Restoring /etc/nsswitch.conf" 
-cp -f $backup/nsswitch.conf /etc/nsswitch.conf
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/nsswitch.conf backup doesn't exist! " && exit 1 fi
-
-echo -e "Restoring /etc/pam.d/system-auth" 
-cp -f $backup/system-auth /etc/pam.d/system-auth
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/pam.d/system-auth backup doesn't exist! " && exit 1 fi
-
-echo -e "Restoring /etc/security/access.conf" 
-cp -f $backup/access.conf /etc/security/access.conf
-        if [ "$?" = "0" ]; then echo -e "Done!" || echo -e "Failed to restore /etc/security/access.conf backup doesn't exist! " && exit 1 fi
-echo -e "All files have been restored. " 
-
-echo -e "Check if $dir is empty..."
-if [ "$( ls -A $dir )" ]; then
-	echo -e "Changing user/group permissions on home directories....\n"
-        for username in $( ls -l $dir | awk '{print $9}' ); do chown -R $username $dir/$username && chmod 700 $dir/$username
-                        if [ "$?" = "0" ]; then echo -e "User permissions for $username are Done!" || echo -e "Failed to change user permissions for $username! $username doesn't exist."
-                        fi
-                groupname=`id -gn $username` && chgrp -R $groupname $dir/$username
-                        if [ "$?" = "0" ]; then echo -e "Group permissions for $username are Done!" || echo -e "Failed to change group permissions for $username! $username doesn't exist."
-                        fi
-	done
-else echo -e "$dir is empty!"
-fi
-echo -e "Restarting services"
-newaliases
+echo "Restarting services"
+newaliases # This command is specific to sendmail, might need 'postmap /etc/aliases' on some systems
 service sshd restart
-chkconfig nscd off
+chkconfig nscd off # chkconfig is for SysVinit, systemctl disable nscd for systemd
 service nscd stop
 service sendmail stop
-echo -e "LDAP changes have been reverted. All done! "
+
+echo "LDAP changes have been reverted. All done!"
