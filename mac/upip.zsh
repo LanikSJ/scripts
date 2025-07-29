@@ -13,27 +13,28 @@ CONFIG_ICON="⚙️ "
 
 # Default configuration
 typeset -a EXCLUDE_PACKAGES=("types-setuptools")
-typeset -a PYTHON_VERSIONS=("python3.13")
+typeset -a PYTHON_VERSIONS=()  # Will be auto-detected if not specified
 VERBOSE=false
 DRY_RUN=false
+AUTO_DETECT=true  # Auto-detect Python versions by default
 
 # Help function
 show_help() {
+  local script_name="upip.zsh"
   cat << EOF
-${PYTHON_ICON} $(basename $0) - Python Package Updater
+${PYTHON_ICON} $script_name - Python Package Updater
 
-Usage: $(basename $0) [options]
+Usage: $script_name [options]
 
 Options:
   -h, --help           Show this help message and exit
   -e, --exclude LIST   Comma-separated list of packages to exclude from updates
-  -p, --python LIST    Comma-separated list of Python versions to update (default: python3.12,python3.13)
+  -p, --python LIST    Comma-separated list of Python versions to update (auto-detected by default)
   -v, --verbose        Enable verbose output
   -d, --dry-run        Show what would be updated without making changes
-  -y, --yes            Skip confirmation prompt
 
 Example:
-  $(basename $0) --exclude "types-setuptools,pytest" --python "python3.11,python3.12"
+  $script_name --exclude "types-setuptools,pytest" --python "python3.11,python3.12"
 EOF
 }
 
@@ -50,6 +51,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -p|--python)
       IFS=',' read -A PYTHON_VERSIONS <<< "$2"
+      AUTO_DETECT=false  # Disable auto-detection when specific versions are provided
       shift 2
       ;;
     -v|--verbose)
@@ -58,10 +60,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -d|--dry-run)
       DRY_RUN=true
-      shift
-      ;;
-    -y|--yes)
-      SKIP_CONFIRM=true
       shift
       ;;
     *)
@@ -89,6 +87,39 @@ check_python_version() {
     return 1
   fi
   return 0
+}
+
+# Detect installed Python versions
+detect_python_versions() {
+  echo "${INFO_ICON} Auto-detecting Python versions..." >&2
+  local detected_versions=()
+  
+  # Check for python3
+  if command -v python3 &> /dev/null; then
+    detected_versions+=("python3")
+  fi
+  
+  # Check for specific Python 3 versions (3.7 through 3.13)
+  for version in {7..13}; do
+    if command -v "python3.$version" &> /dev/null; then
+      detected_versions+=("python3.$version")
+    fi
+  done
+  
+  # If no Python versions found, warn the user
+  if [[ ${#detected_versions[@]} -eq 0 ]]; then
+    echo "${WARNING_ICON} No Python versions detected on this system." >&2
+    return 1
+  fi
+  
+  echo "${SUCCESS_ICON} Detected Python versions: ${detected_versions[@]}" >&2
+  
+  # Return the detected versions as a space-separated string
+  local output=""
+  for version in "${detected_versions[@]}"; do
+    output+="$version "
+  done
+  echo -n "${output% }"  # Remove trailing space
 }
 
 # Build exclude pattern for grep
@@ -156,22 +187,24 @@ update_python_modules() {
 main() {
   check_dependencies
   
+  # Auto-detect Python versions if enabled
+  if [[ $AUTO_DETECT == true ]]; then
+    # Capture the output of detect_python_versions into an array
+    IFS=' ' read -A PYTHON_VERSIONS <<< "$(detect_python_versions)"
+    
+    # If no Python versions were detected, exit
+    if [[ ${#PYTHON_VERSIONS[@]} -eq 0 ]]; then
+      echo "${ERROR_ICON} No Python versions found. Please install Python or specify versions manually."
+      exit 1
+    fi
+  fi
+  
   # Show configuration
   echo "${CONFIG_ICON} Configuration:"
   echo "${PYTHON_ICON} Python versions: ${PYTHON_VERSIONS[@]}"
   echo "${PACKAGE_ICON} Excluded packages: ${EXCLUDE_PACKAGES[@]}"
   echo "${INFO_ICON} Dry run: $DRY_RUN"
   echo
-  
-  # Confirm before proceeding
-  if [[ $SKIP_CONFIRM != true && $DRY_RUN != true ]]; then
-    echo -n "${INFO_ICON} Do you want to continue? [y/N] "
-    read -r response
-    if [[ ! $response =~ ^[Yy]$ ]]; then
-      echo "${WARNING_ICON} Operation cancelled."
-      exit 0
-    fi
-  fi
   
   # Update packages for each Python version
   for python_version in "${PYTHON_VERSIONS[@]}"; do
