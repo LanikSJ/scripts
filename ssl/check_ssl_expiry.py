@@ -109,7 +109,7 @@ def main():
             print(f"{Colors.RED}{Icons.ERROR} EXPIRED: Certificate has expired {abs(days_remaining)} days ago!{Colors.RESET}")
             sys.exit(2)
         elif days_remaining <= args.warning:
-            print(f"{Colors.YELLOW}{Icons.WARNING} WARNING: Certificate will expire in {days_remaining} days!{Colors.RESET}")
+            print(f"{Colors.YELLOW}{Icons.WARNING} WARNING: Certificate expires in {days_remaining} days!{Colors.RESET}")
             sys.exit(1)
         else:
             print(f"{Colors.GREEN}{Icons.SUCCESS} OK: Certificate is valid for {days_remaining} more days.{Colors.RESET}")

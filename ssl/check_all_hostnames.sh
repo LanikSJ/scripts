@@ -134,8 +134,8 @@ while IFS= read -r hostname || [ -n "$hostname" ]; do
     echo "$output"
     
     # Check if certificate is expiring in 30 days or less
-    if echo "$output" | grep -q -E "expires in ([1-9]|[12][0-9]|30) days"; then
-        expiring_soon+=("$hostname: $(echo "$output" | grep -E "expires in ([1-9]|[12][0-9]|30) days")")
+    if echo "$output" | grep -q -E "Certificate expires in ([1-9]|[12][0-9]|30) days"; then
+        expiring_soon+=("$hostname: $(echo "$output" | grep -E "Certificate expires in ([1-9]|[12][0-9]|30) days")")
         ((expiring_30days++))
     fi
     
