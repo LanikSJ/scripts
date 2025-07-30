@@ -1,1 +1,11 @@
+# macOS
 .DS_Store
+Icon
+
+# macOS thumbnails
+._*
+
+# VSCode
+.vscode/
+*.code-workspace
+.history/
