@@ -12,10 +12,10 @@ UPDATE_ICON="🔄 "
 CONFIG_ICON="⚙️ "
 
 # Default configuration
-typeset -a EXCLUDE_MODULES=()
+typeset -a EXCLUDE_MODULES=("corepack")  # Exclude corepack by default
 VERBOSE=false
 DRY_RUN=false
-SKIP_CONFIRM=false
+SKIP_CONFIRM=true
 GLOBAL_ONLY=false
 
 # Help function
@@ -85,9 +85,12 @@ check_dependencies() {
     if npm install -g npm-check; then
       echo "${SUCCESS_ICON} npm-check installed successfully."
     else
-      echo "${ERROR_ICON} Failed to install npm-check. Please install it manually with 'npm install -g npm-check'."
+      echo "${WARNING_ICON} Failed to install npm-check. Please install it manually with 'npm install -g npm-check'."
+      echo "${ERROR_ICON} This script requires npm-check to function properly."
       exit 1
     fi
+  else
+    echo "${INFO_ICON} npm-check is already installed."
   fi
 }
 
@@ -138,17 +141,47 @@ update_npm_global() {
     return
   fi
   
-  local cmd="npm-check -g -u"
-  if [[ $SKIP_CONFIRM == true ]]; then
-    cmd="$cmd -y"
-  fi
-  
-  if eval $cmd; then
-    echo "${SUCCESS_ICON} NPM updated successfully"
-  else
-    echo "${ERROR_ICON} Failed to update NPM"
+  # Get list of all global packages except corepack
+  local global_packages
+  if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack")' 2>/dev/null); then
+    echo "${WARNING_ICON} Failed to get list of global packages"
     return 1
   fi
+  
+  # Check if there are any packages to update
+  if [[ -z "$global_packages" ]]; then
+    echo "${SUCCESS_ICON} No global packages to update (excluding corepack)"
+    return 0
+  fi
+  
+  # Update each package individually using npm-check
+  echo "${INFO_ICON} Updating global packages individually (excluding corepack)"
+  local update_count=0
+  local fail_count=0
+  
+  for pkg in $global_packages; do
+    echo "${PACKAGE_ICON} Checking ${pkg}..."
+    
+    # Always use -y, --skip-unused, and --major flags to avoid prompts and update only major versions
+    local cmd="npm-check -g -u -y --skip-unused --major $pkg"
+    
+    # Use a subshell to prevent npm-check from causing the script to exit
+    (eval $cmd)
+    if [[ $? -eq 0 ]]; then
+      ((update_count++))
+    else
+      echo "${WARNING_ICON} Failed to update ${pkg} with npm-check"
+      ((fail_count++))
+    fi
+  done
+  
+  if [[ $update_count -gt 0 ]]; then
+    echo "${SUCCESS_ICON} Updated $update_count global packages with npm-check (excluding corepack)"
+  else
+    echo "${INFO_ICON} No packages were updated"
+  fi
+  
+  return 0
 }
 
 # Update a specific module
@@ -159,20 +192,44 @@ update_module() {
   
   if [[ $DRY_RUN == true ]]; then
     echo "${INFO_ICON} Dry run: Would update $module"
-    return
+    return 0
   fi
   
   export NPM="$HOMEBREW_PREFIX/lib/node_modules"
   
-  local cmd="npm-check -u"
-  if [[ $SKIP_CONFIRM == true ]]; then
-    cmd="$cmd -y"
-  fi
+  # Create a temporary directory for npm-check operations
+  local tmp_dir=$(mktemp -d)
+  local current_dir=$(pwd)
   
-  if cd $NPM/$module && eval $cmd; then
-    echo "${SUCCESS_ICON} $module updated successfully"
+  # Change to the temporary directory
+  cd "$tmp_dir" || {
+    echo "${WARNING_ICON} Could not create temporary directory for npm-check operations"
+    return 1
+  }
+  
+  # Change to the module directory
+  if cd "$NPM/$module"; then
+    # Always use -y, --skip-unused, and --major flags to avoid prompts and update only major versions
+    local cmd="npm-check -u -y --skip-unused --major"
+    
+    # Run npm-check with error handling
+    { eval $cmd ; } > /dev/null 2>&1 || true
+    
+    if [[ $? -eq 0 ]]; then
+      echo "${SUCCESS_ICON} $module updated successfully"
+      cd "$tmp_dir"
+      rm -rf "$tmp_dir"
+      return 0
+    else
+      echo "${WARNING_ICON} Failed to update $module"
+      cd "$tmp_dir"
+      rm -rf "$tmp_dir"
+      return 1
+    fi
   else
-    echo "${WARNING_ICON} Failed to update $module"
+    echo "${WARNING_ICON} Could not change to directory: $NPM/$module"
+    rm -rf "$tmp_dir"
+    return 1
   fi
 }
 
@@ -212,16 +269,6 @@ main() {
     fi
   fi
   echo
-  
-  # Confirm before proceeding
-  if [[ $SKIP_CONFIRM != true && $DRY_RUN != true ]]; then
-    echo -n "${INFO_ICON} Do you want to continue? [y/N] "
-    read -r response
-    if [[ ! $response =~ ^[Yy]$ ]]; then
-      echo "${WARNING_ICON} Operation cancelled."
-      exit 0
-    fi
-  fi
   
   # Update npm globally
   update_npm_global

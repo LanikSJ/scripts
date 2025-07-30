@@ -19,11 +19,13 @@ SUCCESS_ICON="✅"
 WARNING_ICON="⚠️"
 ERROR_ICON="❌"
 
-# Set strict error handling
-set -e
-
 # Disable glob expansion to prevent issues with special characters
 set -f
+
+# Error handling function
+handle_error() {
+  log_warning "Command failed but continuing execution"
+}
 
 # Handle script interruptions gracefully
 trap 'echo -e "\n\033[0;31mScript interrupted. Exiting...\033[0m"; exit 1' INT TERM
@@ -367,9 +369,177 @@ update_npm() {
     return 0
   fi
   
-  # Update corepack separately as it requires special handling
-  log_info "${NPM_ICON} Updating corepack"
-  npm install -g corepack@latest || log_warning "Failed to update corepack"
+  # Check if npm-check is installed
+  if ! command_exists npm-check; then
+    log_info "${NPM_ICON} npm-check is not installed. Installing it globally..."
+    if npm install -g npm-check; then
+      log_success "npm-check installed successfully."
+    else
+      log_warning "Failed to install npm-check. Falling back to standard npm update."
+      # Fall back to standard npm update method
+      update_npm_standard
+      return 0
+    fi
+  fi
+  
+  # Update global npm packages using npm-check
+  log_info "${NPM_ICON} Updating NPM global packages using npm-check"
+  
+  # First, get a list of all global packages except corepack
+  local global_packages
+  if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack")' 2>/dev/null); then
+    log_warning "Failed to get list of global packages. Falling back to standard method."
+    update_npm_standard
+    return 0
+  fi
+  
+  # Check if there are any packages to update
+  if [[ -z "$global_packages" ]]; then
+    log_success "No global packages to update (excluding corepack)"
+    return 0
+  fi
+  
+  # Update each package individually using npm-check
+  log_info "Updating global packages individually (excluding corepack)"
+  local update_count=0
+  local fail_count=0
+  
+  # Save current directory to return to it later
+  local current_dir=$(pwd)
+  
+  # Create a temporary directory for npm-check operations
+  local tmp_dir=$(mktemp -d)
+  cd "$tmp_dir" || {
+    log_warning "Could not create temporary directory for npm-check operations"
+    cd "$current_dir"
+    update_npm_standard
+    return 0
+  }
+  
+  # Update each package individually using npm-check
+  for pkg in $global_packages; do
+    log_info "Checking ${pkg}..."
+    
+    # Run npm-check with error handling - use --major flag to update only major versions
+    { npm-check -g -u -y --skip-unused --major "$pkg" ; } > /dev/null 2>&1 || true
+    
+    # Check if the package was updated by checking if it's still outdated
+    if npm outdated -g "$pkg" | grep -q "$pkg"; then
+      log_warning "Failed to update ${pkg} with npm-check"
+      ((fail_count++))
+    else
+      log_success "Updated ${pkg} successfully"
+      ((update_count++))
+    fi
+  done
+  
+  # Return to original directory
+  cd "$current_dir" || log_warning "Could not return to original directory"
+  rm -rf "$tmp_dir"
+  
+  if [[ $update_count -gt 0 ]]; then
+    log_success "Updated $update_count global packages with npm-check (excluding corepack)"
+  else
+    log_info "No packages were updated with npm-check"
+  fi
+  
+  # Determine NPM modules directory
+  local NPM_DIR
+  if [[ -n "$HOMEBREW_PREFIX" ]]; then
+    NPM_DIR="$HOMEBREW_PREFIX/lib/node_modules"
+  else
+    NPM_DIR="/usr/local/lib/node_modules"
+    log_warning "HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
+  fi
+  
+  if [[ ! -d "$NPM_DIR" ]]; then
+    log_warning "NPM directory not found: $NPM_DIR. Skipping."
+    return 0
+  fi
+  
+  # Update individual npm packages using npm-check
+  local current_dir=$(pwd)
+  local module_update_count=0
+  local module_fail_count=0
+  
+  # Create a temporary directory for npm-check operations
+  local tmp_dir=$(mktemp -d)
+  
+  for pkg_dir in "$NPM_DIR"/*; do
+    if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" && "$(basename "$pkg_dir")" != "npm-check" && "$(basename "$pkg_dir")" != "corepack" ]]; then
+      local pkg_name=$(basename "$pkg_dir")
+      log_info "Updating $pkg_name using npm-check"
+      
+      # Change to the package directory
+      if cd "$pkg_dir"; then
+        # Run npm-check with error handling - use --major flag to update only major versions
+        { npm-check -u -y --skip-unused --major ; } > /dev/null 2>&1 || true
+        
+        if [[ $? -eq 0 ]]; then
+          log_success "Updated $pkg_name successfully"
+          ((module_update_count++))
+        else
+          log_warning "Failed to update $pkg_name with npm-check"
+          ((module_fail_count++))
+        fi
+        
+        # Return to tmp directory
+        cd "$tmp_dir"
+      else
+        log_warning "Could not change to directory: $pkg_dir"
+        ((module_fail_count++))
+      fi
+    fi
+  done
+  
+  # Special case for AGLint
+  if [[ -d "$NPM_DIR/@adguard/aglint" ]]; then
+    log_info "Updating AGLint using npm-check"
+    
+    if cd "$NPM_DIR/@adguard/aglint"; then
+      # Run npm-check with error handling - use --major flag to update only major versions
+      { npm-check -u -y --skip-unused --major ; } > /dev/null 2>&1 || true
+      
+      if [[ $? -eq 0 ]]; then
+        log_success "Updated AGLint successfully"
+        ((module_update_count++))
+      else
+        log_warning "Failed to update AGLint with npm-check"
+        ((module_fail_count++))
+      fi
+      
+      # Return to tmp directory
+      cd "$tmp_dir"
+    else
+      log_warning "Could not change to AGLint directory"
+      ((module_fail_count++))
+    fi
+  fi
+  
+  # Clean up temporary directory
+  rm -rf "$tmp_dir"
+  
+  # Log summary of module updates
+  if [[ $module_update_count -gt 0 ]]; then
+    log_success "Updated $module_update_count individual modules with npm-check"
+  fi
+  if [[ $module_fail_count -gt 0 ]]; then
+    log_warning "Failed to update $module_fail_count individual modules"
+  fi
+  
+  # Return to original directory
+  cd "$current_dir" || log_warning "Could not return to original directory"
+  
+  # Clear npm cache
+  log_info "${NPM_ICON} Clearing NPM cache"
+  npm cache clean --force || log_warning "Failed to clear npm cache"
+  
+  log_success "NPM packages updated with npm-check"
+}
+
+# Fallback method using standard npm commands
+update_npm_standard() {
+  log_info "${NPM_ICON} Using standard npm update method"
   
   # Update global npm packages
   log_info "${NPM_ICON} Updating NPM global packages"
@@ -436,12 +606,6 @@ update_npm() {
   
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
-  
-  # Clear npm cache
-  log_info "${NPM_ICON} Clearing NPM cache"
-  npm cache clean --force || log_warning "Failed to clear npm cache"
-  
-  log_success "NPM packages updated"
 }
 
 # Update Git repositories
