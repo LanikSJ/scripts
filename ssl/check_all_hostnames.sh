@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to check SSL certificate expiry for all hostnames in hostnames.txt
-# Also checks VPN connection and mc status for eagle and merlin
+# Also checks VPN connection and mctunnel status for Eagle and Merlin
 
 # Define colors and icons for output formatting
 GREEN='\033[92m'
@@ -28,31 +28,31 @@ check_vpn_connection() {
     fi
 }
 
-# Function to check mctunnel status for eagle and merlin
+# Function to check mctunnel status for Eagle and Merlin
 check_mc_status() {
-    echo -e "${BLUE}${INFO}${RESET} Checking mctunnel status for eagle and merlin..."
+    echo -e "${BLUE}${INFO}${RESET} Checking mctunnel status for Eagle and Merlin..."
     
     # Run mctunnel status command and capture output
     mc_output=$(mctunnel status 2>&1)
     
-    # Display the mc status output
+    # Display the mctunnelstatus output
     echo "$mc_output"
     
-    # Check if eagle status is OK
+    # Check if Eagle status is OK
     if echo "$mc_output" | grep -q "eagle.*OK"; then
-        echo -e "${GREEN}${SUCCESS} eagle is connected${RESET}"
+        echo -e "${GREEN}${SUCCESS} Eagle is connected${RESET}"
         eagle_connected=true
     else
-        echo -e "${RED}${ERROR} eagle is not connected${RESET}"
+        echo -e "${RED}${ERROR} Eagle is not connected${RESET}"
         eagle_connected=false
     fi
     
-    # Check if merlin status is OK
+    # Check if Merlin status is OK
     if echo "$mc_output" | grep -q "merlin.*OK"; then
-        echo -e "${GREEN}${SUCCESS} merlin is connected${RESET}"
+        echo -e "${GREEN}${SUCCESS} Merlin is connected${RESET}"
         merlin_connected=true
     else
-        echo -e "${RED}${ERROR} merlin is not connected${RESET}"
+        echo -e "${RED}${ERROR} Merlin is not connected${RESET}"
         merlin_connected=false
     fi
     
@@ -72,13 +72,13 @@ HOSTNAMES_FILE="$HOME/Drive-Gov/SSL/hostnames.txt"
 check_vpn_connection
 vpn_status=$?
 
-# Check mc status for eagle and merlin
+# Check mctunnelstatus for Eagle and Merlin
 check_mc_status
 mc_status=$?
 
-# If VPN is not connected or mc status check failed, ask user if they want to continue
+# If VPN is not connected or mctunnelstatus check failed, ask user if they want to continue
 if [ $vpn_status -ne 0 ] || [ $mc_status -ne 0 ]; then
-    echo -e "${YELLOW}${WARNING} Warning: VPN connection or mc status check failed${RESET}"
+    echo -e "${YELLOW}${WARNING} Warning: VPN connection or mctunnelstatus check failed${RESET}"
     read -p "Do you want to continue with SSL certificate checks anyway? (y/n): " continue_choice
     if [[ ! $continue_choice =~ ^[Yy]$ ]]; then
         echo -e "${BLUE}${INFO}${RESET} Exiting as requested."
