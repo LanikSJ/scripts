@@ -79,7 +79,7 @@ mc_status=$?
 # If VPN is not connected or mctunnelstatus check failed, ask user if they want to continue
 if [ $vpn_status -ne 0 ] || [ $mc_status -ne 0 ]; then
     echo -e "${YELLOW}${WARNING} Warning: VPN connection or mctunnelstatus check failed${RESET}"
-    read -p "Do you want to continue with SSL certificate checks anyway? (y/n): " continue_choice
+    read -r -p "Do you want to continue with SSL certificate checks anyway? (y/n): " continue_choice
     if [[ ! $continue_choice =~ ^[Yy]$ ]]; then
         echo -e "${BLUE}${INFO}${RESET} Exiting as requested."
         exit 1
