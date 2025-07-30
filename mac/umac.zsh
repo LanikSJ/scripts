@@ -11,6 +11,7 @@ PYTHON_ICON="🐍"
 RUBY_ICON="💎"
 NPM_ICON="📦"
 GIT_ICON="📂"
+MACOS_ICON="🍎"
 
 # Icons for log types
 INFO_ICON="ℹ️"
@@ -476,6 +477,46 @@ update_git_repos() {
   log_success "$dir_name repositories updated"
 }
 
+# Check for macOS updates
+update_macos() {
+  log_info "${MACOS_ICON} Checking for macOS updates"
+  
+  # Check if softwareupdate command exists
+  if ! command_exists softwareupdate; then
+    log_error "softwareupdate command not found. Cannot check for macOS updates."
+    return 1
+  fi
+  
+  # Check for available updates
+  local updates_output
+  updates_output=$(softwareupdate -l 2>&1)
+  local exit_code=$?
+  
+  # Check if there was an error
+  if [[ $exit_code -ne 0 ]]; then
+    if [[ "$updates_output" == *"No new software available"* ]]; then
+      log_success "Your macOS is up to date"
+      return 0
+    else
+      log_error "Failed to check for macOS updates: $updates_output"
+      return 1
+    fi
+  fi
+  
+  # If we get here, there are updates available
+  if [[ "$updates_output" == *"No new software available"* ]]; then
+    log_success "Your macOS is up to date"
+  else
+    log_warning "macOS updates are available:"
+    echo "$updates_output" | grep -v "^$" | sed 's/^/    /'
+    
+    log_info "To install these updates, run: sudo softwareupdate -i -a"
+    log_info "For more options, run: softwareupdate --help"
+  fi
+  
+  return 0
+}
+
 # Main function to run all updates
 main() {
   # Process command line arguments
@@ -494,8 +535,8 @@ main() {
       --help)
         echo "Usage: $0 [options]"
         echo "Options:"
-        echo "  --skip=COMPONENT   Skip updating specified component (xcode, brew, omz, zinit, python, ruby, npm, git)"
-        echo "  --only=COMPONENT   Only update specified component (xcode, brew, omz, zinit, python, ruby, npm, git)"
+        echo "  --skip=COMPONENT   Skip updating specified component (xcode, macos, brew, omz, zinit, python, ruby, npm, git)"
+        echo "  --only=COMPONENT   Only update specified component (xcode, macos, brew, omz, zinit, python, ruby, npm, git)"
         echo "  --help             Show this help message"
         return 0
         ;;
@@ -529,6 +570,7 @@ main() {
   
   # Update components
   should_skip "xcode" || update_xcode
+  should_skip "macos" || update_macos
   should_skip "brew" || update_homebrew
   should_skip "omz" || update_omz
   should_skip "zinit" || update_zinit
