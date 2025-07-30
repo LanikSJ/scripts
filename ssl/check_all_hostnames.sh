@@ -114,6 +114,7 @@ warning=0
 expired=0
 error=0
 expiring_soon=()
+expiring_30days=0
 
 # Read each hostname from the file and check SSL expiry
 while IFS= read -r hostname || [ -n "$hostname" ]; do
@@ -135,6 +136,7 @@ while IFS= read -r hostname || [ -n "$hostname" ]; do
     # Check if certificate is expiring in 30 days or less
     if echo "$output" | grep -q -E "expires in ([1-9]|[12][0-9]|30) days"; then
         expiring_soon+=("$hostname: $(echo "$output" | grep -E "expires in ([1-9]|[12][0-9]|30) days")")
+        ((expiring_30days++))
     fi
     
     # Update counters based on exit code
@@ -152,6 +154,7 @@ done < "$HOSTNAMES_FILE"
 echo -e "${BLUE}${INFO}${RESET} SSL Certificate Check Summary:"
 echo -e "${GREEN}${SUCCESS} Valid:${RESET} $valid"
 echo -e "${YELLOW}${WARNING} Warning:${RESET} $warning"
+echo -e "${YELLOW}${WARNING} Expiring in 30 days:${RESET} $expiring_30days"
 echo -e "${RED}${ERROR} Expired:${RESET} $expired"
 echo -e "${RED}${ERROR} Errors:${RESET} $error"
 echo -e "${BLUE}${INFO}${RESET} Total hostnames checked: $total"
