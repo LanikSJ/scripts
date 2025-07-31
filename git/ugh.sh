@@ -17,13 +17,13 @@ git_update() {
   local repo="$1"
   local branch="$2"
   echo -e "\n🔄 Updating $repo on branch $branch"
+  git checkout "$branch"
+  git pull
   # Delete all local branches except the primary
   for b in $(git branch | grep -v " $branch\$" | awk '{print $NF}'); do
     echo "🗑️ Deleting branch: $b"
     git branch -D "$b" || true
   done
-  git checkout "$branch"
-  git pull
 }
 
 echo -e "\n🚀 Updating all LanikSJ Repos in $GITHUB"
