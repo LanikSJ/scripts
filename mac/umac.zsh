@@ -242,7 +242,9 @@ update_python() {
   log_info "${PYTHON_ICON} Updating Python packages"
   
   # Define excluded packages (can be a regex pattern)
-  local exclude="(types-setuptools|pip|setuptools|wheel)"
+  local exclude="(pip|setuptools|wheel)"
+  # Always use verbose mode for Python updates
+  local verbose=true
   
   # Function to detect installed Python versions
   detect_python_versions() {
@@ -322,7 +324,7 @@ update_python() {
       fi
       
       log_info "Upgrading $pkg"
-      "$python_version" -m pip install -U "$pkg" || log_warning "Failed to upgrade $pkg"
+      "$python_version" -m pip install -U -v "$pkg" || log_warning "Failed to upgrade $pkg"
     done
   }
   

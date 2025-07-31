@@ -12,9 +12,9 @@ UPDATE_ICON="🔄 "
 CONFIG_ICON="⚙️ "
 
 # Default configuration
-typeset -a EXCLUDE_PACKAGES=("types-setuptools")
+typeset -a EXCLUDE_PACKAGES=()
 typeset -a PYTHON_VERSIONS=()  # Will be auto-detected if not specified
-VERBOSE=false
+VERBOSE=true
 DRY_RUN=false
 AUTO_DETECT=true  # Auto-detect Python versions by default
 
@@ -181,7 +181,7 @@ update_python_modules() {
   # Update packages in a single command for better performance
   if [[ ${#packages[@]} -gt 0 ]]; then
     echo "${UPDATE_ICON} Updating packages for $python_version..."
-    $python_version -m pip install -U ${packages[@]}
+    $python_version -m pip install -U -v ${packages[@]}
   else
     echo "${INFO_ICON} No packages to update for $python_version."
   fi
