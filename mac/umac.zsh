@@ -274,6 +274,10 @@ update_python() {
       return 0
     fi
     
+    # Update pip itself first
+    log_info "${PYTHON_ICON} Updating pip for $python_version..."
+    "$python_version" -m pip install -U pip || log_warning "Failed to update pip for $python_version"
+    
     if ! command_exists jq; then
       log_warning "jq not found. Cannot parse pip JSON output. Skipping."
       return 0

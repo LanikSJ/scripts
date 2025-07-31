@@ -174,6 +174,10 @@ update_python_modules() {
     return
   fi
   
+  # Update pip itself first
+  echo "${UPDATE_ICON} Updating pip for $python_version..."
+  $python_version -m pip install -U pip
+
   # Update packages in a single command for better performance
   if [[ ${#packages[@]} -gt 0 ]]; then
     echo "${UPDATE_ICON} Updating packages for $python_version..."
