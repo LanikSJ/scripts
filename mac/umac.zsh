@@ -22,13 +22,32 @@ ERROR_ICON="❌"
 # Disable glob expansion to prevent issues with special characters
 set -f
 
+# Array to track temporary files and directories for cleanup
+TEMP_FILES=()
+
 # Error handling function
 handle_error() {
   log_warning "Command failed but continuing execution"
 }
 
+# Cleanup function to remove temporary files and logs
+cleanup_temp_files() {
+  if [[ ${#TEMP_FILES[@]} -gt 0 ]]; then
+    log_info "🧹 Cleaning up temporary files and logs"
+    for temp_item in "${TEMP_FILES[@]}"; do
+      if [[ -e "$temp_item" ]]; then
+        rm -rf "$temp_item" 2>/dev/null && log_success "Removed: $temp_item" || log_warning "Failed to remove: $temp_item"
+      fi
+    done
+    TEMP_FILES=()
+  fi
+}
+
 # Handle script interruptions gracefully
-trap 'echo -e "\n\033[0;31mScript interrupted. Exiting...\033[0m"; exit 1' INT TERM
+trap 'echo -e "\n\033[0;31mScript interrupted. Cleaning up...\033[0m"; cleanup_temp_files; exit 1' INT TERM
+
+# Handle script exit to ensure cleanup on successful completion
+trap 'cleanup_temp_files' EXIT
 
 # Color definitions for better output
 RED='\033[0;31m'
@@ -413,6 +432,7 @@ update_npm() {
   
   # Create a temporary directory for npm-check operations
   local tmp_dir=$(mktemp -d)
+  TEMP_FILES+=("$tmp_dir")
   cd "$tmp_dir" || {
     log_warning "Could not create temporary directory for npm-check operations"
     cd "$current_dir"
@@ -468,6 +488,7 @@ update_npm() {
   
   # Create a temporary directory for npm-check operations
   local tmp_dir=$(mktemp -d)
+  TEMP_FILES+=("$tmp_dir")
   
   for pkg_dir in "$NPM_DIR"/*; do
     if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" && "$(basename "$pkg_dir")" != "npm-check" && "$(basename "$pkg_dir")" != "corepack" ]]; then
