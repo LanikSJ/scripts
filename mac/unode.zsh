@@ -12,7 +12,7 @@ UPDATE_ICON="🔄 "
 CONFIG_ICON="⚙️ "
 
 # Default configuration
-typeset -a EXCLUDE_MODULES=("corepack")  # Exclude corepack by default
+typeset -a EXCLUDE_MODULES=("corepack" "npm-check")  # Exclude corepack and npm-check by default
 VERBOSE=false
 DRY_RUN=false
 SKIP_CONFIRM=true
@@ -141,45 +141,40 @@ update_npm_global() {
     return
   fi
   
-  # Get list of all global packages except corepack
-  local global_packages
-  if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack")' 2>/dev/null); then
-    echo "${WARNING_ICON} Failed to get list of global packages"
+  # Create a temporary directory with a minimal package.json for npm-check
+  local tmp_dir=$(mktemp -d)
+  local current_dir=$(pwd)
+  
+  # Create a minimal package.json in the temp directory
+  cat > "$tmp_dir/package.json" << EOF
+{
+  "name": "temp-npm-check",
+  "version": "1.0.0",
+  "description": "Temporary package.json for npm-check global updates"
+}
+EOF
+  
+  # Change to the temporary directory
+  cd "$tmp_dir" || {
+    echo "${WARNING_ICON} Could not create temporary directory for npm-check operations"
     return 1
-  fi
+  }
   
-  # Check if there are any packages to update
-  if [[ -z "$global_packages" ]]; then
-    echo "${SUCCESS_ICON} No global packages to update (excluding corepack)"
-    return 0
-  fi
+  echo "${INFO_ICON} Running npm-check for global packages..."
   
-  # Update each package individually using npm-check
-  echo "${INFO_ICON} Updating global packages individually (excluding corepack)"
-  local update_count=0
-  local fail_count=0
+  # Run npm-check globally with proper flags (minor updates only, no new installs)
+  local cmd="npm-check -g -u -y --skip-unused --minor --no-install"
   
-  for pkg in $global_packages; do
-    echo "${PACKAGE_ICON} Checking ${pkg}..."
-    
-    # Always use -y, --skip-unused, and --major flags to avoid prompts and update only major versions
-    local cmd="npm-check -g -u -y --skip-unused --major $pkg"
-    
-    # Use a subshell to prevent npm-check from causing the script to exit
-    (eval $cmd)
-    if [[ $? -eq 0 ]]; then
-      ((update_count++))
-    else
-      echo "${WARNING_ICON} Failed to update ${pkg} with npm-check"
-      ((fail_count++))
-    fi
-  done
-  
-  if [[ $update_count -gt 0 ]]; then
-    echo "${SUCCESS_ICON} Updated $update_count global packages with npm-check (excluding corepack)"
+  # Use a subshell to prevent npm-check from causing the script to exit
+  if (eval $cmd); then
+    echo "${SUCCESS_ICON} Global packages updated successfully"
   else
-    echo "${INFO_ICON} No packages were updated"
+    echo "${WARNING_ICON} Failed to update some global packages"
   fi
+  
+  # Clean up
+  cd "$current_dir"
+  rm -rf "$tmp_dir"
   
   return 0
 }
@@ -209,8 +204,8 @@ update_module() {
   
   # Change to the module directory
   if cd "$NPM/$module"; then
-    # Always use -y, --skip-unused, and --major flags to avoid prompts and update only major versions
-    local cmd="npm-check -u -y --skip-unused --major"
+    # Always use -y, --skip-unused, and --minor flags to avoid prompts and update only minor versions (no new installs)
+    local cmd="npm-check -u -y --skip-unused --minor --no-install"
     
     # Run npm-check with error handling
     { eval $cmd ; } > /dev/null 2>&1 || true

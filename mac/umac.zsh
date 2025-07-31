@@ -385,9 +385,9 @@ update_npm() {
   # Update global npm packages using npm-check
   log_info "${NPM_ICON} Updating NPM global packages using npm-check"
   
-  # First, get a list of all global packages except corepack
+  # First, get a list of all global packages except corepack and npm-check
   local global_packages
-  if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack")' 2>/dev/null); then
+  if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack" and . != "npm-check")' 2>/dev/null); then
     log_warning "Failed to get list of global packages. Falling back to standard method."
     update_npm_standard
     return 0
@@ -395,12 +395,12 @@ update_npm() {
   
   # Check if there are any packages to update
   if [[ -z "$global_packages" ]]; then
-    log_success "No global packages to update (excluding corepack)"
+    log_success "No global packages to update (excluding corepack and npm-check)"
     return 0
   fi
   
   # Update each package individually using npm-check
-  log_info "Updating global packages individually (excluding corepack)"
+  log_info "Updating global packages individually (excluding corepack and npm-check)"
   local update_count=0
   local fail_count=0
   
@@ -420,8 +420,8 @@ update_npm() {
   for pkg in $global_packages; do
     log_info "Checking ${pkg}..."
     
-    # Run npm-check with error handling - use --major flag to update only major versions
-    { npm-check -g -u -y --skip-unused --major "$pkg" ; } > /dev/null 2>&1 || true
+    # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
+    { npm-check -g -u -y --skip-unused --minor --no-install "$pkg" ; } > /dev/null 2>&1 || true
     
     # Check if the package was updated by checking if it's still outdated
     if npm outdated -g "$pkg" | grep -q "$pkg"; then
@@ -438,7 +438,7 @@ update_npm() {
   rm -rf "$tmp_dir"
   
   if [[ $update_count -gt 0 ]]; then
-    log_success "Updated $update_count global packages with npm-check (excluding corepack)"
+    log_success "Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
   else
     log_info "No packages were updated with npm-check"
   fi
@@ -472,8 +472,8 @@ update_npm() {
       
       # Change to the package directory
       if cd "$pkg_dir"; then
-        # Run npm-check with error handling - use --major flag to update only major versions
-        { npm-check -u -y --skip-unused --major ; } > /dev/null 2>&1 || true
+        # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
+        { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
         
         if [[ $? -eq 0 ]]; then
           log_success "Updated $pkg_name successfully"
@@ -497,8 +497,8 @@ update_npm() {
     log_info "Updating AGLint using npm-check"
     
     if cd "$NPM_DIR/@adguard/aglint"; then
-      # Run npm-check with error handling - use --major flag to update only major versions
-      { npm-check -u -y --skip-unused --major ; } > /dev/null 2>&1 || true
+      # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
+      { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
       
       if [[ $? -eq 0 ]]; then
         log_success "Updated AGLint successfully"
