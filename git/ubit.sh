@@ -114,30 +114,66 @@ log_message "Starting BitBucket repositories update"
 for org in ${ORG_LIST}; do
   log_message "Processing organization: ${org}"
   
-  # Process each repository in the organization
-  find "${BITBUCKET_DIR}/${org}" -type d -maxdepth 1 -mindepth 1 | sort | while read -r repo_dir; do
-    # Save current directory to return to it later
-    pushd "${repo_dir}" > /dev/null || {
-      log_message "ERROR: Cannot access directory ${repo_dir}, skipping"
-      continue
-    }
-    
-    # Skip if not a git repository
-    if [[ ! -d .git ]]; then
-      log_message "Not a git repository: ${repo_dir}, skipping"
+  # Special handling for GovCloud organization with Eagle and Merlin subdirectories
+  if [[ "${org}" == "GovCloud" ]]; then
+    # Process Eagle and Merlin subdirectories
+    for subdir in Eagle Merlin; do
+      if [[ -d "${BITBUCKET_DIR}/${org}/${subdir}" ]]; then
+        log_message "Processing ${org}/${subdir} subdirectory"
+        
+        # Process each repository in the subdirectory
+        find "${BITBUCKET_DIR}/${org}/${subdir}" -type d -maxdepth 1 -mindepth 1 | sort | while read -r repo_dir; do
+          # Save current directory to return to it later
+          pushd "${repo_dir}" > /dev/null || {
+            log_message "ERROR: Cannot access directory ${repo_dir}, skipping"
+            continue
+          }
+          
+          # Skip if not a git repository
+          if [[ ! -d .git ]]; then
+            log_message "Not a git repository: ${repo_dir}, skipping"
+            popd > /dev/null
+            continue
+          fi
+          
+          repo_name=$(get_repo_name)
+          branch_name=$(detect_primary_branch)
+          
+          log_message "Found repository: ${repo_name}"
+          git_update "${repo_name}" "${branch_name}"
+          
+          # Return to previous directory
+          popd > /dev/null
+        done
+      fi
+    done
+  else
+    # Standard processing for other organizations
+    # Process each repository in the organization
+    find "${BITBUCKET_DIR}/${org}" -type d -maxdepth 1 -mindepth 1 | sort | while read -r repo_dir; do
+      # Save current directory to return to it later
+      pushd "${repo_dir}" > /dev/null || {
+        log_message "ERROR: Cannot access directory ${repo_dir}, skipping"
+        continue
+      }
+      
+      # Skip if not a git repository
+      if [[ ! -d .git ]]; then
+        log_message "Not a git repository: ${repo_dir}, skipping"
+        popd > /dev/null
+        continue
+      fi
+      
+      repo_name=$(get_repo_name)
+      branch_name=$(detect_primary_branch)
+      
+      log_message "Found repository: ${repo_name}"
+      git_update "${repo_name}" "${branch_name}"
+      
+      # Return to previous directory
       popd > /dev/null
-      continue
-    fi
-    
-    repo_name=$(get_repo_name)
-    branch_name=$(detect_primary_branch)
-    
-    log_message "Found repository: ${repo_name}"
-    git_update "${repo_name}" "${branch_name}"
-    
-    # Return to previous directory
-    popd > /dev/null
-  done
+    done
+  fi
 done
 
 log_message "BitBucket repositories update completed"
