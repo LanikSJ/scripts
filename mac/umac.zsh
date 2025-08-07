@@ -659,8 +659,43 @@ update_git_repos() {
         continue
       }
       
+      # Detect primary/default branch
+      local branch
+      if git show-ref --verify --quiet refs/heads/develop; then
+        branch="develop"
+      elif git show-ref --verify --quiet refs/heads/dev; then
+        branch="dev"
+      elif git show-ref --verify --quiet refs/heads/main; then
+        branch="main"
+      else
+        branch="master"
+      fi
+      
+      log_info "🔄 Switching to default branch: $branch"
+      git checkout "$branch" || log_warning "Failed to checkout $branch for $repo_name"
+      
+      # Prune remote tracking branches that no longer exist on remote
+      log_info "🧹 Pruning remote tracking branches for $repo_name"
       git remote prune origin || log_warning "Failed to prune remote for $repo_name"
+      
+      # Pull latest changes
       git pull || log_warning "Failed to pull updates for $repo_name"
+      
+      # Delete all local branches except the primary/default branch
+      log_info "🗑️ Deleting non-default local branches for $repo_name"
+      for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
+        log_info "  🗑️ Deleting local branch: $b"
+        git branch -D "$b" || log_warning "Failed to delete local branch $b"
+      done
+      
+      # Delete remote tracking branches except the primary/default branch
+      log_info "🗑️ Deleting non-default remote tracking branches for $repo_name"
+      for b in $(git branch -r | grep -v "origin/$branch\$" | grep -v "origin/HEAD" | awk '{print $NF}'); do
+        log_info "  🗑️ Deleting remote tracking branch: $b"
+        git branch -dr "$b" || log_warning "Failed to delete remote tracking branch $b"
+      done
+      
+      log_success "✅ $repo_name updated and cleaned"
     fi
   done
   

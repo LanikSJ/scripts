@@ -19,10 +19,23 @@ git_update() {
   echo -e "\n🔄 Updating $repo on branch $branch"
   git checkout "$branch"
   git pull
-  # Delete all local branches except the primary
-  for b in $(git branch | grep -v " $branch\$" | awk '{print $NF}'); do
-    echo "🗑️ Deleting branch: $b"
+  
+  # Prune remote tracking branches that no longer exist on remote
+  echo "🧹 Pruning remote tracking branches..."
+  git remote prune origin || true
+  
+  # Delete all local branches except the primary/default branch
+  echo "🗑️ Deleting non-default local branches..."
+  for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
+    echo "  🗑️ Deleting local branch: $b"
     git branch -D "$b" || true
+  done
+  
+  # Delete remote tracking branches except the primary/default branch
+  echo "🗑️ Deleting non-default remote tracking branches..."
+  for b in $(git branch -r | grep -v "origin/$branch\$" | grep -v "origin/HEAD" | awk '{print $NF}'); do
+    echo "  🗑️ Deleting remote tracking branch: $b"
+    git branch -dr "$b" || true
   done
 }
 
