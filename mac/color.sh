@@ -23,12 +23,6 @@ on() {
   esac
 }
 
-off() {
-  [[ -z "VTE_VERSION" ]] && return
-  [[ -p /dev/stdout ]] && return
-  echo -ne "\033]111\007"
-}
-
 if [ -n "VTE_VERSION" ]; then
   trap off EXIT ERR INT TERM
   while getopts ":1246AaCfgKkMNnqsTtVvXxYyb:c:D:E:e:F:I:i:J:L:l:m:O:o:p:Q:R:S:W:w:" Option; do
