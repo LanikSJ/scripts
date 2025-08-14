@@ -76,6 +76,26 @@ This is a personal collection of scripts, tools, and projects covering:
 - Follow principle of least privilege
 - Use secure communication protocols
 
+### Dependency Vulnerability Scanning
+
+- **ALL projects with dependencies MUST be regularly scanned for vulnerabilities**
+- Use appropriate vulnerability scanning tools for each project type:
+  - **Node.js projects**: Use `npm audit` or `yarn audit` for package.json
+    dependencies
+  - **Python projects**: Use `pip-audit` or `safety` for
+    requirements.txt/pyproject.toml dependencies
+  - **Docker images**: Use `docker scout` or `trivy` for container
+    vulnerability scanning
+  - **Shell scripts**: Validate external tool dependencies and their sources
+- Address HIGH and CRITICAL vulnerabilities immediately
+- Document any accepted risks for MEDIUM/LOW vulnerabilities with justification
+- Implement automated vulnerability scanning in CI/CD pipelines where applicable
+- Keep dependencies updated to latest secure versions
+- Use dependency pinning with regular update cycles
+- Monitor security advisories for used dependencies
+- Remove unused or deprecated dependencies promptly
+- Use official package repositories and verify package integrity when possible
+
 ## Documentation Standards
 
 - Include clear usage examples
@@ -95,6 +115,26 @@ This is a personal collection of scripts, tools, and projects covering:
 - **Validate ALL markdown files against markdownlint with zero tolerance for warnings**
 - Test cross-platform compatibility where applicable
 - Verify all external dependencies are available
+
+### Markdown Compliance Requirements
+
+- **ALL markdown files (.md) MUST pass markdownlint validation with zero errors
+  or warnings**
+- Run `markdownlint <filename>` on every markdown file before considering it
+  complete
+- Follow the project's `.markdownlint.json` configuration strictly
+- Address ALL markdownlint issues immediately - no exceptions or workarounds
+- Common requirements include:
+  - Maximum line length of 80 characters (MD013)
+  - Consistent heading styles and hierarchy
+  - Proper list formatting and indentation
+  - Blank lines around headings and code blocks
+  - Consistent link and reference formatting
+  - No trailing whitespace
+  - Files must end with newlines
+  - Proper table formatting when applicable
+- Use `markdownlint --fix <filename>` for auto-fixable issues when available
+- Validate markdown files in CI/CD pipelines where applicable
 
 ## Specific Project Notes
 
