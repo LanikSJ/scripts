@@ -1,0 +1,162 @@
+# Cline Rules for LanikSJ Repository
+
+## Repository Overview
+
+This is a personal collection of scripts, tools, and projects covering:
+
+- Shell scripts for automation (AWS, Docker, Git, system administration)
+- Web development projects (browser extensions, desktop apps)
+- Developer tools and utilities
+- Personal configurations and themes
+
+## Code Standards and Practices
+
+### Shell Scripts
+
+- Use `#!/usr/bin/env bash` shebang for bash scripts
+- Use `#!/usr/bin/env zsh` shebang for zsh scripts
+- Always include `set -euo pipefail` for error handling in bash scripts
+- Follow the template structure in `scripts/TEMPLATE.sh` for new scripts
+- Use shellcheck-compliant code (separate declare and assign to avoid masking
+  return values)
+- Include proper usage documentation and help functions
+- Use consistent logging with colors and icons as shown in template
+- Implement dry-run functionality where applicable
+
+### Code Quality
+
+- **ALL shell scripts MUST be shellcheck compliant with zero warnings or errors**
+- Never use shellcheck disable directives unless absolutely necessary and
+  well-documented
+- Address all shellcheck warnings by fixing the underlying issues, not by
+  disabling checks
+- Use meaningful variable names and add comments for complex logic
+- Implement proper error handling and validation
+- Include dependency checks for required tools
+
+### Project Structure
+
+- Keep related scripts organized in appropriate subdirectories
+- Maintain README.md files with clear descriptions
+- Use consistent naming conventions (kebab-case for files, UPPER_CASE for
+  constants)
+- Include LICENSE files for public projects
+
+## Development Guidelines
+
+### When Working with Scripts
+
+- Always test scripts in a safe environment first
+- Run shellcheck on all shell scripts before considering them complete
+- Implement verbose/debug modes for troubleshooting
+- Use proper quoting to handle filenames with spaces
+- Validate inputs and provide clear error messages
+- Consider cross-platform compatibility where relevant
+
+### When Working with Web Projects
+
+- Follow modern JavaScript/TypeScript practices
+- Use proper package.json configurations
+- Implement security best practices
+- Consider accessibility in UI components
+- Use semantic versioning for releases
+
+### When Working with Configuration Files
+
+- Maintain backward compatibility when possible
+- Document configuration options clearly
+- Use appropriate file formats (YAML, JSON, etc.)
+- Validate configuration syntax
+
+## Security Considerations
+
+- Never commit sensitive information (API keys, passwords, etc.)
+- Use environment variables for configuration
+- Implement proper input validation
+- Follow principle of least privilege
+- Use secure communication protocols
+
+## Documentation Standards
+
+- Include clear usage examples
+- Document dependencies and requirements
+- Provide installation/setup instructions
+- Maintain changelog for significant changes
+- Use markdown formatting consistently
+- **ALL markdown files MUST be markdownlint compliant**
+- Follow the markdownlint configuration in `.markdownlint.json`
+- Address all markdownlint warnings and errors before considering documentation
+  complete
+
+## Testing and Validation
+
+- Test scripts with various input scenarios
+- **Validate ALL shell scripts against shellcheck with zero tolerance for warnings**
+- **Validate ALL markdown files against markdownlint with zero tolerance for warnings**
+- Test cross-platform compatibility where applicable
+- Verify all external dependencies are available
+
+## Specific Project Notes
+
+### Scripts Directory
+
+- Contains personal automation scripts organized by category
+- Use the TEMPLATE.sh as a starting point for new bash scripts
+- Follow the established directory structure (aws/, docker/, git/, etc.)
+- All scripts must pass shellcheck validation
+
+### Browser Extensions and Desktop Apps
+
+- Follow platform-specific guidelines (Chrome extensions, Electron apps)
+- Implement proper manifest files and configurations
+- Consider user privacy and data handling
+
+### Filter Lists (ubo-filters, webannoyances)
+
+- Follow AdBlock filter syntax
+- Test filters across different browsers
+- Document filter purposes and sources
+- Use AGLint for validation
+
+## Common Patterns to Follow
+
+- Consistent error handling across all scripts
+- Proper logging with appropriate levels (INFO, WARN, ERROR, DEBUG)
+- Input validation and sanitization
+- Graceful degradation when optional dependencies are missing
+- Clear separation of configuration and logic
+- Shellcheck-compliant code structure and syntax
+
+## When Making Changes
+
+- Preserve existing functionality unless explicitly asked to change it
+- Maintain consistency with established patterns
+- Update documentation when adding new features
+- Consider impact on dependent scripts or projects
+- **Always run shellcheck and fix all issues before considering changes complete**
+- **Always run markdownlint and fix all issues in markdown files before
+  considering changes complete**
+- Test thoroughly before considering changes complete
+
+## Shellcheck Compliance Requirements
+
+- All shell scripts (.sh, .bash, .zsh files) must pass shellcheck with no
+  warnings or errors
+- Use proper variable quoting and expansion
+- Declare variables before use when appropriate
+- Separate declaration and assignment to avoid masking return values
+- Use proper array handling and parameter expansion
+- Handle edge cases and error conditions properly
+- Follow POSIX compliance where possible unless bash/zsh specific features are
+  required
+
+## Markdownlint Compliance Requirements
+
+- All markdown files (.md files) must pass markdownlint with no warnings or errors
+- Follow the project's `.markdownlint.json` configuration
+- Use consistent heading styles and hierarchy
+- Ensure proper list formatting and indentation
+- Include blank lines around headings and code blocks
+- Use consistent link and reference formatting
+- Avoid trailing whitespace and ensure files end with newlines
+- Follow proper table formatting when applicable
