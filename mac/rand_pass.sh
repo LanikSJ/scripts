@@ -69,11 +69,14 @@ main() {
     
     # Generate the password
     local password
+
     password=$(generate_password "$length")
     
     # Display the password
+    echo ""
     echo "$password"
-    
+    echo ""
+
     # Cleanup on successful completion
     cleanup_logs
     show_status "Password generated successfully!" "✅"
