@@ -635,6 +635,34 @@ update_npm_standard() {
   cd "$current_dir" || log_warning "Could not return to original directory"
 }
 
+# 🛠️ Git update function (shared with ugh.sh)
+git_update() {
+  local repo="$1"
+  local branch="$2"
+  log_info "🔄 Updating $repo on branch $branch"
+  
+  git checkout "$branch" || {
+    log_error "Failed to checkout $branch for $repo"
+    return 1
+  }
+  
+  git pull || {
+    log_warning "Failed to pull updates for $repo"
+    return 1
+  }
+  
+  # Prune remote tracking branches that no longer exist on remote
+  log_info "🧹 Pruning remote tracking branches for $repo"
+  git remote prune origin || log_warning "Failed to prune remote for $repo"
+  
+  # Delete all local branches except the primary/default branch
+  log_info "🗑️ Deleting non-default local branches for $repo"
+  for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
+    log_info "  🗑️ Deleting local branch: $b"
+    git branch -D "$b" || log_warning "Failed to delete local branch $b"
+  done
+}
+
 # Update Git repositories
 update_git_repos() {
   local repo_dir="$1"
@@ -647,20 +675,36 @@ update_git_repos() {
     return 0
   fi
   
+  # Build repo list
+  local repolist=()
+  for dir in "$repo_dir"/*; do
+    [[ -d "$dir/.git" ]] && repolist+=("$(basename "$dir")")
+  done
+  
+  # Check if there are any repositories to update
+  if [[ ${#repolist[@]} -eq 0 ]]; then
+    log_warning "No git repositories found in $repo_dir"
+    return 0
+  fi
+  
+  log_info "Found ${#repolist[@]} repositories to update in $dir_name"
+  
   local current_dir=$(pwd)
   
-  for repo in "$repo_dir"/*/; do
-    if [[ -d "$repo/.git" ]]; then
-      local repo_name=$(basename "$repo")
-      log_info "${GIT_ICON} Updating $repo_name"
+  # 🧵 Parallel update (default: 1 job)
+  local JOBS=1
+  local pids=()
+  for repo in "${repolist[@]}"; do
+    (
+      # Save current directory to return to it later
+      current_dir=$(pwd)
       
-      cd "$repo" || {
-        log_warning "Could not change to repository: $repo"
-        continue
+      cd "$repo_dir/$repo" || {
+        log_error "Could not change to repository: $repo_dir/$repo"
+        exit 1
       }
       
-      # Detect primary/default branch
-      local branch
+      # Detect primary branch
       if git show-ref --verify --quiet refs/heads/develop; then
         branch="develop"
       elif git show-ref --verify --quiet refs/heads/dev; then
@@ -671,33 +715,25 @@ update_git_repos() {
         branch="master"
       fi
       
-      log_info "🔄 Switching to default branch: $branch"
-      git checkout "$branch" || log_warning "Failed to checkout $branch for $repo_name"
+      git_update "$repo" "$branch"
+      log_success "✅ $repo updated and cleaned"
       
-      # Prune remote tracking branches that no longer exist on remote
-      log_info "🧹 Pruning remote tracking branches for $repo_name"
-      git remote prune origin || log_warning "Failed to prune remote for $repo_name"
-      
-      # Pull latest changes
-      git pull || log_warning "Failed to pull updates for $repo_name"
-      
-      # Delete all local branches except the primary/default branch
-      log_info "🗑️ Deleting non-default local branches for $repo_name"
-      for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
-        log_info "  🗑️ Deleting local branch: $b"
-        git branch -D "$b" || log_warning "Failed to delete local branch $b"
+      # Return to original directory
+      cd "$current_dir" || log_warning "Could not return to original directory"
+    ) &
+    pids+=($!)
+    # Limit parallel jobs
+    if (( ${#pids[@]} >= JOBS )); then
+      wait -n
+      # Remove finished jobs from array
+      for i in "${!pids[@]}"; do
+        if ! kill -0 "${pids[$i]}" 2>/dev/null; then unset 'pids[i]'; fi
       done
-      
-      # Delete remote tracking branches except the primary/default branch
-      log_info "🗑️ Deleting non-default remote tracking branches for $repo_name"
-      for b in $(git branch -r | grep -v "origin/$branch\$" | grep -v "origin/HEAD" | awk '{print $NF}'); do
-        log_info "  🗑️ Deleting remote tracking branch: $b"
-        git branch -dr "$b" || log_warning "Failed to delete remote tracking branch $b"
-      done
-      
-      log_success "✅ $repo_name updated and cleaned"
     fi
   done
+  
+  # Wait for all jobs to finish
+  wait
   
   cd "$current_dir" || log_warning "Could not return to original directory"
   log_success "$dir_name repositories updated"

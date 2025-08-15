@@ -15,13 +15,58 @@ This is a personal collection of scripts, tools, and projects covering:
 
 - Use `#!/usr/bin/env bash` shebang for bash scripts
 - Use `#!/usr/bin/env zsh` shebang for zsh scripts
-- Always include `set -euo pipefail` for error handling in bash scripts
+- Always include `set -euo pipefail` for error handling in bash and zsh scripts
 - Follow the template structure in `scripts/TEMPLATE.sh` for new scripts
 - Use shellcheck-compliant code (separate declare and assign to avoid masking
   return values)
 - Include proper usage documentation and help functions
 - Use consistent logging with colors and icons as shown in template
 - Implement dry-run functionality where applicable
+
+#### Script Synchronization Requirements
+
+- **When updating shell scripts that share common patterns or functionality,
+  ensure consistent implementation of shared patterns across related scripts**
+- **CRITICAL: When one script is updated with improved patterns, ALL related
+  scripts MUST be updated to maintain synchronization**
+- Examples of synchronized script pairs that MUST maintain identical
+  functionality:
+  - `scripts/git/ugh.sh` and `scripts/mac/umac.zsh` (both use identical git
+    repository management)
+  - The `git_update()` function MUST be identical between these scripts
+  - The `update_git_repos()` function MUST use the same logic and patterns
+- Maintain consistent logging patterns, error handling, and user feedback
+- Use shared utility functions and patterns where applicable
+- Ensure consistent variable naming and function structure across related scripts
+- Apply improvements and bug fixes to all scripts that use similar patterns
+- **When updating one file, you MUST update the corresponding synchronized file**
+
+#### Git Repository Management Patterns (Synchronized Code)
+
+- **MANDATORY: Use the identical `git_update()` function across all scripts**
+- **MANDATORY: Use the same repository list building and validation logic**
+- Use consistent branch detection logic: check for `develop`, `dev`, `main`, then
+  `master`
+- Implement proper remote pruning with `git remote prune origin`
+- Clean up local branches except the primary/default branch
+- Use parallel processing with job control for multiple repository operations
+- Include proper error handling with specific error messages and return codes
+- Provide clear progress indicators with emojis and descriptive messages
+- Implement repository counting and validation before processing
+- Use proper directory navigation with restoration to original location
+- Apply consistent logging patterns with INFO, SUCCESS, WARNING, ERROR levels
+
+#### System Update Script Patterns
+
+- Implement comprehensive logging with consistent icons and color coding
+- Use proper error handling functions that allow script continuation
+- Include dependency checking before running update operations
+- Implement cleanup functions with trap handlers for graceful exits
+- Use temporary file tracking for proper cleanup
+- Provide command-line argument parsing for component selection
+- Include version detection and auto-discovery for tools (Python, Node.js, etc.)
+- Implement proper directory navigation with restoration to original location
+- Use verbose output options for debugging and troubleshooting
 
 ### Code Quality
 
@@ -176,7 +221,37 @@ This is a personal collection of scripts, tools, and projects covering:
 - **Always run shellcheck and fix all issues before considering changes complete**
 - **Always run markdownlint and fix all issues in markdown files before
   considering changes complete**
+- **CRITICAL: Always update `.cline-rules` with any relevant changes made to
+  scripts in the repository**
+- **When introducing new patterns, coding standards, or best practices in
+  scripts, these MUST be documented in `.cline-rules` for future reference
+  and consistency**
+- **When fixing bugs or improving error handling in scripts, update
+  `.cline-rules` to reflect the improved patterns so they are applied
+  consistently across all scripts**
+- **When adding new utility functions or shared code patterns, document them
+  in `.cline-rules` to ensure they are reused appropriately**
 - Test thoroughly before considering changes complete
+
+### Cline Rules Maintenance Requirements
+
+- **MANDATORY: Update `.cline-rules` whenever making changes to scripts that
+  introduce:**
+  - New coding patterns or best practices
+  - Improved error handling approaches
+  - Enhanced logging or user feedback mechanisms
+  - New utility functions or shared code
+  - Bug fixes that should be applied consistently
+  - Security improvements or vulnerability fixes
+  - Performance optimizations or efficiency improvements
+- **The `.cline-rules` file serves as the single source of truth for coding
+  standards**
+- **All script improvements must be captured in `.cline-rules` to ensure
+  consistency**
+- **When synchronizing code between scripts, update `.cline-rules` to document
+  the synchronization requirements**
+- **Regular review of `.cline-rules` against actual script implementations to
+  ensure alignment**
 
 ## Shellcheck Compliance Requirements
 
@@ -192,7 +267,8 @@ This is a personal collection of scripts, tools, and projects covering:
 
 ## Markdownlint Compliance Requirements
 
-- All markdown files (.md files) must pass markdownlint with no warnings or errors
+- All markdown files (.md files) must pass markdownlint with no warnings or
+  errors
 - Follow the project's `.markdownlint.json` configuration
 - Use consistent heading styles and hierarchy
 - Ensure proper list formatting and indentation
@@ -200,3 +276,14 @@ This is a personal collection of scripts, tools, and projects covering:
 - Use consistent link and reference formatting
 - Avoid trailing whitespace and ensure files end with newlines
 - Follow proper table formatting when applicable
+
+### Markdownlint Compliance Demonstration
+
+- **This `.cline-rules` file itself demonstrates full markdownlint compliance**
+- **All line length violations (MD013) have been resolved by proper line
+  wrapping**
+- **This serves as a reference example for maintaining markdownlint compliance
+  in all markdown files**
+- **When updating this file, ALWAYS run `markdownlint scripts/.cline-rules`
+  to verify continued compliance**
+- **Zero tolerance policy: No markdownlint warnings or errors are acceptable**
