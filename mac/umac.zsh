@@ -11,6 +11,7 @@ PYTHON_ICON="🐍"
 RUBY_ICON="💎"
 NPM_ICON="📦"
 GIT_ICON="📂"
+VIM_ICON="📝"
 MACOS_ICON="🍎"
 
 # Icons for log types
@@ -44,33 +45,27 @@ cleanup_temp_files() {
 }
 
 # Handle script interruptions gracefully
-trap 'echo -e "\n\033[0;31mScript interrupted. Cleaning up...\033[0m"; cleanup_temp_files; exit 1' INT TERM
+trap 'echo -e "\nScript interrupted. Cleaning up..."; cleanup_temp_files; exit 1' INT TERM
 
 # Handle script exit to ensure cleanup on successful completion
 trap 'cleanup_temp_files' EXIT
 
-# Color definitions for better output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
 
 # Log functions for consistent output
 log_info() {
-  echo -e "\n${BLUE}${INFO_ICON} INFO:${NC} $1"
+  echo -e "$1"
 }
 
 log_success() {
-  echo -e "${GREEN}${SUCCESS_ICON} SUCCESS:${NC} $1"
+  echo -e "$1"
 }
 
 log_warning() {
-  echo -e "${YELLOW}${WARNING_ICON} WARNING:${NC} $1"
+  echo -e "⚠️ WARNING: $1"
 }
 
 log_error() {
-  echo -e "${RED}${ERROR_ICON} ERROR:${NC} $1"
+  echo -e "❌ ERROR: $1"
 }
 
 # Check if a command exists
@@ -639,6 +634,7 @@ update_npm_standard() {
 git_update() {
   local repo="$1"
   local branch="$2"
+  echo ""
   log_info "🔄 Updating $repo on branch $branch"
   
   git checkout "$branch" || {
@@ -668,7 +664,12 @@ update_git_repos() {
   local repo_dir="$1"
   local dir_name="$2"
   
-  log_info "${GIT_ICON} Updating $dir_name repositories"
+  # Special formatting for VIM Plugged repositories
+  if [[ "$dir_name" == "VIM Plugged" ]]; then
+    log_info "\n${GIT_ICON} Updating ${VIM_ICON} VIM Plugged repositories"
+  else
+    log_info "\n${GIT_ICON} Updating $dir_name repositories"
+  fi
   
   if [[ ! -d "$repo_dir" ]]; then
     log_warning "$dir_name directory not found: $repo_dir. Skipping."
@@ -724,11 +725,16 @@ update_git_repos() {
     pids+=($!)
     # Limit parallel jobs
     if (( ${#pids[@]} >= JOBS )); then
-      wait -n
-      # Remove finished jobs from array
-      for i in "${!pids[@]}"; do
-        if ! kill -0 "${pids[$i]}" 2>/dev/null; then unset 'pids[i]'; fi
+      # Wait for any job to finish (zsh compatible)
+      wait
+      # Remove finished jobs from array (zsh compatible)
+      local new_pids=()
+      for pid in "${pids[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+          new_pids+=("$pid")
+        fi
       done
+      pids=("${new_pids[@]}")
     fi
   done
   
@@ -736,7 +742,14 @@ update_git_repos() {
   wait
   
   cd "$current_dir" || log_warning "Could not return to original directory"
-  log_success "$dir_name repositories updated"
+  
+  # Special formatting for VIM Plugged repositories
+  if [[ "$dir_name" == "VIM Plugged" ]]; then
+    echo ""
+    log_success "${VIM_ICON} VIM Plugged repositories updated"
+  else
+    log_success "✅ $dir_name repositories updated"
+  fi
 }
 
 # Check for macOS updates

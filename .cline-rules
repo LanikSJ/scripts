@@ -56,6 +56,53 @@ This is a personal collection of scripts, tools, and projects covering:
 - Use proper directory navigation with restoration to original location
 - Apply consistent logging patterns with INFO, SUCCESS, WARNING, ERROR levels
 
+#### Output Formatting Synchronization Requirements
+
+- **CRITICAL: `ugh.sh` and `umac.zsh --only=git` MUST produce identical
+  output**
+- **MANDATORY: Use identical starting message sequence:**
+  - `"📂 Updating LanikSJ repositories"`
+  - `"Found X repositories to update in LanikSJ"`
+- **MANDATORY: Use identical git_update() formatting:**
+  - Use `echo ""` followed by `log_info "🔄 Updating $repo on branch
+    $branch"`
+  - Never use `\n` within log messages as it splits the INFO message
+  - Maintain blank line above each repository update for readability
+- **MANDATORY: Use identical completion message sequence:**
+  - `"LanikSJ repositories updated"`
+- **MANDATORY: Use identical icons and formatting:**
+  - `GIT_ICON="📂"` for repository operations
+  - Consistent emoji usage in all log messages
+  - Identical color coding and log level formatting
+- **MANDATORY: Use simplified log function formatting:**
+  - `log_info()` outputs: `"$1"` (no color formatting, no INFO_ICON prefix)
+  - `log_success()` outputs: `"$1"` (no color formatting, no SUCCESS_ICON prefix)
+  - Messages include their own specific emojis (🔄, 🧹, 🗑️, ✅, etc.)
+  - WARNING and ERROR functions retain their icon prefixes and text labels
+- **MANDATORY: Handle special repository formatting consistently:**
+  - Add blank line after `zsh-theme` repository success message in both scripts
+  - Use conditional formatting for special repositories (VIM Plugged, etc.)
+  - For special repository messages requiring blank lines, use `echo ""`
+    followed by `log_success "message"`, never use `\n` within log messages
+- **When updating output formatting in one script, IMMEDIATELY update the other**
+- **Test both scripts to ensure identical output before considering changes complete**
+
+#### Shell Compatibility Requirements
+
+- **CRITICAL: Ensure cross-shell compatibility between bash and zsh scripts**
+- **Bash-specific features that are NOT compatible with zsh:**
+  - `wait -n` command (not supported in zsh)
+  - `${!array[@]}` parameter expansion syntax (bash-specific)
+- **Zsh-compatible alternatives that work in both shells:**
+  - Use `wait` without `-n` flag for job control
+  - Use standard array iteration instead of indirect parameter expansion
+  - Use shell-agnostic array manipulation patterns
+- **When fixing shell compatibility issues:**
+  - Test scripts in both bash and zsh environments
+  - Use fallback mechanisms for shell-specific features
+  - Document compatibility requirements in script comments
+  - Apply fixes to ALL synchronized scripts simultaneously
+
 #### System Update Script Patterns
 
 - Implement comprehensive logging with consistent icons and color coding
