@@ -92,21 +92,21 @@ check_dependencies() {
 
 # Update Xcode command line tools
 update_xcode() {
-  log_info "${XCODE_ICON} Checking Xcode command line tools"
+  log_info "\n${XCODE_ICON} Checking Xcode command line tools"
   
   if ! xcode-select -p &>/dev/null; then
-    log_warning "Xcode command line tools not found. Installing..."
+    log_warning "\n${XCODE_ICON} Xcode command line tools not found. Installing..."
     xcode-select --install
     log_info "Please run this script again after Xcode command line tools installation completes."
     exit 0
   else
-    log_success "Xcode command line tools are installed"
+    log_success "${XCODE_ICON} Xcode command line tools are installed"
   fi
 }
 
 # Update Homebrew and packages
 update_homebrew() {
-  log_info "${BREW_ICON} Updating Homebrew"
+  log_info "\n${BREW_ICON} Updating Homebrew"
   
   # Save current directory to return to it later
   local current_dir=$(pwd)
@@ -129,7 +129,7 @@ update_homebrew() {
   # Update Homebrew itself
   git remote prune origin && git checkout main && git pull origin main
   
-  log_info "${BREW_ICON} Updating Brew Packages & Casks"
+  log_info "\n${BREW_ICON} Updating Brew Packages & Casks"
   brew update || log_warning "Brew update failed"
   brew upgrade || log_warning "Brew upgrade failed"
   
@@ -141,18 +141,18 @@ update_homebrew() {
     log_info "Install with: brew tap buo/cask-upgrade"
   fi
   
-  log_info "${BREW_ICON} Removing Homebrew Caches"
+  log_info "\n${BREW_ICON} Removing Homebrew Caches"
   brew cleanup -s --prune=1
   log_success "Homebrew cleanup completed"
   
-  log_info "${BREW_ICON} Running Brew Doctor"
+  log_info "\n${BREW_ICON} Running Brew Doctor"
   brew doctor || log_warning "Brew doctor found issues"
   
-  log_info "${BREW_ICON} Creating Brewfile"
+  log_info "\n${BREW_ICON} Creating Brewfile"
   brew bundle dump --all --force --file=~/.Brewfile
   log_success "Brewfile created at ~/.Brewfile"
   
-  log_info "${BREW_ICON} Cleaning up unneeded formulae"
+  log_info "\n${BREW_ICON} Cleaning up unneeded formulae"
   brew bundle cleanup --file=~/.Brewfile --force
   log_success "Brew cleanup completed"
   
@@ -162,7 +162,7 @@ update_homebrew() {
 
 # Update Oh My ZSH
 update_omz() {
-  log_info "${OMZ_ICON} Updating Oh My ZSH"
+  log_info "\n${OMZ_ICON} Updating Oh My ZSH"
   
   if [[ -z "$ZSH" ]]; then
     log_warning "ZSH variable not set. Assuming default location."
@@ -188,7 +188,7 @@ update_omz() {
 
 # Update Zinit and plugins
 update_zinit() {
-  log_info "${ZINIT_ICON} Updating ZSH Plugins via Zinit"
+  log_info "\n${ZINIT_ICON} Updating ZSH Plugins via Zinit"
   
   ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
   
@@ -234,7 +234,7 @@ update_zinit() {
 
 # Update Python packages
 update_python() {
-  log_info "${PYTHON_ICON} Updating Python packages"
+  log_info "\n${PYTHON_ICON} Updating Python packages"
   
   # Define excluded packages (can be a regex pattern)
   local exclude="(pip|setuptools|wheel)"
@@ -354,15 +354,15 @@ update_python() {
 
 # Update Ruby gems
 update_ruby() {
-  log_info "${RUBY_ICON} Updating Ruby Gems"
+  log_info "\n${RUBY_ICON} Updating Ruby Gems"
   
   if ! command_exists gem; then
-    log_warning "Ruby gem command not found. Skipping."
+    log_warning "{RUBY_ICON} Ruby gem command not found. Skipping."
     return 0
   fi
   
   # Update RubyGems system
-  gem update --system || log_warning "Failed to update RubyGems system"
+  gem update --system || log_warning "Failed to update {RUBY_ICON} RubyGems system"
   
   # Update all gems
   gem update || log_warning "Failed to update gems"
@@ -370,7 +370,7 @@ update_ruby() {
   # Clean up old gems
   gem cleanup || log_warning "Failed to clean up gems"
   
-  log_success "Ruby gems updated"
+  log_success "\n${RUBY_ICON} Ruby gems updated"
   
   # Uncomment if using RVM
   # if command_exists rvm; then
@@ -382,7 +382,7 @@ update_ruby() {
 
 # Update NPM packages
 update_npm() {
-  log_info "${NPM_ICON} Updating NPM packages"
+  log_info "\n${NPM_ICON} Updating NPM packages"
   
   if ! command_exists npm; then
     log_warning "npm command not found. Skipping."
@@ -391,9 +391,9 @@ update_npm() {
   
   # Check if npm-check is installed
   if ! command_exists npm-check; then
-    log_info "${NPM_ICON} npm-check is not installed. Installing it globally..."
+    log_info "\n${NPM_ICON} npm-check is not installed. Installing it globally..."
     if npm install -g npm-check; then
-      log_success "npm-check installed successfully."
+      log_success "\n${NPM_ICON} npm-check installed successfully."
     else
       log_warning "Failed to install npm-check. Falling back to standard npm update."
       # Fall back to standard npm update method
@@ -403,7 +403,7 @@ update_npm() {
   fi
   
   # Update global npm packages using npm-check
-  log_info "${NPM_ICON} Updating NPM global packages using npm-check"
+  log_info "\n${NPM_ICON} Updating NPM global packages using npm-check"
   
   # First, get a list of all global packages except corepack and npm-check
   local global_packages
@@ -415,12 +415,12 @@ update_npm() {
   
   # Check if there are any packages to update
   if [[ -z "$global_packages" ]]; then
-    log_success "No global packages to update (excluding corepack and npm-check)"
+    log_success "${NPM_ICON} No global packages to update (excluding corepack and npm-check)"
     return 0
   fi
   
   # Update each package individually using npm-check
-  log_info "Updating global packages individually (excluding corepack and npm-check)"
+  log_info "\n${NPM_ICON} Updating global packages individually (excluding corepack and npm-check)"
   local update_count=0
   local fail_count=0
   
@@ -449,7 +449,7 @@ update_npm() {
       log_warning "Failed to update ${pkg} with npm-check"
       ((fail_count++))
     else
-      log_success "Updated ${pkg} successfully"
+      log_success "${NPM_ICON} Updated ${pkg} successfully"
       ((update_count++))
     fi
   done
@@ -459,9 +459,9 @@ update_npm() {
   rm -rf "$tmp_dir"
   
   if [[ $update_count -gt 0 ]]; then
-    log_success "Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
+    log_success "${NPM_ICON} Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
   else
-    log_info "No packages were updated with npm-check"
+    log_info "${NPM_ICON} No packages were updated with npm-check"
   fi
   
   # Determine NPM modules directory
@@ -470,11 +470,11 @@ update_npm() {
     NPM_DIR="$HOMEBREW_PREFIX/lib/node_modules"
   else
     NPM_DIR="/usr/local/lib/node_modules"
-    log_warning "HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
+    log_warning "${BREW_ICON} HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
   fi
   
   if [[ ! -d "$NPM_DIR" ]]; then
-    log_warning "NPM directory not found: $NPM_DIR. Skipping."
+    log_warning "${NPM_ICON} NPM directory not found: $NPM_DIR. Skipping."
     return 0
   fi
   
@@ -490,7 +490,7 @@ update_npm() {
   for pkg_dir in "$NPM_DIR"/*; do
     if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" && "$(basename "$pkg_dir")" != "npm-check" && "$(basename "$pkg_dir")" != "corepack" ]]; then
       local pkg_name=$(basename "$pkg_dir")
-      log_info "Updating $pkg_name using npm-check"
+      log_info "${NPM_ICON} Updating $pkg_name using npm-check"
       
       # Change to the package directory
       if cd "$pkg_dir"; then
@@ -498,7 +498,7 @@ update_npm() {
         { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
         
         if [[ $? -eq 0 ]]; then
-          log_success "Updated $pkg_name successfully"
+          log_success "${NPM_ICON} Updated $pkg_name successfully"
           ((module_update_count++))
         else
           log_warning "Failed to update $pkg_name with npm-check"
@@ -516,14 +516,14 @@ update_npm() {
   
   # Special case for AGLint
   if [[ -d "$NPM_DIR/@adguard/aglint" ]]; then
-    log_info "Updating AGLint using npm-check"
+    log_info "\n${NPM_ICON} Updating AGLint using npm-check"
     
     if cd "$NPM_DIR/@adguard/aglint"; then
       # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
       { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
       
       if [[ $? -eq 0 ]]; then
-        log_success "Updated AGLint successfully"
+        log_success "${NPM_ICON} Updated AGLint successfully"
         ((module_update_count++))
       else
         log_warning "Failed to update AGLint with npm-check"
@@ -543,20 +543,20 @@ update_npm() {
   
   # Log summary of module updates
   if [[ $module_update_count -gt 0 ]]; then
-    log_success "Updated $module_update_count individual modules with npm-check"
+    log_success "\n${NPM_ICON} Updated $module_update_count individual modules with npm-check"
   fi
   if [[ $module_fail_count -gt 0 ]]; then
-    log_warning "Failed to update $module_fail_count individual modules"
+    log_warning "${NPM_ICON} Failed to update $module_fail_count individual modules"
   fi
   
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
   
   # Clear npm cache
-  log_info "${NPM_ICON} Clearing NPM cache"
+  log_info "\n${NPM_ICON} Clearing NPM cache"
   npm cache clean --force || log_warning "Failed to clear npm cache"
   
-  log_success "NPM packages updated with npm-check"
+  log_success "\n${NPM_ICON} NPM packages updated with npm-check"
 }
 
 # Fallback method using standard npm commands
@@ -634,8 +634,8 @@ update_npm_standard() {
 git_update() {
   local repo="$1"
   local branch="$2"
-  echo ""
-  log_info "🔄 Updating $repo on branch $branch"
+
+  log_info "\n🔄 Updating $repo on branch $branch"
   
   git checkout "$branch" || {
     log_error "Failed to checkout $branch for $repo"
@@ -754,7 +754,7 @@ update_git_repos() {
 
 # Check for macOS updates
 update_macos() {
-  log_info "${MACOS_ICON} Checking for macOS updates"
+  log_info "\n${MACOS_ICON} Checking for macOS updates"
   
   # Check if softwareupdate command exists
   if ! command_exists softwareupdate; then
