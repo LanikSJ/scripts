@@ -3,6 +3,32 @@
 
 set -euo pipefail
 
+# Icons for components
+GIT_ICON="📂"
+
+
+# Log functions for consistent output
+log_info() {
+  echo -e "$1"
+}
+
+log_success() {
+  echo -e "$1"
+}
+
+log_warning() {
+  echo -e "⚠️ WARNING: $1"
+}
+
+log_error() {
+  echo -e "❌ ERROR: $1"
+}
+
+# Check if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 # 📁 Variables
 GITHUB="${HOME}/GitHub/LanikSJ"
 repolist=()
@@ -12,41 +38,72 @@ for dir in "$GITHUB"/*; do
   [[ -d "$dir/.git" ]] && repolist+=("$(basename "$dir")")
 done
 
-# 🛠️ Update function
+# 🛠️ Git update function (shared with umac.zsh)
 git_update() {
   local repo="$1"
   local branch="$2"
-  echo -e "\n🔄 Updating $repo on branch $branch"
-  git checkout "$branch"
-  git pull
+  echo ""
+  log_info "🔄 Updating $repo on branch $branch"
+  
+  git checkout "$branch" || {
+    log_error "Failed to checkout $branch for $repo"
+    return 1
+  }
+  
+  git pull || {
+    log_warning "Failed to pull updates for $repo"
+    return 1
+  }
   
   # Prune remote tracking branches that no longer exist on remote
-  echo "🧹 Pruning remote tracking branches..."
-  git remote prune origin || true
+  log_info "🧹 Pruning remote tracking branches for $repo"
+  git remote prune origin || log_warning "Failed to prune remote for $repo"
   
   # Delete all local branches except the primary/default branch
-  echo "🗑️ Deleting non-default local branches..."
+  log_info "🗑️ Deleting non-default local branches for $repo"
   for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
-    echo "  🗑️ Deleting local branch: $b"
-    git branch -D "$b" || true
-  done
-  
-  # Delete remote tracking branches except the primary/default branch
-  echo "🗑️ Deleting non-default remote tracking branches..."
-  for b in $(git branch -r | grep -v "origin/$branch\$" | grep -v "origin/HEAD" | awk '{print $NF}'); do
-    echo "  🗑️ Deleting remote tracking branch: $b"
-    git branch -dr "$b" || true
+    log_info "  🗑️ Deleting local branch: $b"
+    git branch -D "$b" || log_warning "Failed to delete local branch $b"
   done
 }
 
-echo -e "\n🚀 Updating all LanikSJ Repos in $GITHUB"
+log_info "🚀 Starting GitHub repository update process"
 
-# 🧵 Parallel update (default: 1 job)
+log_info "\n${GIT_ICON} Updating LanikSJ repositories"
+
+# Check if git is available
+if ! command_exists git; then
+  log_error "Git command not found. Please install git."
+  exit 1
+fi
+
+# Check if GitHub directory exists
+if [[ ! -d "$GITHUB" ]]; then
+  log_warning "LanikSJ directory not found: $GITHUB. Skipping."
+  exit 0
+fi
+
+# Check if there are any repositories to update
+if [[ ${#repolist[@]} -eq 0 ]]; then
+  log_warning "No git repositories found in $GITHUB"
+  exit 0
+fi
+
+log_info "Found ${#repolist[@]} repositories to update in LanikSJ"
+
+# 🧵 Parallel update (default: 1 job) - bash compatible version
 JOBS=1
 pids=()
 for repo in "${repolist[@]}"; do
   (
-    cd "$GITHUB/$repo"
+    # Save current directory to return to it later
+    current_dir=$(pwd)
+    
+    cd "$GITHUB/$repo" || {
+      log_error "Could not change to repository: $GITHUB/$repo"
+      exit 1
+    }
+    
     # Detect primary branch
     if git show-ref --verify --quiet refs/heads/develop; then
       branch="develop"
@@ -57,17 +114,31 @@ for repo in "${repolist[@]}"; do
     else
       branch="master"
     fi
+    
     git_update "$repo" "$branch"
-    echo "✅ $repo updated."
+    log_success "✅ $repo updated and cleaned"
+    
+    # Return to original directory
+    cd "$current_dir" || log_warning "Could not return to original directory"
   ) &
   pids+=($!)
-  # Limit parallel jobs
+  # Limit parallel jobs - bash compatible version
   if (( ${#pids[@]} >= JOBS )); then
-    wait -n
-    # Remove finished jobs from array
-    for i in "${!pids[@]}"; do
-      if ! kill -0 "${pids[$i]}" 2>/dev/null; then unset 'pids[i]'; fi
-    done
+    # Use wait -n for bash (supported in bash 4.3+)
+    if wait -n 2>/dev/null; then
+      # Remove finished jobs from array (bash compatible)
+      new_pids=()
+      for pid in "${pids[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+          new_pids+=("$pid")
+        fi
+      done
+      pids=("${new_pids[@]}")
+    else
+      # Fallback for older bash versions
+      wait
+      pids=()
+    fi
   fi
 done
 
