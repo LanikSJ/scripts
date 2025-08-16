@@ -594,7 +594,7 @@ update_npm_standard() {
     NPM_DIR="$HOMEBREW_PREFIX/lib/node_modules"
   else
     NPM_DIR="/usr/local/lib/node_modules"
-    log_warning "HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
+    log_warning "${BREW_ICON} HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
   fi
   
   if [[ ! -d "$NPM_DIR" ]]; then
