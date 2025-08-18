@@ -57,7 +57,7 @@ log_info() {
 }
 
 log_success() {
-  echo -e "$1"
+  echo -e "✅ $1"
 }
 
 log_warning() {
@@ -100,7 +100,7 @@ update_xcode() {
     log_info "Please run this script again after Xcode command line tools installation completes."
     exit 0
   else
-    log_success "${XCODE_ICON} Xcode command line tools are installed"
+    log_success "Xcode command line tools are installed"
   fi
 }
 
@@ -370,7 +370,7 @@ update_ruby() {
   # Clean up old gems
   gem cleanup || log_warning "Failed to clean up gems"
   
-  log_success "\n${RUBY_ICON} Ruby gems updated"
+  log_success "Ruby gems updated"
   
   # Uncomment if using RVM
   # if command_exists rvm; then
@@ -393,7 +393,7 @@ update_npm() {
   if ! command_exists npm-check; then
     log_info "\n${NPM_ICON} npm-check is not installed. Installing it globally..."
     if npm install -g npm-check; then
-      log_success "\n${NPM_ICON} npm-check installed successfully."
+      log_success "npm-check installed successfully."
     else
       log_warning "Failed to install npm-check. Falling back to standard npm update."
       # Fall back to standard npm update method
@@ -415,7 +415,7 @@ update_npm() {
   
   # Check if there are any packages to update
   if [[ -z "$global_packages" ]]; then
-    log_success "${NPM_ICON} No global packages to update (excluding corepack and npm-check)"
+    log_success "No global packages to update (excluding corepack and npm-check)"
     return 0
   fi
   
@@ -449,7 +449,7 @@ update_npm() {
       log_warning "Failed to update ${pkg} with npm-check"
       ((fail_count++))
     else
-      log_success "${NPM_ICON} Updated ${pkg} successfully"
+      log_success "Updated ${pkg} successfully"
       ((update_count++))
     fi
   done
@@ -459,7 +459,7 @@ update_npm() {
   rm -rf "$tmp_dir"
   
   if [[ $update_count -gt 0 ]]; then
-    log_success "${NPM_ICON} Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
+    log_success "Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
   else
     log_info "${NPM_ICON} No packages were updated with npm-check"
   fi
@@ -490,7 +490,7 @@ update_npm() {
   for pkg_dir in "$NPM_DIR"/*; do
     if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" && "$(basename "$pkg_dir")" != "npm-check" && "$(basename "$pkg_dir")" != "corepack" ]]; then
       local pkg_name=$(basename "$pkg_dir")
-      log_info "${NPM_ICON} Updating $pkg_name using npm-check"
+      log_info "\n${NPM_ICON} Updating $pkg_name using npm-check"
       
       # Change to the package directory
       if cd "$pkg_dir"; then
@@ -498,7 +498,7 @@ update_npm() {
         { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
         
         if [[ $? -eq 0 ]]; then
-          log_success "${NPM_ICON} Updated $pkg_name successfully"
+          log_success "Updated $pkg_name successfully"
           ((module_update_count++))
         else
           log_warning "Failed to update $pkg_name with npm-check"
@@ -523,7 +523,7 @@ update_npm() {
       { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
       
       if [[ $? -eq 0 ]]; then
-        log_success "${NPM_ICON} Updated AGLint successfully"
+        log_success "Updated AGLint successfully"
         ((module_update_count++))
       else
         log_warning "Failed to update AGLint with npm-check"
@@ -543,7 +543,7 @@ update_npm() {
   
   # Log summary of module updates
   if [[ $module_update_count -gt 0 ]]; then
-    log_success "\n${NPM_ICON} Updated $module_update_count individual modules with npm-check"
+    log_success "Updated $module_update_count individual modules with npm-check"
   fi
   if [[ $module_fail_count -gt 0 ]]; then
     log_warning "${NPM_ICON} Failed to update $module_fail_count individual modules"
@@ -556,7 +556,7 @@ update_npm() {
   log_info "\n${NPM_ICON} Clearing NPM cache"
   npm cache clean --force || log_warning "Failed to clear npm cache"
   
-  log_success "\n${NPM_ICON} NPM packages updated with npm-check"
+  log_success "NPM packages updated with npm-check"
 }
 
 # Fallback method using standard npm commands
@@ -717,7 +717,7 @@ update_git_repos() {
       fi
       
       git_update "$repo" "$branch"
-      log_success "✅ $repo updated and cleaned"
+      log_success "$repo updated and cleaned"
       
       # Return to original directory
       cd "$current_dir" || log_warning "Could not return to original directory"
@@ -746,9 +746,9 @@ update_git_repos() {
   # Special formatting for VIM Plugged repositories
   if [[ "$dir_name" == "VIM Plugged" ]]; then
     echo ""
-    log_success "${VIM_ICON} VIM Plugged repositories updated"
+    log_success "VIM ${VIM_ICON} Plugged repositories updated"
   else
-    log_success "✅ $dir_name repositories updated"
+    log_success "$dir_name repositories updated"
   fi
 }
 
@@ -860,7 +860,7 @@ main() {
     update_git_repos "$HOME/.vim/plugged" "VIM Plugged"
   fi
   
-  log_success "🎉 System update completed successfully!"
+  log_success "System update completed successfully! 🎉"
 }
 
 # Run the main function
