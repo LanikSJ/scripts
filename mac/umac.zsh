@@ -92,7 +92,7 @@ check_dependencies() {
 
 # Update Xcode command line tools
 update_xcode() {
-  log_info "Checking ${XCODE_ICON} Xcode command line tools"
+  log_info "\n${XCODE_ICON} Checking Xcode command line tools"
   
   if ! xcode-select -p &>/dev/null; then
     log_warning "\n${XCODE_ICON} Xcode command line tools not found. Installing..."
