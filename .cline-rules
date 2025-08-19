@@ -208,6 +208,31 @@ This is a personal collection of scripts, tools, and projects covering:
 - Test cross-platform compatibility where applicable
 - Verify all external dependencies are available
 
+### Pre-Implementation Testing Requirements
+
+- **MANDATORY: Test all changes in a safe environment before implementing them
+  in production scripts**
+- **Create backup copies of existing scripts before making modifications**
+- **Use dry-run modes when available to validate script behavior without making
+  actual changes**
+- **Test scripts with various input scenarios including edge cases and error
+  conditions**
+- **Verify that changes don't break existing functionality by running the
+  original use cases**
+- **Test modified scripts in both interactive and non-interactive environments**
+- **Validate that all dependencies and external tools are available and working
+  correctly**
+- **Run comprehensive tests including:**
+  - Syntax validation (shellcheck for shell scripts)
+  - Functionality testing with sample data
+  - Error handling validation with invalid inputs
+  - Performance testing for scripts that process large datasets
+  - Cross-platform compatibility testing when applicable
+- **Document test results and any issues discovered during testing**
+- **Only proceed with implementation after all tests pass successfully**
+- **For synchronized scripts (like `ugh.sh` and `umac.zsh`), test BOTH scripts
+  to ensure identical behavior**
+
 ### Markdown Compliance Requirements
 
 - **ALL markdown files (.md) MUST pass markdownlint validation with zero errors
