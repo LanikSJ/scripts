@@ -6,8 +6,8 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Configuration variables
 GIT_NAME="Ilan Erenstein"
-GIT_EMAIL="ilan.erenstein@crowdstrike.com"
-GIT_SIGNING_KEY="4C2F2A580FB85CDC"
+GIT_EMAIL=""
+GIT_SIGNING_KEY=""
 ORIGINAL_DIR="$(pwd)"
 
 # Check if Git is installed
