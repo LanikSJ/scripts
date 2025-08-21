@@ -1,6 +1,0 @@
-/var/log/*-sync.log {
-    missingok
-    notifempty
-    sharedscripts
-    delaycompress
-}

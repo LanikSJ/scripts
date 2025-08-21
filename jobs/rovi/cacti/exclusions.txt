@@ -1,9 +1,0 @@
-.bashrc
-sync.log
-cacti.txt
-.ssh
-authorized_keys
-id_dsa
-id_dsa.pub
-.bash_history
-.viminfo
