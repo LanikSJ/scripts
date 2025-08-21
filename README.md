@@ -1,25 +1,46 @@
 # Personal Scripts Repository
 
+![Scripts](https://img.shields.io/badge/Scripts-blue)
+![AWS](https://img.shields.io/badge/AWS-orange)
+![Docker](https://img.shields.io/badge/Docker-informational)
+![Git](https://img.shields.io/badge/Git-red)
+![macOS](https://img.shields.io/badge/macOS-lightgrey)
+
 This repository houses a collection of personal scripts designed to
 automate various tasks across different domains, including AWS, Docker,
 Git, system administration, and more. These scripts are intended for
 personal use to streamline workflows and manage common development and
 operational tasks.
 
+## Table of Contents
+
+- [Directory Structure and Script Overviews](#directory-structure-and-script-overviews)
+  - [☁️ AWS](#aws)
+  - [🐳 Docker](#docker)
+  - [🔒 Expect](#expect)
+  - [🐙 Git](#git)
+  - [🌐 Sloth](#sloth)
+  - [⏱️ Jobs](#jobs)
+  - [🍎 Mac](#mac)
+  - [🗃️ Misc](#misc)
+  - [🔐 SSL](#ssl)
+  - [📝 Sublime](#sublime)
+  - [🐚 zsh](#zsh)
+
 ## Directory Structure and Script Overviews
 
 Here's a breakdown of the main script categories and a brief description of
 their purpose:
 
-### `aws/`
+### AWS
 
-Scripts related to Amazon Web Services (AWS) CLI interactions.
+Scripts related to Amazon Web Services (AWS) ☁️ CLI interactions.
 
 - `aws_version.sh`: Displays the installed AWS CLI version.
 
-### `docker/`
+### Docker
 
-Scripts for managing Docker and container-related tasks.
+Scripts for managing 🐳 Docker and container-related tasks.
 
 - `colima.sh`: Automates the process of adding custom certificates to
   Colima (a container runtime for macOS and Linux) and restarting it.
@@ -28,9 +49,9 @@ analyzing Docker image layers.
 - `tags.sh`: Lists all available tags for a specified Docker image on Docker Hub,
 with optional filtering.
 
-### `expect/`
+### Expect
 
-Scripts utilizing `expect` for automating interactions with command-line programs,
+Scripts utilizing 🔒 `expect` for automating interactions with command-line programs,
 particularly for SSH and SCP operations.
 
 - `expect.sh`: A generic `expect` script for automating SSH logins and executing
@@ -52,9 +73,9 @@ systems.
 - `wrapper.sh`: (Inferred) A general wrapper script, possibly for other `expect`
 scripts.
 
-### `git/`
+### Git
 
-Scripts for Git repository management and operations.
+Scripts for 🐙 Git repository management and operations.
 
 - `branch-clean.sh`: Automates the cleanup and removal of old branches
   from Homebrew tap repositories.
@@ -75,36 +96,36 @@ user information.
 - `ugh.sh`: (Inferred) A Git command alias or script.
 - `ugl.sh`: (Inferred) A Git command alias or script.
 
-### `hosting/sloth/`
+### Sloth
 
 Scripts specifically for hosting-related tasks, particularly for the "Sloth" project.
 
 - `backup.sh`: A script to perform backups of specified directories and upload
 them to an FTP server.
 
-### `jobs/`
+### Jobs
 
-(Inferred) Likely contains scripts for scheduled jobs or background tasks.
+Scripts from the specific companies.
 
-### `mac/`
+### Mac
 
-(Inferred) Scripts specific to macOS environments.
+Scripts specific to 🍎 macOS environments.
 
-### `misc/`
+### Misc
 
-(Inferred) A collection of miscellaneous utility scripts.
+A collection of 🗃️ miscellaneous utility scripts.
 
-### `ssl/`
+### SSL
 
-(Inferred) Scripts related to SSL certificate management.
+Scripts related to 🔐 SSL certificate management.
 
-### `sublime/`
+### Sublime
 
-(Inferred) Scripts or configurations for Sublime Text editor.
+Scripts or configurations for 📝 Sublime Text editor.
 
-### `zsh/`
+### zsh
 
-(Inferred) Scripts or configurations for the Zsh shell.
+Scripts or configurations for the 🐚 Zsh shell.
 
 ---
 
