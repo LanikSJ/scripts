@@ -1,22 +1,30 @@
 #!/usr/bin/env bash
 # This script will create my shortcuts in home directory
-# shellcheck disable=SC2010,SC2155
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
 
 if [[ $PWD != "$HOME" ]]; then
-  cd "$HOME" || exit; echo "Back to $HOME directory you go!"
+  echo "Changing directory to $HOME..."
+  cd "$HOME"
 fi
 
-export LINKS_COM=$(ls -alh ~/GitLab/Lanik/mac-shell/ |grep -v mac |grep lrwx |awk '{print $10}')
-export LINKS_MAC=$(ls -alh ~/GitLab/Lanik/mac-shell/ |grep -i mac |grep lrwx |awk '{print $10}')
+SOURCE_DIR="$HOME/GitLab/Lanik/mac-shell"
 
-echo && echo "First let's put all the Common shortcuts in ...."
-for i in $LINKS_COM; do
-  rm -rf "$i" && ln -sf Shell/"$i" .
+echo "Processing common shortcuts..."
+find "$SOURCE_DIR" -maxdepth 1 -type l ! -iname "*mac*" -print0 | while IFS= read -r -d $'\0' link_path; do
+  link_name=$(basename "$link_path")
+  echo "  Creating shortcut for $link_name"
+  rm -f "$link_name" # Use -f for force removal, -r is for directories
+  ln -sf "Shell/$link_name" "$link_name"
 done
 
-echo && echo "Now let's fix the Mac-Only shortcuts ...."
-for i in $LINKS_MAC; do
-  rm -rf "$i" && ln -sf Shell/mac/"$i" .
+echo "Processing Mac-Only shortcuts..."
+find "$SOURCE_DIR" -maxdepth 1 -type l -iname "*mac*" -print0 | while IFS= read -r -d $'\0' link_path; do
+  link_name=$(basename "$link_path")
+  echo "  Creating shortcut for $link_name"
+  rm -f "$link_name"
+  ln -sf "Shell/mac/$link_name" "$link_name"
 done
 
-echo && echo "Bob's your Uncle! "
+echo "Bob's your Uncle! "
