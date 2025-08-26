@@ -290,6 +290,9 @@ This is a personal collection of scripts, tools, and projects covering:
 - Maintain consistency with established patterns
 - Update documentation when adding new features
 - Consider impact on dependent scripts or projects
+- **MANDATORY: Before making any changes to any file in this repository, ALWAYS
+  read the `.cline-rules` file to ensure compliance with all established
+  standards and practices.**
 - **Always run shellcheck and fix all issues before considering changes complete**
 - **Always run markdownlint and fix all issues in markdown files before
   considering changes complete**
