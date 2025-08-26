@@ -9,3 +9,6 @@ Icon
 .vscode/
 *.code-workspace
 .history/
+
+# Ignored
+jobs/
