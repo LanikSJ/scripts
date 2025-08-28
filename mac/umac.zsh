@@ -135,10 +135,12 @@ update_homebrew() {
   
   # Check if brew cu exists (part of homebrew-cask-upgrade)
   if brew cu --help &>/dev/null; then
-    brew cu -ay --cleanup || log_warning "Brew cu failed"
+    brew cu -ay --include-mas --cleanup || log_warning "Brew cask upgrade failed"
   else
-    log_warning "brew-cask-upgrade not installed. Skipping cask upgrades."
-    log_info "Install with: brew tap buo/cask-upgrade"
+    log_warning "brew-cask-upgrade not installed."
+    log_info "Installing with: brew tap buo/cask-upgrade"
+    brew tap buo/cask-upgrade || log_warning "Failed to tap buo/cask-upgrade"
+    brew cu -ay --include-mas --cleanup || log_warning "Brew cask upgrade failed"
   fi
   
   log_info "\n${BREW_ICON} Removing Homebrew Caches"
