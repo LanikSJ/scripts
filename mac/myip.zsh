@@ -21,10 +21,7 @@ CYAN="\033[36m"
 GRAY="\033[37m"
 
 # Option to disable VPN host checking
-VPN_CHECK=false
-if [[ "$1" == "--vpn-check" ]]; then
-    VPN_CHECK=true
-fi
+VPN_CHECK=true
 
 # Interfaces
 wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100/1000 LAN" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
@@ -35,8 +32,8 @@ wiredlink=$(ip link show |grep $wired |awk -F: '{print $1}')
 wirelesslink=$(ip link show |grep $wireless |awk -F: '{print $1}')
 
 # Internet IPs
-inetv4=$(curl -s ifconfig.io/ip)
-inetv6=$(curl -s -6 ifconfig.io/ip)
+inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
+inetv6=$(dig AAAA +short myip.opendns.com @resolver1.opendns.com)
 
 # Internet Location
 inetorg=$(whois $inetv4 |grep -i orgname |awk -F":" '{print $2}' |xargs)
@@ -85,14 +82,14 @@ display_ipinfo() {
 }
 
 if $VPN_CHECK; then
-    if route get $vpnhost |grep destination |awk '{print $NF}' |grep -q '10.'; then
+    if route get $vpnhost 2>/dev/null |grep destination |awk '{print $NF}' |grep -q '10.'; then
         display_ipinfo
 
         # VPN IPs
-        tunnel=$(route get $vpnhost |grep interface |awk '{print $NF}')
-        workvpn=$(ifconfig --interface $tunnel |grep "inet address" |awk '{print $NF}')
-        workvpnroute=$(route get $vpnhost |grep "route to" |awk '{print $NF}')
-        vpncommand=$(route get $vpnhost |grep destination |awk '{print $NF}')
+        tunnel=$(route get $vpnhost 2>/dev/null |grep interface |awk '{print $NF}')
+        workvpn=$(ifconfig --interface $tunnel 2>/dev/null |grep "inet address" |awk '{print $NF}')
+        workvpnroute=$(route get $vpnhost 2>/dev/null |grep "route to" |awk '{print $NF}')
+        vpncommand=$(route get $vpnhost 2>/dev/null |grep destination |awk '{print $NF}')
 
         echo && echo "${MAGENTA}${BOLD}${VPN_ICON} Work VPN IPv4:${RESET} ${GREEN}$workvpn${RESET}"
         echo "${MAGENTA}${BOLD}${VPN_ICON} Work VPN Route:${RESET} ${GREEN}$workvpnroute${RESET}"
