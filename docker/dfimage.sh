@@ -5,7 +5,7 @@ DFIMAGE_IMAGE="ghcr.io/laniksj/dfimage"
 
 # Function to display usage information
 usage() {
-  echo "Usage: $0 <image_name_or_id>"
+  echo "📖 Usage: $0 <image_name_or_id>"
   echo "  Runs the dfimage tool to analyze a Docker image."
   echo "  Example: $0 my-image:latest"
   exit 1
@@ -13,7 +13,7 @@ usage() {
 
 # Check if docker command is available
 if ! command -v docker &> /dev/null; then
-  echo "Error: docker command not found. Please install Docker."
+  echo "❌ Error: docker command not found. Please install Docker."
   exit 1
 fi
 
