@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# YouTube Downloader Script
-# Downloads audio from YouTube videos/playlists using yt-dlp
+# Universal Audio Downloader Script
+# Downloads audio from YouTube or SoundCloud using yt-dlp
 # Usage: ./ytdl.sh <URL> [OPTIONS]
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
@@ -30,7 +30,6 @@ readonly ICON_MUSIC="🎵"
 readonly ICON_FOLDER="📁"
 readonly ICON_LINK="🔗"
 readonly ICON_GEAR="⚙️"
-readonly ICON_ROCKET="🚀"
 readonly ICON_YOUTUBE="📺"
 readonly ICON_PLAYLIST="📋"
 readonly ICON_SINGLE="🎯"
@@ -45,27 +44,31 @@ readonly ICON_COMPLETE="🎉"
 # Function to display usage information
 usage() {
     cat << EOF
-${ICON_YOUTUBE} YouTube Audio Downloader ${ICON_MUSIC}
+${ICON_MUSIC} Universal Audio Downloader ${ICON_MUSIC}
 
 Usage: $0 <URL> [OPTIONS]
 
-Download audio from YouTube videos or playlists.
+Download audio from YouTube and SoundCloud.
+
+SUPPORTED PLATFORMS:
+    ${ICON_YOUTUBE}     YouTube Videos, playlists, and music
+    🎧 SoundCloud       Tracks, playlists, and albums
 
 ARGUMENTS:
-    ${ICON_LINK} URL                 YouTube video or playlist URL
+    ${ICON_LINK} URL                 Audio content URL from supported platforms
 
 OPTIONS:
     ${ICON_FOLDER} -o, --output DIR    Output directory (default: $DEFAULT_OUTPUT_DIR)
     ${ICON_FORMAT} -f, --format FMT    Audio format: mp3, m4a, wav, etc. (default: $DEFAULT_AUDIO_FORMAT)
     ${ICON_QUALITY} -q, --quality NUM   Audio quality: 0-9 (0=best, 9=worst) (default: $DEFAULT_AUDIO_QUALITY)
     ${ICON_PLAYLIST} -p, --playlist      Force playlist mode (download entire playlist)
-    ${ICON_SINGLE} -s, --single        Force single video mode (download only one video from playlist)
+    ${ICON_SINGLE} -s, --single        Force single track mode (download only one track from playlist)
     ${ICON_INFO} -h, --help          Show this help message
 
 EXAMPLES:
     ${ICON_EXECUTE} $0 "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    ${ICON_EXECUTE} $0 "https://www.youtube.com/playlist?list=..." --output ~/Music
-    ${ICON_EXECUTE} $0 "https://youtu.be/dQw4w9WgXcQ" --format m4a --quality 2
+    ${ICON_EXECUTE} $0 "https://soundcloud.com/artist/song"
+    ${ICON_EXECUTE} $0 "https://www.youtube.com/playlist?list=..." --format m4a --quality 2
 
 EOF
 }
@@ -75,20 +78,20 @@ log() {
     local level="$1"
     shift
     case "$level" in
-        "INFO")     echo -e "${GREEN}${ICON_INFO} [INFO]${NC} $*" ;;
-        "SUCCESS")  echo -e "${GREEN}${ICON_SUCCESS} [SUCCESS]${NC} $*" ;;
-        "WARN")     echo -e "${YELLOW}${ICON_WARNING} [WARN]${NC} $*" ;;
-        "ERROR")    echo -e "${RED}${ICON_ERROR} [ERROR]${NC} $*" >&2 ;;
-        "DOWNLOAD") echo -e "${BLUE}${ICON_DOWNLOAD} [DOWNLOAD]${NC} $*" ;;
-        "MUSIC")    echo -e "${CYAN}${ICON_MUSIC} [MUSIC]${NC} $*" ;;
-        "FOLDER")   echo -e "${YELLOW}${ICON_FOLDER} [FOLDER]${NC} $*" ;;
-        "LINK")     echo -e "${BLUE}${ICON_LINK} [LINK]${NC} $*" ;;
-        "GEAR")     echo -e "${CYAN}${ICON_GEAR} [CONFIG]${NC} $*" ;;
-        "TOOLS")    echo -e "${BLUE}${ICON_TOOLS} [TOOLS]${NC} $*" ;;
-        "VALIDATE") echo -e "${YELLOW}${ICON_VALIDATE} [VALIDATE]${NC} $*" ;;
-        "CREATE")   echo -e "${GREEN}${ICON_CREATE} [CREATE]${NC} $*" ;;
-        "EXECUTE")  echo -e "${CYAN}${ICON_EXECUTE} [EXECUTE]${NC} $*" ;;
-        "COMPLETE") echo -e "${GREEN}${ICON_COMPLETE} [COMPLETE]${NC} $*" ;;
+        "INFO")     echo -e "${GREEN}${ICON_INFO} ${NC} $*" ;;
+        "SUCCESS")  echo -e "${GREEN}${ICON_SUCCESS} ${NC} $*" ;;
+        "WARN")     echo -e "${YELLOW}${ICON_WARNING} ${NC} $*" ;;
+        "ERROR")    echo -e "${RED}${ICON_ERROR} ${NC} $*" >&2 ;;
+        "DOWNLOAD") echo -e "${BLUE}${ICON_DOWNLOAD} ${NC} $*" ;;
+        "MUSIC")    echo -e "${CYAN}${ICON_MUSIC} ${NC} $*" ;;
+        "FOLDER")   echo -e "${YELLOW}${ICON_FOLDER} ${NC} $*" ;;
+        "LINK")     echo -e "${BLUE}${ICON_LINK} ${NC} $*" ;;
+        "GEAR")     echo -e "${CYAN}${ICON_GEAR} ${NC} $*" ;;
+        "TOOLS")    echo -e "${BLUE}${ICON_TOOLS} ${NC} $*" ;;
+        "VALIDATE") echo -e "${YELLOW}${ICON_VALIDATE} ${NC} $*" ;;
+        "CREATE")   echo -e "${GREEN}${ICON_CREATE} ${NC} $*" ;;
+        "EXECUTE")  echo -e "${CYAN}${ICON_EXECUTE} ${NC} $*" ;;
+        "COMPLETE") echo -e "${GREEN}${ICON_COMPLETE} ${NC} $*" ;;
     esac
 }
 
@@ -117,15 +120,15 @@ check_dependencies() {
 # Function to validate URL
 validate_url() {
     local url="$1"
-    
-    log "VALIDATE" "Validating YouTube URL..."
-    # Basic URL validation for YouTube
-    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com) ]]; then
-        log "ERROR" "Invalid YouTube URL: $url"
-        log "INFO" "Please provide a valid YouTube URL"
+
+    log "VALIDATE" "Validating audio platform URL..."
+    # Basic URL validation for supported platforms
+    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com|soundcloud\.com|m\.soundcloud\.com) ]]; then
+        log "ERROR" "Invalid URL: $url"
+        log "INFO" "Please provide a valid URL from YouTube or SoundCloud."
         exit 1
     fi
-    
+
     log "SUCCESS" "URL validation passed"
 }
 
@@ -163,7 +166,6 @@ download_audio() {
         --console-title
         --no-warnings
         --user-agent "$DEFAULT_USER_AGENT"
-        --youtube-skip-dash-manifest
         --ignore-errors
         --format "bestaudio/best"
         --extract-audio
@@ -206,9 +208,7 @@ download_audio() {
 # Main function
 main() {
     # Display startup banner
-    echo -e "${CYAN}${ICON_ROCKET}========================================${ICON_ROCKET}${NC}"
-    echo -e "${CYAN}${ICON_YOUTUBE}  YouTube Audio Downloader v2.0  ${ICON_MUSIC}${NC}"
-    echo -e "${CYAN}${ICON_ROCKET}========================================${ICON_ROCKET}${NC}"
+    echo -e "${CYAN}${ICON_MUSIC}  Universal Audio Downloader v2.0  ${ICON_MUSIC}${NC}"
     echo ""
     
     local url=""
