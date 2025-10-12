@@ -99,8 +99,8 @@ detect_python_versions() {
     detected_versions+=("python3")
   fi
   
-  # Check for specific Python 3 versions (3.7 through 3.13)
-  for version in {7..13}; do
+  # Check for specific Python 3 versions (3.7 through 3.14)
+  for version in {7..14}; do
     if command -v "python3.$version" &> /dev/null; then
       detected_versions+=("python3.$version")
     fi
