@@ -22,7 +22,7 @@ log() {
 
 # Function to handle errors
 error_exit() {
-    log "ERROR: $1"
+    log "❌ ERROR: $1"
     exit 1
 }
 
@@ -44,38 +44,38 @@ check_prerequisites() {
 
 # Function to clean up old backups
 cleanup_old_backups() {
-    log "Cleaning up old backups older than $RETENTION_DAYS days..."
+    log "🧹 Cleaning up old backups older than $RETENTION_DAYS days..."
     find "$BACKUP_DIR"/backup-* -type f -mtime +$RETENTION_DAYS -exec rm {} \; 2>/dev/null || true
-    log "Old backups cleaned."
+    log "✅ Old backups cleaned."
 }
 
 # Function to create backup archive
 create_backup() {
-    log "Creating backup archive: $FILE"
+    log "📦 Creating backup archive: $FILE"
     tar czf "$FILE" "$SOURCE_DIR" || error_exit "Failed to create backup archive."
-    log "Backup archive created."
+    log "✅ Backup archive created."
 }
 
 # Function to upload backup via SFTP
 upload_backup() {
-    log "Uploading backup archive to $HOST:$PORT..."
+    log "📤 Uploading backup archive to $HOST:$PORT..."
     lftp sftp://"$USER":"$PASSWD"@"$HOST":"$PORT" -e "put $FILE; bye" || error_exit "Failed to upload backup archive."
-    log "Backup archive uploaded successfully."
+    log "✅ Backup archive uploaded successfully."
 }
 
 # Function to clean up local backup after successful upload
 cleanup_local() {
-    log "Removing local backup file: $FILE"
-    rm -f "$FILE" || log "Warning: Failed to remove local backup file."
+    log "🗑️ Removing local backup file: $FILE"
+    rm -f "$FILE" || log "⚠️ Warning: Failed to remove local backup file."
 }
 
 # Trap to handle script exit
-trap 'log "Script interrupted or exited."; cleanup_local' EXIT
+trap 'log "⛔ Script interrupted or exited."; cleanup_local' EXIT
 
 # Redirect all subsequent output to the log file
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-log "--- Backup started ---"
+log "🚀 --- Backup started ---"
 
 # Main execution
 check_prerequisites
@@ -84,4 +84,4 @@ create_backup
 upload_backup
 cleanup_local
 
-log "--- Backup finished successfully ---"
+log "🎉 --- Backup finished successfully ---"
