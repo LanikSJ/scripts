@@ -75,7 +75,7 @@ removed=0
 failed=0
 
 # Process each path
-echo "$paths" | while IFS= read -r path; do
+while IFS= read -r path; do
     if [[ -z "$path" ]]; then
         continue
     fi
@@ -88,7 +88,13 @@ echo "$paths" | while IFS= read -r path; do
         echo "🗑️  Would remove: $path"
     else
         # Suppress stderr unless verbose
-        if zoxide remove "$path" ${VERBOSE:+2>&1}; then
+        cmd="zoxide remove '$path'"
+        if [ "$VERBOSE" = "true" ]; then
+            cmd="$cmd 2>&1"
+        else
+            cmd="$cmd 2>/dev/null"
+        fi
+        if eval "$cmd"; then
             echo "✓ Removed: $path"
             removed=$((removed + 1))
         else
@@ -96,7 +102,7 @@ echo "$paths" | while IFS= read -r path; do
             failed=$((failed + 1))
         fi
     fi
-done
+done <<< "$paths"
 
 # Summary (only if not dry run)
 if ! $DRY_RUN; then
