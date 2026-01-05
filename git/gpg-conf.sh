@@ -36,7 +36,7 @@ configure_git_repos() {
     
     # Check if the directory exists
     if [[ ! -d "$base_dir" ]]; then
-        echo "⚠️  Directory $base_dir does not exist. Skipping."
+        echo "⚠️ Directory $base_dir does not exist. Skipping."
         return 1
     fi
     
@@ -46,18 +46,18 @@ configure_git_repos() {
     find "$base_dir" -mindepth 1 -maxdepth 1 -type d | while read -r dir; do
         local repo_name
         repo_name=$(basename "$dir")
-        echo "  📁 Configuring repository: $repo_name"
+        echo "📁 Configuring repository: $repo_name"
         
         # Change to repository directory and configure git
         if ! cd "$dir" 2>/dev/null; then
-            echo "  ❌ Failed to access repository: $dir"
+            echo "❌ Failed to access repository: $dir"
             continue
         fi
         
         # Check if it's a Git repository
         if [ ! -d ".git" ] && ! git rev-parse --git-dir > /dev/null 2>&1; then
-            echo "  ⚠️  Warning: $repo_name is not a Git repository. Skipping."
-            cd "$ORIGINAL_DIR" || echo "⚠️  Warning: Could not return to original directory."
+            echo "⚠️ Warning: $repo_name is not a Git repository. Skipping."
+            cd "$ORIGINAL_DIR" || echo "⚠️ Warning: Could not return to original directory."
             continue
         fi
         
@@ -65,10 +65,10 @@ configure_git_repos() {
         git config user.name "$GIT_NAME"
         git config user.email "$GIT_EMAIL"
         git config user.signingkey "$GIT_SIGNING_KEY"
-        echo "  ✅ Successfully configured Git settings for $repo_name"
+        echo "✅ Successfully configured Git settings for $repo_name"
         
         # Return to original directory
-        cd "$ORIGINAL_DIR" || echo "⚠️  Warning: Could not return to original directory."
+        cd "$ORIGINAL_DIR" || echo "⚠️ Warning: Could not return to original directory."
     done
     
     return 0
@@ -126,6 +126,6 @@ case "$PROFILE" in
 esac
 
 # Return to the original directory
-cd "$ORIGINAL_DIR" || echo "⚠️  Warning: Could not return to original directory."
+cd "$ORIGINAL_DIR" || echo "⚠️ Warning: Could not return to original directory."
 
 echo "✨ Git configuration completed successfully!"
