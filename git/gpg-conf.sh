@@ -75,10 +75,40 @@ configure_git_repos() {
 }
 
 # Main script execution
+
+# Check for help option
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "Git Configuration Script"
+    echo "Usage: $0 [github|work] [--help|-h]"
+    echo ""
+    echo "Profiles:"
+    echo "  github  Configure for GitHub profile"
+    echo "  work    Configure for Work profile"
+    echo ""
+    echo "The script sets Git user name, email, and GPG signing key for repositories."
+    echo "Credentials are retrieved from macOS Keychain."
+    echo ""
+    echo "For github profile:"
+    echo "  - Name: LanikSJ"
+    echo "  - Email: Retrieved from keychain service 'github-email'"
+    echo "  - Signing Key: Retrieved from keychain service 'github-signing-key'"
+    echo ""
+    echo "For work profile:"
+    echo "  - Name: Ilan Erenstein"
+    echo "  - Email: Retrieved from keychain service 'git-work-email'"
+    echo "  - Signing Key: Retrieved from keychain service 'git-work-signing-key'"
+    echo ""
+    echo "Directories configured:"
+    echo "  github: ~/GitHub/LanikSJ and /opt/homebrew/Library/Taps/homebrew"
+    echo "  work: ~/BitBucket and ~/GitLab"
+    exit 0
+fi
+
 echo "🚀 Starting Git configuration..."
 
 if [[ -z "$1" ]]; then
     echo "Usage: $0 [github|work]"
+    echo "Use '$0 --help' for more information."
     exit 1
 fi
 
@@ -88,11 +118,11 @@ case "$PROFILE" in
     github)
         echo "⚙️ Configuring for GitHub profile..."
         GIT_NAME="LanikSJ" # Assuming a fixed name for GitHub
-        
+
         # Retrieve email and signing key from keychain
         GIT_EMAIL=$(get_keychain_credential "$GITHUB_EMAIL_SERVICE" "github")
         GIT_SIGNING_KEY=$(get_keychain_credential "$GITHUB_SIGNING_KEY_SERVICE" "github")
-        
+
         if [[ -z "$GIT_EMAIL" || -z "$GIT_SIGNING_KEY" ]]; then
             echo "❌ Error: Could not retrieve GitHub email or signing key from keychain."
             echo "Please ensure you have entries for '$GITHUB_EMAIL_SERVICE' and '$GITHUB_SIGNING_KEY_SERVICE' in your keychain."
