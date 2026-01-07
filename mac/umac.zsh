@@ -23,6 +23,9 @@ ERROR_ICON="❌"
 # Disable glob expansion to prevent issues with special characters
 set -f
 
+# Configuration
+EXCLUDE_MAS_USER="${EXCLUDE_MAS_USER:-ierenstein}"
+
 # Array to track temporary files and directories for cleanup
 TEMP_FILES=()
 
@@ -71,6 +74,11 @@ log_error() {
 # Check if a command exists
 command_exists() {
   command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check if brew subcommand exists
+brew_subcommand_exists() {
+  brew "$1" --help >/dev/null 2>&1
 }
 
 # Check for required dependencies
@@ -134,13 +142,21 @@ update_homebrew() {
   brew upgrade || log_warning "Brew upgrade failed"
   
   # Check if brew cu exists (part of homebrew-cask-upgrade)
-  if brew cu --help &>/dev/null; then
-    brew cu -ay --include-mas || log_warning "Brew cask upgrade failed"
+  if brew_subcommand_exists cu; then
+    local cmd="brew cu -ay"
+    if [[ "${USER:-}" != "$EXCLUDE_MAS_USER" ]]; then
+      cmd="$cmd --include-mas"
+    fi
+    eval "$cmd" || log_warning "Brew cask upgrade failed"
   else
     log_warning "brew-cask-upgrade not installed."
     log_info "Installing with: brew tap buo/cask-upgrade"
     brew tap buo/cask-upgrade || log_warning "Failed to tap buo/cask-upgrade"
-    brew cu -ay --include-mas || log_warning "Brew cask upgrade failed"
+    local cmd="brew cu -ay"
+    if [[ "${USER:-}" != "$EXCLUDE_MAS_USER" ]]; then
+      cmd="$cmd --include-mas"
+    fi
+    eval "$cmd" || log_warning "Brew cask upgrade failed"
   fi
   
   log_info "\n${BREW_ICON} Removing Homebrew Caches"
