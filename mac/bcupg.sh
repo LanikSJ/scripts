@@ -6,7 +6,6 @@ set -euo pipefail
 
 # Configuration
 UPDATE_ICON="🔄"
-EXCLUDE_MAS_USER="${EXCLUDE_MAS_USER:-ierenstein}"
 
 # Function to check if command exists
 command_exists() {
@@ -21,7 +20,7 @@ brew_subcommand_exists() {
 # Function to perform the update
 update_casks() {
     local cmd="brew cu -ay"
-    if [[ "${USER:-}" != "$EXCLUDE_MAS_USER" ]]; then
+    if [[ "$(hostname)" != KSKJ* ]]; then
         cmd="$cmd --include-mas"
     fi
 
