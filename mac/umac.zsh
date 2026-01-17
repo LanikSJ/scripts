@@ -24,7 +24,6 @@ ERROR_ICON="❌"
 set -f
 
 # Configuration
-EXCLUDE_MAS_USER="${EXCLUDE_MAS_USER:-ierenstein}"
 
 # Array to track temporary files and directories for cleanup
 TEMP_FILES=()
@@ -144,7 +143,7 @@ update_homebrew() {
   # Check if brew cu exists (part of homebrew-cask-upgrade)
   if brew_subcommand_exists cu; then
     local cmd="brew cu -ay"
-    if [[ "${USER:-}" != "$EXCLUDE_MAS_USER" ]]; then
+    if [[ "$(hostname)" != KSKJ* ]]; then
       cmd="$cmd --include-mas"
     fi
     eval "$cmd" || log_warning "Brew cask upgrade failed"
@@ -153,7 +152,7 @@ update_homebrew() {
     log_info "Installing with: brew tap buo/cask-upgrade"
     brew tap buo/cask-upgrade || log_warning "Failed to tap buo/cask-upgrade"
     local cmd="brew cu -ay"
-    if [[ "${USER:-}" != "$EXCLUDE_MAS_USER" ]]; then
+    if [[ "$(hostname)" != KSKJ* ]]; then
       cmd="$cmd --include-mas"
     fi
     eval "$cmd" || log_warning "Brew cask upgrade failed"
