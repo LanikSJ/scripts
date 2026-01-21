@@ -80,20 +80,20 @@ setup_nvm() {
     source "$HOME/.nvm/nvm.sh"
 
     # Get the latest LTS version
-    local latest_lts=$(nvm list-remote --lts | tail -1 | awk '{print $1}')
+    local latest_lts=$(nvm version-remote --lts 2>/dev/null)
 
     if [[ -n "$latest_lts" ]]; then
       echo "${INFO_ICON} Latest LTS Node version: $latest_lts"
 
       # Check if this version is already installed
-      if ! nvm list "$latest_lts" | grep -q "$latest_lts"; then
+      if ! nvm list 2>/dev/null | grep -q "$latest_lts"; then
         echo "${INFO_ICON} Installing Node $latest_lts..."
         nvm install "$latest_lts"
       fi
 
       # Update npm for all installed Node versions
       echo "${INFO_ICON} Updating npm for all installed Node versions..."
-      local installed_versions=$(nvm list | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/.*\(v[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+      local installed_versions=$(nvm list 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/^v//')
 
       for version in $installed_versions; do
         echo "${INFO_ICON} Updating npm for Node $version..."
