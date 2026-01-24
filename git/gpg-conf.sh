@@ -29,7 +29,91 @@ get_keychain_credential() {
     security find-generic-password -s "$service_name" -a "$account_name" -w 2>/dev/null
 }
 
-# Function to configure git settings in repositories
+# Function to check if a credential exists in macOS Keychain
+check_keychain_credential() {
+    local service_name="$1"
+    local account_name="$2"
+    # Use || true to prevent set -e from exiting on non-zero return
+    security find-generic-password -s "$service_name" -a "$account_name" -w &>/dev/null || return 1
+    return 0
+}
+
+# Function to show how to add credentials to macOS Keychain
+show_add_credential_instructions() {
+    local service_name="$1"
+    local account_name="$2"
+    local description="$3"
+    
+    echo ""
+    echo "📝 To add '$description' to your macOS Keychain, run:"
+    echo ""
+    echo "   security add-generic-password \\"
+    echo "     -s \"$service_name\" \\"
+    echo "     -a \"$account_name\" \\"
+    echo "     -w \"YOUR_VALUE_HERE\""
+    echo ""
+    echo "   Or use Keychain Access app:"
+    echo "   1. Open Keychain Access (Applications > Utilities)"
+    echo "   2. Click the '+' button to add a new password item"
+    echo "   3. Set Keychain Item Name: \"$service_name\""
+    echo "   4. Set Account Name: \"$account_name\""
+    echo "   5. Enter your $description in the password field"
+    echo "   6. Click 'Add'"
+    echo ""
+}
+
+# Function to check all required credentials and show instructions for missing ones
+check_all_credentials() {
+    local missing_count=0
+    
+    echo "🔍 Checking required credentials in macOS Keychain..."
+    echo ""
+    
+    # Check GitHub email
+    if check_keychain_credential "$GITHUB_EMAIL_SERVICE" "github"; then
+        echo "✅ Found: $GITHUB_EMAIL_SERVICE (account: github)"
+    else
+        echo "❌ Missing: $GITHUB_EMAIL_SERVICE (account: github)"
+        show_add_credential_instructions "$GITHUB_EMAIL_SERVICE" "github" "GitHub email address"
+        missing_count=$((missing_count + 1))
+    fi
+    
+    # Check GitHub signing key
+    if check_keychain_credential "$GITHUB_SIGNING_KEY_SERVICE" "github"; then
+        echo "✅ Found: $GITHUB_SIGNING_KEY_SERVICE (account: github)"
+    else
+        echo "❌ Missing: $GITHUB_SIGNING_KEY_SERVICE (account: github)"
+        show_add_credential_instructions "$GITHUB_SIGNING_KEY_SERVICE" "github" "GitHub GPG signing key"
+        missing_count=$((missing_count + 1))
+    fi
+    
+    # Check Work email
+    if check_keychain_credential "$WORK_EMAIL_SERVICE" "work"; then
+        echo "✅ Found: $WORK_EMAIL_SERVICE (account: work)"
+    else
+        echo "❌ Missing: $WORK_EMAIL_SERVICE (account: work)"
+        show_add_credential_instructions "$WORK_EMAIL_SERVICE" "work" "Work email address"
+        missing_count=$((missing_count + 1))
+    fi
+    
+    # Check Work signing key
+    if check_keychain_credential "$WORK_SIGNING_KEY_SERVICE" "work"; then
+        echo "✅ Found: $WORK_SIGNING_KEY_SERVICE (account: work)"
+    else
+        echo "❌ Missing: $WORK_SIGNING_KEY_SERVICE (account: work)"
+        show_add_credential_instructions "$WORK_SIGNING_KEY_SERVICE" "work" "Work GPG signing key"
+        missing_count=$((missing_count + 1))
+    fi
+    
+    echo ""
+    if [[ $missing_count -eq 0 ]]; then
+        echo "✨ All credentials are configured!"
+        return 0
+    else
+        echo "⚠️  Found $missing_count missing credential(s). Please add them using the instructions above."
+        return 1
+    fi
+}
 configure_git_repos() {
     local base_dir="$1"
     local base_name="$2"
@@ -79,7 +163,10 @@ configure_git_repos() {
 # Check for help option
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Git Configuration Script"
-    echo "Usage: $0 [github|work] [--help|-h]"
+    echo "Usage: $0 [github|work|--check] [--help|-h]"
+    echo ""
+    echo "Options:"
+    echo "  --check  Check if all required credentials exist in macOS Keychain"
     echo ""
     echo "Profiles:"
     echo "  github  Configure for GitHub profile"
@@ -104,10 +191,16 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     exit 0
 fi
 
+# Check for --check option
+if [[ "$1" == "--check" ]]; then
+    check_all_credentials
+    exit $?
+fi
+
 echo "🚀 Starting Git configuration..."
 
 if [[ -z "$1" ]]; then
-    echo "Usage: $0 [github|work]"
+    echo "Usage: $0 [github|work|--check]"
     echo "Use '$0 --help' for more information."
     exit 1
 fi
