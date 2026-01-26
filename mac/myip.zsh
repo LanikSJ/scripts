@@ -24,23 +24,25 @@ GRAY="\033[37m"
 VPN_CHECK=true
 
 # Interfaces
-wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100/1000 LAN" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100 LAN" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 
 # Link Status
-wiredlink=$(ip link show |grep $wired |awk -F: '{print $1}')
-wirelesslink=$(ip link show |grep $wireless |awk -F: '{print $1}')
+wiredlink=$(ifconfig --interface $wired 2>/dev/null |grep "inet address" |awk '{print $1}')
+wirelesslink=$(ifconfig --interface $wireless 2>/dev/null |grep "inet address" |awk '{print $1}')
 
 # Internet IPs
 inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
 inetv6=$(dig AAAA +short myip.opendns.com @resolver1.opendns.com)
 
 # Internet Location
-inetorg=$(whois $inetv4 |grep -i orgname |awk -F":" '{print $2}' |xargs)
-inetloc=$(curl "ipinfo.io/$inetv4?token=$IPINFO_TOKEN" 2>/dev/null |jq -r '.city,.region,.country' |tr '\n' ',' |sed 's/\(.*\),/\1 /' |xargs)
+if [[ ! -z $inetv4 ]]; then
+    inetorg=$(whois $inetv4 |grep -i orgname |awk -F":" '{print $2}' |xargs 2>/dev/null)
+    inetloc=$(curl "ipinfo.io/$inetv4?token=$IPINFO_TOKEN" 2>/dev/null |jq -r '.city,.region,.country' |tr '\n' ',' |sed 's/\(.*\),/\1 /' |xargs)
+fi
 
 # VPN Host
-vpnhost="cicd.dc"
+vpnhost="noname.local"
 
 # Functions
 display_ipinfo() {
@@ -50,23 +52,29 @@ display_ipinfo() {
         echo && echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv4:${RESET} ${GREEN}`echo $localv4`${RESET}"
     fi
 
-    if [[ ! -z $localv6 ]]; then
+    if [[ ! -z $wiredlink ]]; then
         # Wired IPv6
-        localv6=$(ip addr sh $wired |grep inet6 |grep "autoconf secured" |awk '{print $2}')
-        echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv6:${RESET} ${GREEN}`echo $localv6`${RESET}"
+        localv6=$(ifconfig $wired 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
+        if [[ ! -z $localv6 ]]; then
+            echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv6:${RESET} ${GREEN}`echo $localv6`${RESET}"
+        fi
     fi
 
-    echo && echo "${CYAN}${BOLD}${INTERNET_ICON} Internet IPv4:${RESET} ${GREEN}$inetv4${RESET}"
+    if [[ ! -z $inetv4 ]]; then
+        echo && echo "${CYAN}${BOLD}${INTERNET_ICON} Internet IPv4:${RESET} ${GREEN}$inetv4${RESET}"
+    fi
 
     if [[ ! -z $inetv6 ]]; then
         echo "${CYAN}${BOLD}${INTERNET_ICON} Internet IPv6:${RESET} ${GREEN}$inetv6${RESET}"
     fi
 
-    echo "${CYAN}${BOLD}${INTERNET_ICON} Internet Org:${RESET} ${GREEN}$inetorg${RESET}"
-    
+    if [[ ! -z $inetorg ]]; then
+        echo "${CYAN}${BOLD}${INTERNET_ICON} Internet Org:${RESET} ${GREEN}$inetorg${RESET}"
+    fi
+
     if [[ ! -z $inetloc ]]; then
         echo "${CYAN}${BOLD}${LOCATION_ICON} Internet Location:${RESET} ${GREEN}${inetloc//,/, }${RESET}"
-    fi
+    fi  
 
     if [[ ! -z $wirelesslink ]]; then
         # Wireless IPv4
@@ -74,10 +82,12 @@ display_ipinfo() {
         echo && echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv4:${RESET} ${GREEN}`echo $wirelessv4`${RESET}"
     fi
 
-    if [[ ! -z $wirelessv6 ]]; then
+    if [[ ! -z $wirelesslink ]]; then
         # Wireless IPv6
-        wirelessv6=$(ip addr sh $wireless |grep inet6 |grep "autoconf secured" |awk '{print $2}')
-        echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv6:${RESET} ${GREEN}`echo $wirelessv6`${RESET}"
+        wirelessv6=$(ifconfig $wireless 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
+        if [[ ! -z $wirelessv6 ]]; then
+            echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv6:${RESET} ${GREEN}`echo $wirelessv6`${RESET}"
+        fi
     fi
 }
 
