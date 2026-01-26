@@ -22,9 +22,12 @@ GRAY="\033[37m"
 
 # Interfaces
 wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100 LAN" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100 LAN" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 
 # Link Status
+wiredlink=$(ifconfig --interface $wired 2>/dev/null |grep "inet address" |awk '{print $1}')
+wirelesslink=$(ifconfig --interface $wireless 2>/dev/null |grep "inet address" |awk '{print $1}')
 wiredlink=$(ifconfig --interface $wired 2>/dev/null |grep "inet address" |awk '{print $1}')
 wirelesslink=$(ifconfig --interface $wireless 2>/dev/null |grep "inet address" |awk '{print $1}')
 
@@ -47,13 +50,21 @@ display_ipinfo() {
     fi
 
     if [[ ! -z $wiredlink ]]; then
+    if [[ ! -z $wiredlink ]]; then
         # Wired IPv6
+        localv6=$(ifconfig $wired 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
+        if [[ ! -z $localv6 ]]; then
+            echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv6:${RESET} ${GREEN}`echo $localv6`${RESET}"
+        fi
         localv6=$(ifconfig $wired 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
         if [[ ! -z $localv6 ]]; then
             echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv6:${RESET} ${GREEN}`echo $localv6`${RESET}"
         fi
     fi
 
+    if [[ ! -z $inetv4 ]]; then
+        echo && echo "${CYAN}${BOLD}${INTERNET_ICON} Internet IPv4:${RESET} ${GREEN}$inetv4${RESET}"
+    fi
     if [[ ! -z $inetv4 ]]; then
         echo && echo "${CYAN}${BOLD}${INTERNET_ICON} Internet IPv4:${RESET} ${GREEN}$inetv4${RESET}"
     fi
@@ -66,8 +77,13 @@ display_ipinfo() {
         echo "${CYAN}${BOLD}${INTERNET_ICON} Internet Org:${RESET} ${GREEN}$inetorg${RESET}"
     fi
 
+    if [[ ! -z $inetorg ]]; then
+        echo "${CYAN}${BOLD}${INTERNET_ICON} Internet Org:${RESET} ${GREEN}$inetorg${RESET}"
+    fi
+
     if [[ ! -z $inetloc ]]; then
         echo "${CYAN}${BOLD}${LOCATION_ICON} Internet Location:${RESET} ${GREEN}${inetloc//,/, }${RESET}"
+    fi  
     fi  
 
     if [[ ! -z $wirelesslink ]]; then
@@ -77,7 +93,12 @@ display_ipinfo() {
     fi
 
     if [[ ! -z $wirelesslink ]]; then
+    if [[ ! -z $wirelesslink ]]; then
         # Wireless IPv6
+        wirelessv6=$(ifconfig $wireless 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
+        if [[ ! -z $wirelessv6 ]]; then
+            echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv6:${RESET} ${GREEN}`echo $wirelessv6`${RESET}"
+        fi
         wirelessv6=$(ifconfig $wireless 2>/dev/null |grep "inet6 " |grep -v "fe80::" |awk '{print $2}')
         if [[ ! -z $wirelessv6 ]]; then
             echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv6:${RESET} ${GREEN}`echo $wirelessv6`${RESET}"
