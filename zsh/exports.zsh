@@ -1,40 +1,57 @@
+# WARNING: Avoid committing sensitive information like API tokens to version control.
+# Sensitive tokens are retrieved from macOS Keychain for security.
+# Store tokens using: security add-generic-password -s "ServiceName" -a "AccountName" -w "token_value"
+
 # Set color scheme on Mac OS X
-export CLICOLOR=1
-export LSCOLORS=ExFxCxDxBxegedabagacad
+export CLICOLOR="1"
+export LSCOLORS="ExFxCxDxBxegedabagacad"
 
 # GitHub Homebrew Token
-export HOMEBREW_EDITOR=vim
-export HOMEBREW_NO_ENV_HINTS=1
-#export HOMEBREW_NO_ANALYTICS=1
-export HOMEBREW_BUNDLE_NO_LOCK=1
-export HOMEBREW_INSTALL_CLEANUP=1
-export HOMEBREW_FORCE_BREWED_CURL=1
-export HOMEBREW_FORCE_VENDOR_RUBY=1
-export HOMEBREW_GITHUB_API_TOKEN='***REMOVED***'
-export HOMEBREW_CLEANUP_MAX_AGE_DAYS=14
-#export HOMEBREW_UPDATE_REPORT_ALL_FORMULAE=1
+export HOMEBREW_EDITOR="vim"
+export HOMEBREW_NO_ENV_HINTS="1"
+export HOMEBREW_BUNDLE_NO_LOCK="1"
+export HOMEBREW_INSTALL_CLEANUP="1"
+export HOMEBREW_FORCE_BREWED_CURL="1"
+export HOMEBREW_FORCE_VENDOR_RUBY="1"
+export HOMEBREW_GITHUB_API_TOKEN=$(security find-generic-password -s "Homebrew" -a "GitHub_API_Token" -w 2>/dev/null || echo "")
+export HOMEBREW_CLEANUP_MAX_AGE_DAYS="7"
 
 # AWS Pagination
 export AWS_PAGER=""
 
-# PIP Columns
-export PIP_FORMAT=columns
+# AWS Profile
+export RPROMPT="${RPROMPT//\$\(aws_prompt_info\)}"
 
-# XML Catalog Pages
-export XML_CATALOG_FILES="/opt/homebrew/etc/xml/catalog"
+# AWS Prompt
+export SHOW_AWS_PROMPT="false"
+
+# Colima
+export XDG_CONFIG_HOME="${HOME}/.colima_home"
+
+# Docker Host
+export DOCKER_HOST="unix://${HOME}/.colima_home/colima/default/docker.sock"
+
+# iTerm
+export ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX="YES"
+
+# NPM Warnings
+export NODE_OPTIONS="--disable-warning=ExperimentalWarning"
+
+# PIP Columns
+export PIP_FORMAT="columns"
+
+# Ruby
+# Temp SSL Error Fix https://github.com/rubygems/rubygems/issues/8390
+export RUBY_TCP_NO_FAST_FALLBACK="1"
 
 # Set JAVA Home
 export JAVA_HOME="/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home"
 
 # Bitwarden
-export BW_SESSION="***REMOVED***=="
-
-# GitHub Token
-export GITHUB_TOKEN='***REMOVED***'
+export BW_SESSION=$(security find-generic-password -s "Bitwarden" -a "Session" -w 2>/dev/null || echo "")
 
 # IPInfo.io Token
-export IPINFO_TOKEN='***REMOVED***'
+export IPINFO_TOKEN=$(security find-generic-password -s "IPInfo" -a "Token" -w 2>/dev/null || echo "")
 
-# Config Location
-export XDG_CONFIG_HOME="$HOME/.config/xdg-config"
-
+# XML Catalog Pages
+export XML_CATALOG_FILES="/opt/homebrew/etc/xml/catalog"
