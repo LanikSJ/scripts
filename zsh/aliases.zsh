@@ -96,6 +96,11 @@ alias myip='~/bin/mac/myip.zsh'
 # Passgen
 alias psg='openssl rand -base64 15'  # Generate random password (20 chars)
 
+# Python
+alias mkvenv='python3 -m venv ~/venv'  # Create virtual env in venv
+alias venv='source ~/venv/bin/activate'  # Activate virtual env
+alias rmvenv='deactivate 2>/dev/null; rm -rf ~/venv'  # Deactivate and remove venv
+
 # Rsync
 alias rsync='rsync --progress --stats'
 
