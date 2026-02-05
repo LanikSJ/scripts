@@ -26,6 +26,12 @@ if command -v brew >/dev/null 2>&1; then
   alias bup='brew update && brew upgrade'
 fi
 
+# Direnv
+if command -v direnv >/dev/null 2>&1; then
+  alias da='direnv allow'
+  alias dr='direnv reload'
+fi
+
 # DNS
 alias freedns='~/bin/mac/freedns.sh'
 alias netrestart='~/bin/mac/netrestart.sh'
@@ -63,7 +69,9 @@ if command -v docker >/dev/null 2>&1; then
 fi
 
 # Fastfetch
-alias fastfetch='fastfetch -c ~/.neofetch.jsonc'
+if command -v fastfetch >/dev/null 2>&1; then
+  alias fastfetch='fastfetch -c ~/.neofetch.jsonc'
+fi
 
 # Git
 if command -v git >/dev/null 2>&1; then
@@ -85,9 +93,18 @@ if command -v git >/dev/null 2>&1; then
 fi
 
 # GNU Utils
-alias ed='ged'
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
+if command -v ed >/dev/null 2>&1; then
+  alias ed='ged'
+fi
+
+if command -v egrep >/dev/null 2>&1; then
+  alias egrep='egrep --color=auto'
+fi
+
+if command -v fgrep >/dev/null 2>&1; then
+  alias fgrep='fgrep --color=auto'
+fi
+
 alias getent='~/bin/mac/getent.sh'
 alias grep='grep --color=auto'
 
