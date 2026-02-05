@@ -1,4 +1,16 @@
 # User specific aliases and functions
+# OS
+alias c='clear'
+alias cat='bat -p'
+alias cls='cd ~/;c'
+alias cp='cp -aR'
+alias free='~/bin/mac/memory.sh'
+alias htop='sudo htop'
+alias ll='ls -alh'
+alias lltr='ll -tr'
+alias ls='ls --color=auto'
+alias reload='source ~/.zshrc'
+
 # AWS
 if command -v aws >/dev/null 2>&1; then
   alias aup='~/bin/aws/aws_version.sh'
@@ -85,18 +97,6 @@ alias hwinfo='~/bin/mac/hwinfo.sh'
 # IP Address
 alias myip='~/bin/mac/myip.zsh'
 
-# OS
-alias c='clear'
-alias cat='bat -p'
-alias cls='cd ~/;c'
-alias cp='cp -aR'
-alias free='~/bin/mac/memory.sh'
-alias htop='sudo htop'
-alias ll='ls -alh'
-alias lltr='ll -tr'
-alias ls='ls --color=auto'
-alias reload='source ~/.zshrc'
-
 # Passgen
 alias psg='openssl rand -base64 15'  # Generate random password (20 chars)
 
@@ -112,13 +112,6 @@ alias rsync='rsync --progress --stats'
 
 # SSH
 alias cmd_broadcast_mac='~/bin/expect/ssh_mac.sh'
-
-# Terraform/OpenTofu
-if command -v tofu >/dev/null 2>&1; then
-  alias tf='tofu'
-elif command -v terraform >/dev/null 2>&1; then
-  alias tf='terraform'
-fi
 
 # Updates
 if command -v git >/dev/null 2>&1 && [ -d ~/BitBucket ]; then
