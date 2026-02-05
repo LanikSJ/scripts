@@ -374,20 +374,20 @@ update_ruby() {
   log_info "\n${RUBY_ICON} Updating Ruby Gems"
   
   if ! command_exists gem; then
-    log_warning "${RUBY_ICON} Ruby gem command not found. Skipping."
+    log_warning "{RUBY_ICON} Ruby gem command not found. Skipping."
     return 0
   fi
   
   # Update RubyGems system
-  gem update --system >/dev/null 2>&1 || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
+  gem update --system || log_warning "Failed to update {RUBY_ICON} RubyGems system"
   
   # Update all gems
-  gem update >/dev/null 2>&1 || log_warning "Failed to update gems"
+  gem update || log_warning "Failed to update gems"
   
   # Clean up old gems
-  gem cleanup >/dev/null 2>&1 || log_warning "Failed to clean up gems"
+  gem cleanup || log_warning "Failed to clean up gems"
   
-  log_success "Ruby Gems ${RUBY_ICON} Updated"
+  log_success "Ruby gems updated"
   
   # Uncomment if using RVM
   # if command_exists rvm; then
