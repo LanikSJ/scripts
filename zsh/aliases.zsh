@@ -130,6 +130,11 @@ alias rsync='rsync --progress --stats'
 # SSH
 alias cmd_broadcast_mac='~/bin/expect/ssh_mac.sh'
 
+# Tofu
+if command -v tofu >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  alias tofumods='tofu init && jq -r '\''.Modules[].Key'\'' .terraform/modules/modules.json'
+fi
+
 # Updates
 if command -v git >/dev/null 2>&1 && [ -d ~/BitBucket ]; then
   alias ubit='~/bin/git/ubit.sh'
