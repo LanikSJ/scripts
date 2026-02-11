@@ -196,6 +196,7 @@ fi
 
 # Zoxide
 if command -v zoxide >/dev/null 2>&1; then
-  alias zo-clean='~/bin/zoxide/zoxide-clean.sh --pattern'
-  alias zo-verify='~/bin/zoxide/zoxide-verify.sh'
+  alias zo-clean='~/bin/zoxide/clean.sh --pattern'
+  alias zo-verify='~/bin/zoxide/verify.sh'
+  alias zo-cleanup='~/bin/zoxide/cleanup.sh'
 fi
