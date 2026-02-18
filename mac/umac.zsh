@@ -397,51 +397,9 @@ update_ruby() {
   # fi
 }
 
-# Check if nvm is available and setup latest LTS Node version
-setup_nvm() {
-  if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
-    log_info "${NPM_ICON} NVM found. Loading NVM..."
-    source "$HOME/.nvm/nvm.sh"
-
-    # Get the latest LTS version
-    local latest_lts=$(nvm version-remote --lts 2>/dev/null)
-
-    if [[ -n "$latest_lts" ]]; then
-      log_info "${NPM_ICON} Latest LTS Node version: $latest_lts"
-
-      # Check if this version is already installed
-      if ! nvm list 2>/dev/null | grep -q "$latest_lts"; then
-        log_info "${NPM_ICON} Installing Node $latest_lts..."
-        nvm install "$latest_lts"
-      fi
-
-      # Update npm for all installed Node versions
-      log_info "${NPM_ICON} Updating npm for all installed Node versions..."
-      local installed_versions=$(nvm list 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/^v//')
-
-      for version in $installed_versions; do
-        log_info "${NPM_ICON} Updating npm for Node $version..."
-        nvm use "$version" >/dev/null 2>&1
-        npm install -g npm@latest >/dev/null 2>&1 && log_success "${NPM_ICON} Updated npm for Node $version" || log_warning "${NPM_ICON} Failed to update npm for Node $version"
-      done
-
-      # Use the latest LTS version
-      nvm use "$latest_lts"
-      log_success "${NPM_ICON} Using Node $latest_lts"
-    else
-      log_warning "${NPM_ICON} Could not determine latest LTS version. Using current Node version."
-    fi
-  else
-    log_info "${NPM_ICON} NVM not found. Using system Node.js installation."
-  fi
-}
-
 # Update NPM packages
 update_npm() {
   log_info "\n${NPM_ICON} Updating NPM packages"
-
-  # Setup NVM and latest LTS Node version
-  setup_nvm
 
   if ! command_exists npm; then
     log_warning "npm command not found. Skipping."
