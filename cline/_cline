@@ -1,9 +1,13 @@
 #compdef cline
 
 # Zsh completion for Cline CLI
+# Copyright (c) 2024
+# License: Zsh (see https://zsh.sourceforge.net/FAQ/zshfaq01.html#l12)
+
 # Installation: Add to your .zshrc:
 #   fpath+="${HOME}/GitHub/LanikSJ/scripts/cline"
 
+local curcontext="$curcontext" state line
 local -a commands
 
 commands=(
