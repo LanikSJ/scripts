@@ -1,0 +1,211 @@
+#compdef cline
+
+# Zsh completion for Cline CLI
+# Installation: Copy to your fpath or source in .zshrc
+#   fpath=(~/GitHub/_cline $fpath)
+#   autoload -Uz _cline
+
+local -a commands
+
+commands=(
+  'instance:Manage Cline instances'
+  'config:Configure Cline settings'
+  'task:Manage tasks'
+  'session:Manage sessions'
+)
+
+local -a instance_cmds
+instance_cmds=(
+  'new:Create a new Cline instance'
+  'list:List all instances'
+  'remove:Remove an instance'
+  'info:Show instance information'
+)
+
+local -a config_cmds
+config_cmds=(
+  'set:Set a configuration value'
+  'get:Get a configuration value'
+  'list:List all configuration'
+  'reset:Reset configuration to defaults'
+)
+
+local -a task_cmds
+task_cmds=(
+  'new:Create a new task'
+  'list:List all tasks'
+  'show:Show task details'
+  'stop:Stop a running task'
+  'delete:Delete a task'
+)
+
+local -a session_cmds
+session_cmds=(
+  'new:Create a new session'
+  'list:List all sessions'
+  'resume:Resume a session'
+  'delete:Delete a session'
+)
+
+local -a common_opts
+common_opts=(
+  '(-h --help)'{-h,--help}'[Show help information]'
+  '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
+  '--address[Address of the Cline instance]:address:_hosts'
+  '--model[Model to use]:model:(claude-3-5-sonnet-20241022 claude-3-opus-20240229 claude-3-sonnet-20240229 claude-3-haiku-20240307)'
+)
+
+local -a instance_opts
+instance_opts=(
+  $common_opts
+  '--port[Port number]:port:'
+  '--host[Host address]:host:_hosts'
+)
+
+local -a config_opts
+config_opts=(
+  $common_opts
+  '(-g --global)'{-g,--global}'[Apply to global config]'
+)
+
+_arguments -C \
+  '1: :_describe "command" commands' \
+  '*::arg:->args' \
+  && return 0
+
+case $words[1] in
+  instance)
+    _arguments \
+      '1: :_describe "instance command" instance_cmds' \
+      '*::arg:->instance_args' \
+      && return 0
+    ;;
+  config)
+    _arguments \
+      '1: :_describe "config command" config_cmds' \
+      '*::arg:->config_args' \
+      && return 0
+    ;;
+  task)
+    _arguments \
+      '1: :_describe "task command" task_cmds' \
+      '*::arg:->task_args' \
+      && return 0
+    ;;
+  session)
+    _arguments \
+      '1: :_describe "session command" session_cmds' \
+      '*::arg:->session_args' \
+      && return 0
+    ;;
+esac
+
+case $state in
+  instance_args)
+    case $words[2] in
+      new)
+        _arguments \
+          $instance_opts \
+          '(-y --yes)'{-y,--yes}'[Automatic yes to prompts]' \
+          '--api-key[API key to use]:api-key:' \
+          && return 0
+        ;;
+      remove|info)
+        _arguments \
+          $common_opts \
+          '1:instance:->instance_list' \
+          && return 0
+        ;;
+      list)
+        _arguments \
+          $common_opts \
+          '(-a --all)'{-a,--all}'[Show all instances including stopped]' \
+          && return 0
+        ;;
+    esac
+    ;;
+  config_args)
+    case $words[2] in
+      set)
+        _arguments \
+          $config_opts \
+          '1:key:->config_keys' \
+          '2:value:' \
+          && return 0
+        ;;
+      get)
+        _arguments \
+          $config_opts \
+          '1:key:->config_keys' \
+          && return 0
+        ;;
+      list|reset)
+        _arguments \
+          $config_opts \
+          && return 0
+        ;;
+    esac
+    ;;
+  task_args)
+    case $words[2] in
+    new)
+      _arguments \
+        $common_opts \
+        '(-y --yes)'{-y,--yes}'[Automatic yes to prompts]' \
+        '(-m --mode)'{-m,--mode}'[Execution mode]:mode:(act plan review)' \
+        '(-F --format)'{-F,--format}'[Output format]:format:(json text stream)' \
+        '1:prompt:' \
+        '2:path:_files' \
+        && return 0
+        ;;
+    list|show|stop|delete)
+      _arguments \
+        $common_opts \
+        '1:task:->task_list' \
+        && return 0
+        ;;
+    esac
+    ;;
+  session_args)
+    case $words[2] in
+    new|resume)
+      _arguments \
+        $common_opts \
+        '(-y --yes)'{-y,--yes}'[Automatic yes to prompts]' \
+        '1:path:_files' \
+        && return 0
+        ;;
+    list|delete)
+      _arguments \
+        $common_opts \
+        '1:session:->session_list' \
+        && return 0
+        ;;
+    esac
+    ;;
+  config_keys)
+    local -a keys
+    keys=(
+      'open-router-api-key:OpenRouter API key'
+      'anthropic-api-key:Anthropic API key'
+      'model:Default model'
+      'max-tokens:Maximum tokens'
+      'temperature:Temperature'
+      'theme:UI theme'
+      'editor:Editor to use'
+      'shell:Shell to use'
+    )
+    _describe 'config key' keys
+    ;;
+  instance_list)
+    _message 'instance ID or name'
+    ;;
+  task_list)
+    _message 'task ID or name'
+    ;;
+  session_list)
+    _message 'session ID or name'
+    ;;
+esac
+
+return 1

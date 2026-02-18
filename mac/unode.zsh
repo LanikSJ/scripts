@@ -73,45 +73,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Check if nvm is available and setup latest LTS Node version
-setup_nvm() {
-  if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
-    echo "${INFO_ICON} NVM found. Loading NVM..."
-    source "$HOME/.nvm/nvm.sh"
-
-    # Get the latest LTS version
-    local latest_lts=$(nvm version-remote --lts 2>/dev/null)
-
-    if [[ -n "$latest_lts" ]]; then
-      echo "${INFO_ICON} Latest LTS Node version: $latest_lts"
-
-      # Check if this version is already installed
-      if ! nvm list 2>/dev/null | grep -q "$latest_lts"; then
-        echo "${INFO_ICON} Installing Node $latest_lts..."
-        nvm install "$latest_lts"
-      fi
-
-      # Update npm for all installed Node versions
-      echo "${INFO_ICON} Updating npm for all installed Node versions..."
-      local installed_versions=$(nvm list 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/^v//')
-
-      for version in $installed_versions; do
-        echo "${INFO_ICON} Updating npm for Node $version..."
-        nvm use "$version" >/dev/null 2>&1
-        npm install -g npm@latest >/dev/null 2>&1 && echo "${SUCCESS_ICON} Updated npm for Node $version" || echo "${WARNING_ICON} Failed to update npm for Node $version"
-      done
-
-      # Use the latest LTS version
-      nvm use "$latest_lts"
-      echo "${SUCCESS_ICON} Using Node $latest_lts"
-    else
-      echo "${WARNING_ICON} Could not determine latest LTS version. Using current Node version."
-    fi
-  else
-    echo "${INFO_ICON} NVM not found. Using system Node.js installation."
-  fi
-}
-
 # Check if npm and npm-check are installed
 check_dependencies() {
   if ! command -v npm &> /dev/null; then
@@ -269,9 +230,6 @@ update_module() {
 
 # Main function
 main() {
-  # Setup NVM and latest LTS Node version
-  setup_nvm
-
   check_dependencies
 
   export NPM="$HOMEBREW_PREFIX/lib/node_modules"
