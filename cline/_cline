@@ -1,9 +1,8 @@
 #compdef cline
 
 # Zsh completion for Cline CLI
-# Installation: Copy to your fpath or source in .zshrc
-#   fpath=(~/GitHub/_cline $fpath)
-#   autoload -Uz _cline
+# Installation: Add to your .zshrc:
+#   fpath+="${HOME}/GitHub/LanikSJ/scripts/cline"
 
 local -a commands
 
@@ -51,15 +50,16 @@ local -a common_opts
 common_opts=(
   '(-h --help)'{-h,--help}'[Show help information]'
   '(-v --verbose)'{-v,--verbose}'[Enable verbose output]'
-  '--address[Address of the Cline instance]:address:_hosts'
-  '--model[Model to use]:model:(claude-3-5-sonnet-20241022 claude-3-opus-20240229 claude-3-sonnet-20240229 claude-3-haiku-20240307)'
+  '--version[Show version information]'
+  '--address[Address of the Cline instance]:address:'
+  '--model[Model to use]:model:'
 )
 
 local -a instance_opts
 instance_opts=(
   $common_opts
   '--port[Port number]:port:'
-  '--host[Host address]:host:_hosts'
+  '--host[Host address]:host:'
 )
 
 local -a config_opts
