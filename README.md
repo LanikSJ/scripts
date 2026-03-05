@@ -16,6 +16,8 @@ operational tasks.
 
 - [Directory Structure and Script Overviews](#directory-structure-and-script-overviews)
   - [☁️ AWS](#aws)
+  - [✅ Completions](#completions)
+  - [🐚 Cline](#cline)
   - [🐳 Docker](#docker)
   - [🔒 Expect](#expect)
   - [🐙 Git](#git)
@@ -24,7 +26,6 @@ operational tasks.
   - [🗃️ Misc](#misc)
   - [🔐 SSL](#ssl)
   - [📝 Sublime](#sublime)
-  - [⏱️ TTL](#ttl)
   - [🧪 Zoxide](#zoxide)
   - [🐚 zsh](#zsh)
 
@@ -38,6 +39,23 @@ their purpose:
 Scripts related to Amazon Web Services (AWS) ☁️ CLI interactions.
 
 - `aws_version.sh`: Displays the installed AWS CLI version.
+
+### Completions
+
+Shell completion files ✅ for various command-line tools to enhance productivity and reduce typing errors.
+
+- `_cline`: Completion definitions for Cline command-line interface tool.
+- `_fop`: Completion definitions for FOP (File Operations) utility.
+- `_ttl`: Completion definitions for TTL (Time To Live) related commands.
+
+These completion files provide intelligent auto-completion for command arguments, options, and file paths when using the
+respective tools in supported shells (bash, zsh, fish).
+
+### Cline
+
+Scripts and configurations for 🐚 Cline, a powerful command-line interface tool.
+
+- `cline/update_cline_rules.sh`: Updates Cline configuration rules to ensure optimal performance and security settings.
 
 ### Docker
 
@@ -74,21 +92,21 @@ systems.
 
 ### Git
 
-Scripts for 🐙 Git repository management and operations.
+Scripts for 🐙 Git repository management and operations, including GitHub automation and workflow management.
 
 - `branch-clean.sh`: Automates the cleanup and removal of old branches
   from Homebrew tap repositories.
-- `cleanup-repos.sh`: A script for general repository cleanup.
+- `cleanup-repos.sh`: A script for general repository cleanup and maintenance.
 - `gcpd.sh`: A Git command alias for `git commit --amend --no-edit`.
-- `git-branch-all.sh`: Lists all branches across multiple repositories.
-- `github-label.sh`: Manages GitHub labels for repositories.
-- `github-workflows.sh`: Manages GitHub workflow configurations.
-- `gpg-conf.sh`: Configures GPG for Git operations.
-- `gwho.sh`: A Git command alias for showing Git user information.
-- `merge-pr.sh`: Automates merging pull requests.
-- `ubit.sh`: A Git command alias for undoing git add.
-- `ugh.sh`: A Git command alias for undoing git reset.
-- `ugl.sh`: A Git command alias for checking git log.
+- `git-branch-all.sh`: Lists all branches across multiple repositories for comprehensive branch management.
+- `github-label.sh`: Manages GitHub labels for repositories, including creation, deletion, and organization.
+- `github-workflows.sh`: Manages GitHub workflow configurations and automation scripts.
+- `gpg-conf.sh`: Configures GPG for Git operations, including key setup and signing configuration.
+- `gwho.sh`: A Git command alias for showing Git user information and configuration.
+- `merge-pr.sh`: Automates merging pull requests with proper validation and conflict checking.
+- `ubit.sh`: A Git command alias for undoing git add operations.
+- `ugh.sh`: A Git command alias for undoing git reset operations.
+- `ugl.sh`: A Git command alias for checking git log with enhanced formatting and filtering options.
 
 ### Hosting
 
@@ -153,12 +171,6 @@ Scripts or configurations for 📝 Sublime Text editor.
 
 - `sublime-merge.sh`: Sublime Merge configuration script.
 - `sublime-text.sh`: Sublime Text configuration script.
-
-### TTL
-
-Scripts for managing Time To Live (TTL) configurations.
-
-- `_ttl`: TTL configuration file.
 
 ### Zoxide
 
