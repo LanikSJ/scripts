@@ -1,0 +1,69 @@
+#compdef fop
+
+# Zsh completion for fop (Filter Orderer and Preener)
+
+_fop() {
+    local -a directories
+    local -a options
+    
+    # Define all fop options
+    options=(
+        '--no-commit[Just sort files, skip Git commit prompts]'
+        '--just-sort[Alias for --no-commit]'
+        '--no-ubo-convert[Skip uBO to ABP option conversion]'
+        '--no-msg-check[Skip commit message format validation (M:/A:/P:)]'
+        '--disable-ignored[Process all files (ignore IGNORE_FILES/IGNORE_DIRS)]'
+        '--no-sort[Skip sorting (only tidy and combine rules)]'
+        '--alt-sort[Alternative sorting (by selector for all rule types)]'
+        '--parse-adguard[Parse AdGuard extended CSS (#$?#, #@$?#, $$, $@$)]'
+        '--parse-adguard=[Files to parse as AdGuard extended CSS (comma-separated)]:files:_files'
+        '--localhost[Sort hosts file entries (0.0.0.0/127.0.0.1 domain)]'
+        '--localhost-files=[Files to sort as localhost format (comma-separated)]:files:_files'
+        '--no-color[Disable colored output]'
+        '--no-large-warning[Disable large change warning prompt]'
+        '--ignorefiles=[Additional files to ignore (comma-separated, partial names)]:files:_files'
+        '--ignoredirs=[Additional directories to ignore (comma-separated, partial names)]:directories:_directories'
+        '--ignore-all-but=[Only process these files, ignore all others (comma-separated)]:files:_files'
+        '--config-file=[Custom config file path]:config file:_files'
+        '--file-extensions=[File extensions to process (default: .txt)]:extensions'
+        '--comments=[Comment line prefixes (default: !)]:comments'
+        '--backup[Create .backup files before modifying]'
+        '--keep-empty-lines[Keep empty lines in output]'
+        '--ignore-dot-domains[Do not skip rules without dot in domain]'
+        '--warning-output=[Output warnings to file instead of stderr]:file:_files'
+        '--git-message=[Git commit message (skip interactive prompt)]:message'
+        '--create-pr[Create PR branch instead of committing to master]'
+        '--create-pr=[Create PR branch with title]:title'
+        '--git-pr-branch=[Base branch for PR (default: main/master)]:branch'
+        '--fix-typos[Fix cosmetic rule typos in all files]'
+        '--fix-typos-on-add[Check cosmetic rule typos in git additions]'
+        '--auto-fix[Auto-fix typos without prompting]'
+        '--quiet[Suppress most output (for CI)]'
+        '--limited-quiet[Suppress directory listing only]'
+        '--check-file=[Process a single file]:file:_files'
+        '--output-diff=[Output changes as diff (no files modified)]:file:_files'
+        '--output-diff[Output individual .diff files per source file]'
+        '--output[Output changed files with --changed suffix]'
+        '--ignore-config[Ignore .fopconfig file]'
+        '--add-timestamp[Update "Last modified/updated" timestamp in header]'
+        '--add-timestamp=[Add/update timestamp for specific files (comma-separated)]:files:_files'
+        '--add-checksum=[Add/update checksum for specific files (comma-separated)]:files:_files'
+        '--validate-checksum=[Validate checksum for specific files (exit 1 on failure)]:files:_files'
+        '--validate-checksum-and-fix=[Validate and fix invalid checksums]:files:_files'
+        '--show-config[Show applied configuration and exit]'
+        '--git-binary=[Path to git binary (default: git in PATH)]:git binary:_files'
+        '-n[Just sort files, skip Git commit prompts]'
+        '-q[Suppress most output (for CI)]'
+        '-h[Show this help message]'
+        '-V[Show version number]'
+    )
+    
+    # Get directories for completion
+    directories=($(find . -maxdepth 2 -type d 2>/dev/null | head -20))
+    
+    _arguments \
+        $options \
+        '*:directories:_directories'
+}
+
+_fop "$@"
