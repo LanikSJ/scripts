@@ -19,7 +19,7 @@ brew_subcommand_exists() {
 
 # Function to perform the update
 update_casks() {
-    local cmd="brew cu -ay"
+    local cmd="brew cu -ay --include-mas"
 
     echo "${UPDATE_ICON} Updating all Homebrew casks..."
     if ! eval "$cmd"; then
