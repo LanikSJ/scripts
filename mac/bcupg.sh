@@ -20,9 +20,6 @@ brew_subcommand_exists() {
 # Function to perform the update
 update_casks() {
     local cmd="brew cu -ay"
-    if [[ "$(hostname)" != KSKJ* ]]; then
-        cmd="$cmd --include-mas"
-    fi
 
     echo "${UPDATE_ICON} Updating all Homebrew casks..."
     if ! eval "$cmd"; then
