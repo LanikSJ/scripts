@@ -143,18 +143,12 @@ update_homebrew() {
   # Check if brew cu exists (part of homebrew-cask-upgrade)
   if brew_subcommand_exists cu; then
     local cmd="brew cu -ay"
-    if [[ "$(hostname)" != KSKJ* ]]; then
-      cmd="$cmd --include-mas"
-    fi
     eval "$cmd" || log_warning "Brew cask upgrade failed"
   else
     log_warning "brew-cask-upgrade not installed."
     log_info "Installing with: brew tap buo/cask-upgrade"
     brew tap buo/cask-upgrade || log_warning "Failed to tap buo/cask-upgrade"
     local cmd="brew cu -ay"
-    if [[ "$(hostname)" != KSKJ* ]]; then
-      cmd="$cmd --include-mas"
-    fi
     eval "$cmd" || log_warning "Brew cask upgrade failed"
   fi
   
