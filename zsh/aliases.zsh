@@ -78,9 +78,9 @@ if command -v git >/dev/null 2>&1; then
   alias gaa='git add -A'                                    # Add all files
   alias gcasm='git commit --amend -S -m'                    # Amend commit with GPG sign
   alias gcoall='~/bin/ghe/git_checkout_all.sh'              # Checkout all branches
-  alias gcpd='~/bin/git/gcpd.sh'                             # Custom git pull diff
+  alias gcpd='~/bin/git/gcpd.sh'                            # Custom git pull diff
   alias gcpdm='git checkout main; git pull; git branch -D'  # Checkout main, pull, delete branch (usage: gcpdm <branch>)
-  alias gcsam='gaa && git commit -S -am'                    # Add all and commit with GPG sign
+  alias gcsam='git add -A && git commit -S -am'             # Add all and commit with GPG sign
   alias gdb='git diff --name-only --relative --diff-filter=ACDMRTUXB | xargs bat --diff'  # Git diff with bat
   alias gg="git log --graph --pretty=format:'%C(bold)%h%Creset%C(magenta)%d%Creset %s %C(yellow)<%an> %C(cyan)(%cr)%Creset' --abbrev-commit --date=relative"  # Pretty git log
   alias grpo='git remote prune origin'                      # Prune remote branches
@@ -119,8 +119,8 @@ alias psg='openssl rand -base64 15'  # Generate random password (20 chars)
 
 # Python
 if command -v python3 >/dev/null 2>&1; then
-  alias mkvenv='python3 -m venv ~/venv'  # Create virtual env in venv
-  alias venv='source ~/venv/bin/activate'  # Activate virtual env
+  alias mkvenv='python3 -m venv ~/venv'                 # Create virtual env in venv
+  alias venv='source ~/venv/bin/activate'               # Activate virtual env
   alias rmvenv='deactivate 2>/dev/null; rm -rf ~/venv'  # Deactivate and remove venv
 fi
 
@@ -177,9 +177,11 @@ if command -v vault >/dev/null 2>&1; then
 fi
 
 # Vim
-alias vi='vim'
-alias vpi='vim -c "PlugInstall" -c "qa"'
-alias vpc='vim -c "PlugClean" -c "qa"'
+if command -v vim >/dev/null 2>&1; then
+  alias vi='vim'
+  alias vpi='vim -c "PlugInstall" -c "qa"'
+  alias vpc='vim -c "PlugClean" -c "qa"'
+fi
 
 # Wav2MP3
 if command -v ffmpeg >/dev/null 2>&1; then
@@ -187,7 +189,9 @@ if command -v ffmpeg >/dev/null 2>&1; then
 fi
 
 # Wget
-alias wget='wget -c'
+if command -v wget >/dev/null 2>&1; then
+  alias wget='wget -c'
+fi
 
 # YouTube DL
 if command -v yt-dlp >/dev/null 2>&1; then
