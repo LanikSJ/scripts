@@ -376,15 +376,22 @@ update_ruby() {
     log_warning "${RUBY_ICON} Ruby gem command not found. Skipping."
     return 0
   fi
+
+  # Fix RDoc: uninstall if multiple versions are found to prevent conflicts
+  if gem list ^rdoc$ | grep -q ','; then
+    local ruby_version
+    ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
+    gem uninstall -i "/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0" rdoc
+  fi
   
   # Update RubyGems system
-  gem update --system >/dev/null 2>&1 || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
+  gem update --system || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
   
   # Update all gems
-  gem update >/dev/null 2>&1 || log_warning "Failed to update gems"
+  gem update || log_warning "Failed to update gems"
   
   # Clean up old gems
-  gem cleanup >/dev/null 2>&1 || log_warning "Failed to clean up gems"
+  gem cleanup || log_warning "Failed to clean up gems"
   
   log_success "Ruby Gems ${RUBY_ICON} Updated"
   
