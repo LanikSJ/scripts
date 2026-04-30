@@ -10,6 +10,7 @@ PACKAGE_ICON="📦 "
 PYTHON_ICON="🐍 "
 UPDATE_ICON="🔄 "
 CONFIG_ICON="⚙️ "
+CLEAN_ICON="🧹 "
 
 # Default configuration
 typeset -a EXCLUDE_PACKAGES=()
@@ -140,9 +141,9 @@ get_packages_to_update() {
   local exclude_pattern=$(build_exclude_pattern)
   
   if [[ -z $exclude_pattern ]]; then
-    $python_version -m pip list --format=json | jq -r '.[].name'
+    $python_version -m pip --isolated list --format=json | jq -r '.[].name'
   else
-    $python_version -m pip list --format=json | jq -r '.[].name' | grep -Ev "$exclude_pattern"
+    $python_version -m pip --isolated list --format=json | jq -r '.[].name' | grep -Ev "$exclude_pattern"
   fi
 }
 
@@ -156,9 +157,9 @@ update_python_modules() {
   
   # Get list of packages to update
   if [[ -z $exclude_pattern ]]; then
-    packages=($($python_version -m pip list --format=json | jq -r '.[].name'))
+    packages=($($python_version -m pip --isolated list --format=json | jq -r '.[].name'))
   else
-    packages=($($python_version -m pip list --format=json | jq -r '.[].name' | grep -Ev "$exclude_pattern"))
+    packages=($($python_version -m pip --isolated list --format=json | jq -r '.[].name' | grep -Ev "$exclude_pattern"))
   fi
   
   # Show what will be updated
@@ -174,6 +175,10 @@ update_python_modules() {
     return
   fi
   
+  # Clear pip cache
+  echo "${CLEAN_ICON} Clearing pip cache for $python_version..."
+  $python_version -m pip --isolated cache purge
+
   # Update pip itself first
   echo "${UPDATE_ICON} Updating pip for $python_version..."
   $python_version -m pip install -U pip
