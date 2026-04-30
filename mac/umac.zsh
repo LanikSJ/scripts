@@ -19,6 +19,7 @@ INFO_ICON="ℹ️"
 SUCCESS_ICON="✅"
 WARNING_ICON="⚠️"
 ERROR_ICON="❌"
+CLEAN_ICON="🧹"
 
 # Disable glob expansion to prevent issues with special characters
 set -f
@@ -296,11 +297,15 @@ update_python() {
     
     log_info "${PYTHON_ICON} Updating $python_version packages"
     
-    if ! "$python_version" -m pip --version &>/dev/null; then
+    if ! "$python_version" -m pip --isolated --version &>/dev/null; then
       log_warning "$python_version pip not found. Skipping."
       return 0
     fi
     
+    # Clear pip cache
+    log_info "${CLEAN_ICON} Clearing pip cache for $python_version..."
+    "$python_version" -m pip --isolated cache purge || log_warning "Failed to clear pip cache for $python_version"
+
     # Update pip itself first
     log_info "${PYTHON_ICON} Updating pip for $python_version..."
     "$python_version" -m pip install -U pip || log_warning "Failed to update pip for $python_version"
@@ -311,7 +316,7 @@ update_python() {
     fi
     
     # Get only outdated packages to avoid unnecessary upgrades
-    outdated_packages=$("$python_version" -m pip list --outdated --format=json 2>/dev/null | jq -r '.[].name' 2>/dev/null) || {
+    outdated_packages=$("$python_version" -m pip --isolated list --outdated --format=json 2>/dev/null | jq -r '.[].name' 2>/dev/null) || {
       log_warning "Failed to get outdated packages for $python_version"
       return 0
     }
@@ -355,7 +360,7 @@ update_python() {
   # Create pip directory if it doesn't exist
   mkdir -p "$HOME/.pip"
   
-  if python3 -m pip freeze > "$HOME/.pip/pip3.txt"; then
+  if python3 -m pip --isolated freeze > "$HOME/.pip/pip3.txt"; then
     log_success "Python packages frozen to ~/.pip/pip3.txt"
   else
     log_error "Failed to freeze Python packages"
