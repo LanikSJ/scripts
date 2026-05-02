@@ -19,6 +19,7 @@ fi
 # Brew
 if command -v brew >/dev/null 2>&1; then
   alias bcpa='brew cleanup -s --prune=1'
+  alias bcpall='brew cleanup -s --prune=all'
   alias bcu='brew upgrade --cask'
   alias bcul='~/bin/mac/bcupg.sh'
   alias bpr='brew prune'
