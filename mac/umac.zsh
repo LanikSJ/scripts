@@ -161,7 +161,7 @@ update_homebrew() {
   brew doctor || log_warning "Brew doctor found issues"
   
   log_info "\n${BREW_ICON} Creating Brewfile"
-  brew bundle dump --all --force --file=~/.Brewfile
+  brew bundle dump --force --file=~/.Brewfile
   log_success "Brewfile created at ~/.Brewfile"
   
   log_info "\n${BREW_ICON} Cleaning up unneeded formulae"
