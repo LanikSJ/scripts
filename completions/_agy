@@ -1,0 +1,94 @@
+#compdef agy
+
+# Zsh completion script for Antigravity CLI (agy)
+
+local context state line ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '--add-dir[Add a directory to the workspace (repeatable)]:directory:_files -/' \
+  '(-c --continue)'{-c,--continue}'[Continue the most recent conversation]' \
+  '--conversation[Resume a previous conversation by ID]:conversation ID:' \
+  '--dangerously-skip-permissions[Auto-approve all tool permission requests without prompting]' \
+  '(-i --prompt-interactive)'{-i,--prompt-interactive}'[Run an initial prompt interactively and continue the session]' \
+  '--log-file[Override CLI log file path]:file:_files' \
+  '(-p --print --prompt)'{-p,--print,--prompt}'[Run a single prompt non-interactively and print the response]:prompt:' \
+  '--print-timeout[Timeout for print mode wait]:timeout (e.g. 5m0s):' \
+  '--prompt-interactive[Run an initial prompt interactively and continue the session]:prompt:' \
+  '--sandbox[Run in a sandbox with terminal restrictions enabled]' \
+  '1: :->cmds' \
+  '*:: :->args' && ret=0
+
+case $state in
+  cmds)
+    local -a subcommands
+    subcommands=(
+      'changelog:Show changelog and release notes'
+      'help:Show help for subcommands'
+      'install:Configure environment paths and shell settings'
+      'plugin:Manage plugins'
+      'plugins:Alias for plugin'
+      'update:Update CLI'
+    )
+    _describe -t subcommands 'subcommand' subcommands && ret=0
+    ;;
+  args)
+    case $line[1] in
+      install)
+        _arguments \
+          '--dir[Custom directory target to configure PATH for]:directory:_files -/' \
+          '--skip-aliases[Bypasses shell profile alias purging]' \
+          '--skip-path[Bypasses shell profile PATH appending]' && ret=0
+        ;;
+      plugin|plugins)
+        if (( CURRENT == 2 )); then
+          local -a plugin_cmds
+          plugin_cmds=(
+            'list:List imported plugins'
+            'import:Import plugins from gemini or claude'
+            'install:Install a plugin'
+            'uninstall:Uninstall a plugin'
+            'enable:Enable a plugin'
+            'disable:Disable a plugin'
+            'validate:Validate a plugin'
+            'link:Generate link to a marketplace'
+            'help:Show help'
+          )
+          _describe -t plugin_cmds 'plugin subcommand' plugin_cmds && ret=0
+        else
+          shift 1 line
+          case $line[1] in
+            import)
+              _arguments '1:source:(gemini claude)' && ret=0
+              ;;
+            install)
+              _arguments '1:plugin (supports plugin@marketplace):' && ret=0
+              ;;
+            uninstall|enable|disable)
+              _arguments '1:plugin name:' && ret=0
+              ;;
+            validate)
+              _arguments '1:plugin path:_files -/' && ret=0
+              ;;
+            link)
+              _arguments '1:marketplace:' '2:target:' && ret=0
+              ;;
+          esac
+        fi
+        ;;
+      help)
+        local -a help_cmds
+        help_cmds=(
+          'changelog:Show changelog and release notes'
+          'install:Configure environment paths and shell settings'
+          'plugin:Manage plugins'
+          'plugins:Alias for plugin'
+          'update:Update CLI'
+        )
+        _describe -t help_cmds 'subcommand' help_cmds && ret=0
+        ;;
+    esac
+    ;;
+esac
+
+return ret
