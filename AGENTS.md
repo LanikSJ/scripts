@@ -1,8 +1,9 @@
-# AI Rules & Project Standards for LanikSJ/scripts
+# Agent Rules & Project Standards for LanikSJ/scripts
 
 ## Repository Overview
 
 This is a personal collection of scripts, tools, and projects covering:
+
 - Shell scripts for automation (AWS, Docker, Git, system administration).
 - Web development projects (browser extensions, desktop apps).
 - Developer tools and utilities.
@@ -22,7 +23,9 @@ This is a personal collection of scripts, tools, and projects covering:
 
 ### Script Synchronization Requirements (CRITICAL)
 
-- **MANDATORY**: When updating shell scripts that share common patterns (e.g., `git_update()`), ensure consistent implementation across ALL related scripts.
+- **MANDATORY**: When updating shell scripts that share common patterns
+  (e.g., `git_update()`), ensure consistent implementation across ALL
+  related scripts.
 - **Synchronized Pairs**:
   - `scripts/git/ugh.sh` and `scripts/mac/umac.zsh` MUST maintain identical git repository management logic.
   - The `git_update()` and `update_git_repos()` functions MUST be identical between these scripts.
@@ -71,6 +74,7 @@ These rules apply specifically to files in `.github/*` (workflows, templates, an
 ### Quality Gates (MANDATORY)
 
 Before completing any change in `.github/`:
+
 1. ✅ Run `markdownlint` validation (if .md file).
 2. ✅ Ensure project standards are followed.
 3. ✅ Verify contribution guidelines are up-to-date.
@@ -90,5 +94,7 @@ Before completing any change in `.github/`:
 
 ## Cline Rules Maintenance
 
-- **MANDATORY**: Update this file whenever making changes to scripts that introduce new coding patterns, utility functions, or bug fixes that should be applied consistently.
+- **MANDATORY**: Update this file whenever making changes to scripts that
+  introduce new coding patterns, utility functions, or bug fixes that
+  should be applied consistently.
 - This file serves as the **Single Source of Truth** for coding standards.
