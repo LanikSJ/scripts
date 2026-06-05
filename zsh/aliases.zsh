@@ -89,6 +89,7 @@ if command -v git >/dev/null 2>&1; then
   alias gstb='git stash branch'                             # Stash to new branch
   alias gtba='~/bin/git/git_branch_all.sh'                  # Show all branches
   alias gurl='git config --get remote.origin.url'           # Get remote URL
+  alias gurlw="git remote get-url origin | sed -e 's/:/\//g' -e 's/git@/https:\/\//g' -e 's/\.git$//g'" # Get remote URL and convert to a clickable link
   alias gwho='~/bin/git/gwho.sh'                            # Custom git who
   alias ugit='git-undo'                                     # Undo git command
 fi
