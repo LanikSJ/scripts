@@ -24,7 +24,7 @@ if command -v brew >/dev/null 2>&1; then
   alias bcul='~/bin/mac/bcupg.sh'
   alias bpr='brew prune'
   alias brewfile='~/bin/mac/brewfile.sh'
-  alias bup='brew update && brew upgrade'
+  alias bup='brew update && brew upgrade -y'
 fi
 
 # Direnv

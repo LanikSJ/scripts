@@ -84,13 +84,13 @@ brew_subcommand_exists() {
 # Check for required dependencies
 check_dependencies() {
   local missing_deps=()
-  
+
   for cmd in jq git brew npm gem python3; do
     if ! command_exists "$cmd"; then
       missing_deps+=("$cmd")
     fi
   done
-  
+
   if [[ ${#missing_deps[@]} -gt 0 ]]; then
     log_error "Missing required dependencies: ${missing_deps[*]}"
     log_info "Please install the missing dependencies and try again."
@@ -101,7 +101,7 @@ check_dependencies() {
 # Update Xcode command line tools
 update_xcode() {
   log_info "\n${XCODE_ICON} Checking Xcode command line tools"
-  
+
   if ! xcode-select -p &>/dev/null; then
     log_warning "\n${XCODE_ICON} Xcode command line tools not found. Installing..."
     xcode-select --install
@@ -115,10 +115,10 @@ update_xcode() {
 # Update Homebrew and packages
 update_homebrew() {
   log_info "\n${BREW_ICON} Updating Homebrew"
-  
+
   # Save current directory to return to it later
   local current_dir=$(pwd)
-  
+
   # Check if HOMEBREW_PREFIX is set
   if [[ -z "$HOMEBREW_PREFIX" ]]; then
     if command_exists brew; then
@@ -128,19 +128,19 @@ update_homebrew() {
       return 1
     fi
   fi
-  
+
   cd "$HOMEBREW_PREFIX" || {
     log_error "Could not change to Homebrew directory: $HOMEBREW_PREFIX"
     return 1
   }
-  
+
   # Update Homebrew itself
   git remote prune origin && git checkout main && git pull origin main
-  
+
   log_info "\n${BREW_ICON} Updating Brew Packages & Casks"
   brew update || log_warning "Brew update failed"
-  brew upgrade || log_warning "Brew upgrade failed"
-  
+  brew upgrade -y || log_warning "Brew upgrade failed"
+
   # Check if brew cu exists (part of homebrew-cask-upgrade)
   if brew_subcommand_exists cu; then
     local cmd="brew cu -ay --include-mas"
@@ -152,22 +152,22 @@ update_homebrew() {
     local cmd="brew cu -ay --include-mas"
     eval "$cmd" || log_warning "Brew cask upgrade failed"
   fi
-  
+
   log_info "\n${BREW_ICON} Removing Homebrew Caches"
   brew cleanup -s --prune=1
   log_success "Homebrew cleanup completed"
-  
+
   log_info "\n${BREW_ICON} Running Brew Doctor"
   brew doctor || log_warning "Brew doctor found issues"
-  
+
   log_info "\n${BREW_ICON} Creating Brewfile"
   brew bundle dump --force --file=~/.Brewfile
   log_success "Brewfile created at ~/.Brewfile"
-  
+
   log_info "\n${BREW_ICON} Cleaning up unneeded formulae"
   brew bundle cleanup --file=~/.Brewfile --force
   log_success "Brew cleanup completed"
-  
+
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
 }
@@ -175,25 +175,25 @@ update_homebrew() {
 # Update Oh My ZSH
 update_omz() {
   log_info "\n${OMZ_ICON} Updating Oh My ZSH"
-  
+
   if [[ -z "$ZSH" ]]; then
     log_warning "ZSH variable not set. Assuming default location."
     ZSH="$HOME/.oh-my-zsh"
   fi
-  
+
   if [[ ! -d "$ZSH" ]]; then
     log_warning "Oh My ZSH directory not found at $ZSH. Skipping."
     return 0
   fi
-  
+
   local current_dir=$(pwd)
   cd "$ZSH" || {
     log_error "Could not change to Oh My ZSH directory: $ZSH"
     return 1
   }
-  
+
   git pull || log_warning "Oh My ZSH update failed"
-  
+
   cd "$current_dir" || log_warning "Could not return to original directory"
   log_success "Oh My ZSH updated"
 }
@@ -201,37 +201,37 @@ update_omz() {
 # Update Zinit and plugins
 update_zinit() {
   log_info "\n${ZINIT_ICON} Updating ZSH Plugins via Zinit"
-  
+
   ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
-  
+
   if [[ ! -d "$ZINIT_HOME" ]]; then
     log_warning "Zinit not found at $ZINIT_HOME. Skipping."
     return 0
   fi
-  
+
   # Source zinit if it exists
   if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
     # Run zinit update in a subshell to prevent environment changes from affecting our script
     (
       # Temporarily disable strict error handling for the subshell
       set +e
-      
+
       # Save current directory
       local current_dir=$(pwd)
-      
+
       # Source zinit
       source "${ZINIT_HOME}/zinit.zsh" 2>/dev/null
-      
+
       if command_exists zinit; then
         zinit update --all 2>/dev/null || echo "Zinit update failed" >&2
       else
         echo "Zinit command not available after sourcing" >&2
       fi
-      
+
       # Return to original directory
       cd "$current_dir" 2>/dev/null || true
     ) || log_warning "Zinit update process failed"
-    
+
     # Clean up zcompdump files
     if ls "$HOME"/.zcompdump* 1> /dev/null 2>&1; then
       rm -rf "$HOME"/.zcompdump*
@@ -240,44 +240,44 @@ update_zinit() {
   else
     log_warning "Zinit script not found. Skipping."
   fi
-  
+
   log_success "Zinit update process completed"
 }
 
 # Update Python packages
 update_python() {
   log_info "\n${PYTHON_ICON} Updating Python packages"
-  
+
   # Define excluded packages (can be a regex pattern)
   local exclude="(pip|setuptools|wheel)"
   # Always use verbose mode for Python updates
   local verbose=true
-  
+
   # Function to detect installed Python versions
   detect_python_versions() {
     log_info "${PYTHON_ICON} Auto-detecting Python versions" >&2
     local detected_versions=()
-    
+
     # Check for python3
     if command_exists python3; then
       detected_versions+=("python3")
     fi
-    
+
     # Check for specific Python 3 versions (3.7 through 3.14)
     for version in {7..14}; do
       if command_exists "python3.$version"; then
         detected_versions+=("python3.$version")
       fi
     done
-    
+
     # If no Python versions found, warn the user
     if [[ ${#detected_versions[@]} -eq 0 ]]; then
       log_warning "No Python versions detected on this system." >&2
       return 1
     fi
-    
+
     log_success "Detected Python versions: ${detected_versions[*]}" >&2
-    
+
     # Return the detected versions as a space-separated string
     local output=""
     for version in "${detected_versions[@]}"; do
@@ -285,23 +285,23 @@ update_python() {
     done
     echo -n "${output% }"  # Remove trailing space
   }
-  
+
   # Function to upgrade Python modules
   python_module_upgrade() {
     local python_version="$1"
-    
+
     if ! command_exists "$python_version"; then
       log_warning "$python_version not found. Skipping."
       return 0
     fi
-    
+
     log_info "${PYTHON_ICON} Updating $python_version packages"
-    
+
     if ! "$python_version" -m pip --isolated --version &>/dev/null; then
       log_warning "$python_version pip not found. Skipping."
       return 0
     fi
-    
+
     # Clear pip cache
     log_info "${CLEAN_ICON} Clearing pip cache for $python_version..."
     "$python_version" -m pip --isolated cache purge || log_warning "Failed to clear pip cache for $python_version"
@@ -309,23 +309,23 @@ update_python() {
     # Update pip itself first
     log_info "${PYTHON_ICON} Updating pip for $python_version..."
     "$python_version" -m pip install -U pip || log_warning "Failed to update pip for $python_version"
-    
+
     if ! command_exists jq; then
       log_warning "jq not found. Cannot parse pip JSON output. Skipping."
       return 0
     fi
-    
+
     # Get only outdated packages to avoid unnecessary upgrades
     outdated_packages=$("$python_version" -m pip --isolated list --outdated --format=json 2>/dev/null | jq -r '.[].name' 2>/dev/null) || {
       log_warning "Failed to get outdated packages for $python_version"
       return 0
     }
-    
+
     if [[ -z "$outdated_packages" ]]; then
       log_success "All packages are up to date for $python_version"
       return 0
     fi
-    
+
     # Process packages one by one for better stability
     for pkg in $outdated_packages; do
       # Skip excluded packages
@@ -333,33 +333,33 @@ update_python() {
         log_info "Skipping excluded package: $pkg"
         continue
       fi
-      
+
       log_info "Upgrading $pkg"
       "$python_version" -m pip install -U -v "$pkg" || log_warning "Failed to upgrade $pkg"
     done
   }
-  
+
   # Auto-detect Python versions
   local python_versions=()
   IFS=' ' read -A python_versions <<< "$(detect_python_versions)"
-  
+
   # If no Python versions were detected, exit
   if [[ ${#python_versions[@]} -eq 0 ]]; then
     log_error "No Python versions found. Please install Python."
     return 1
   fi
-  
+
   # Update packages for each detected Python version
   for python_version in "${python_versions[@]}"; do
     python_module_upgrade "$python_version"
   done
-  
+
   # Freeze Python 3 packages
   log_info "${PYTHON_ICON} Freezing Python 3 packages"
-  
+
   # Create pip directory if it doesn't exist
   mkdir -p "$HOME/.pip"
-  
+
   if python3 -m pip --isolated freeze > "$HOME/.pip/pip3.txt"; then
     log_success "Python packages frozen to ~/.pip/pip3.txt"
   else
@@ -371,7 +371,7 @@ update_python() {
 # Update Ruby gems
 update_ruby() {
   log_info "\n${RUBY_ICON} Updating Ruby Gems"
-  
+
   if ! command_exists gem; then
     log_warning "${RUBY_ICON} Ruby gem command not found. Skipping."
     return 0
@@ -383,18 +383,18 @@ update_ruby() {
     ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
     gem uninstall -i "/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0" rdoc
   fi
-  
+
   # Update RubyGems system
   gem update --system || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
-  
+
   # Update all gems
   gem update || log_warning "Failed to update gems"
-  
+
   # Clean up old gems
   gem cleanup || log_warning "Failed to clean up gems"
-  
+
   log_success "Ruby Gems ${RUBY_ICON} Updated"
-  
+
   # Uncomment if using RVM
   # if command_exists rvm; then
   #   log_info "Updating gems for all RVM gemsets"
@@ -411,7 +411,7 @@ update_npm() {
     log_warning "npm command not found. Skipping."
     return 0
   fi
-  
+
   # Check if npm-check is installed
   if ! command_exists npm-check; then
     log_info "\n${NPM_ICON} npm-check is not installed. Installing it globally..."
@@ -424,10 +424,10 @@ update_npm() {
       return 0
     fi
   fi
-  
+
   # Update global npm packages using npm-check
   log_info "\n${NPM_ICON} Updating NPM global packages using npm-check"
-  
+
   # First, get a list of all global packages except corepack and npm-check
   local global_packages
   if ! global_packages=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies | keys[] | select(. != "corepack" and . != "npm-check")' 2>/dev/null); then
@@ -435,21 +435,21 @@ update_npm() {
     update_npm_standard
     return 0
   fi
-  
+
   # Check if there are any packages to update
   if [[ -z "$global_packages" ]]; then
     log_success "No global packages to update (excluding corepack and npm-check)"
     return 0
   fi
-  
+
   # Update each package individually using npm-check
   log_info "\n${NPM_ICON} Updating global packages individually (excluding corepack and npm-check)"
   local update_count=0
   local fail_count=0
-  
+
   # Save current directory to return to it later
   local current_dir=$(pwd)
-  
+
   # Create a temporary directory for npm-check operations
   local tmp_dir=$(mktemp -d)
   TEMP_FILES+=("$tmp_dir")
@@ -459,14 +459,14 @@ update_npm() {
     update_npm_standard
     return 0
   }
-  
+
   # Update each package individually using npm-check
   for pkg in $global_packages; do
     log_info "Checking ${pkg}..."
-    
+
     # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
     { npm-check -g -u -y --skip-unused --minor --no-install "$pkg" ; } > /dev/null 2>&1 || true
-    
+
     # Check if the package was updated by checking if it's still outdated
     if npm outdated -g "$pkg" | grep -q "$pkg"; then
       log_warning "Failed to update ${pkg} with npm-check"
@@ -476,17 +476,17 @@ update_npm() {
       ((update_count++))
     fi
   done
-  
+
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
   rm -rf "$tmp_dir"
-  
+
   if [[ $update_count -gt 0 ]]; then
     log_success "Updated $update_count global packages with npm-check (excluding corepack and npm-check)"
   else
     log_info "${NPM_ICON} No packages were updated with npm-check"
   fi
-  
+
   # Determine NPM modules directory
   local NPM_DIR
   if [[ -n "$HOMEBREW_PREFIX" ]]; then
@@ -495,31 +495,31 @@ update_npm() {
     NPM_DIR="/usr/local/lib/node_modules"
     log_warning "${BREW_ICON} HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
   fi
-  
+
   if [[ ! -d "$NPM_DIR" ]]; then
     log_warning "${NPM_ICON} NPM directory not found: $NPM_DIR. Skipping."
     return 0
   fi
-  
+
   # Update individual npm packages using npm-check
   local current_dir=$(pwd)
   local module_update_count=0
   local module_fail_count=0
-  
+
   # Create a temporary directory for npm-check operations
   local tmp_dir=$(mktemp -d)
   TEMP_FILES+=("$tmp_dir")
-  
+
   for pkg_dir in "$NPM_DIR"/*; do
     if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" && "$(basename "$pkg_dir")" != "npm-check" && "$(basename "$pkg_dir")" != "corepack" ]]; then
       local pkg_name=$(basename "$pkg_dir")
       log_info "\n${NPM_ICON} Updating $pkg_name using npm-check"
-      
+
       # Change to the package directory
       if cd "$pkg_dir"; then
         # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
         { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
-        
+
         if [[ $? -eq 0 ]]; then
           log_success "Updated $pkg_name successfully"
           ((module_update_count++))
@@ -527,7 +527,7 @@ update_npm() {
           log_warning "Failed to update $pkg_name with npm-check"
           ((module_fail_count++))
         fi
-        
+
         # Return to tmp directory
         cd "$tmp_dir"
       else
@@ -536,15 +536,15 @@ update_npm() {
       fi
     fi
   done
-  
+
   # Special case for AGLint
   if [[ -d "$NPM_DIR/@adguard/aglint" ]]; then
     log_info "\n${NPM_ICON} Updating AGLint using npm-check"
-    
+
     if cd "$NPM_DIR/@adguard/aglint"; then
       # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
       { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
-      
+
       if [[ $? -eq 0 ]]; then
         log_success "Updated AGLint successfully"
         ((module_update_count++))
@@ -552,7 +552,7 @@ update_npm() {
         log_warning "Failed to update AGLint with npm-check"
         ((module_fail_count++))
       fi
-      
+
       # Return to tmp directory
       cd "$tmp_dir"
     else
@@ -560,10 +560,10 @@ update_npm() {
       ((module_fail_count++))
     fi
   fi
-  
+
   # Clean up temporary directory
   rm -rf "$tmp_dir"
-  
+
   # Log summary of module updates
   if [[ $module_update_count -gt 0 ]]; then
     log_success "Updated $module_update_count individual modules with npm-check"
@@ -571,24 +571,24 @@ update_npm() {
   if [[ $module_fail_count -gt 0 ]]; then
     log_warning "${NPM_ICON} Failed to update $module_fail_count individual modules"
   fi
-  
+
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
-  
+
   # Clear npm cache
   log_info "\n${NPM_ICON} Clearing NPM cache"
   npm cache clean --force || log_warning "Failed to clear npm cache"
-  
+
   log_success "NPM packages updated with npm-check"
 }
 
 # Fallback method using standard npm commands
 update_npm_standard() {
   log_info "${NPM_ICON} Using standard npm update method"
-  
+
   # Update global npm packages
   log_info "${NPM_ICON} Updating NPM global packages"
-  
+
   # Get list of outdated global packages
   local outdated_packages
   if outdated_packages=$(npm outdated -g --json 2>/dev/null | jq -r 'keys[]' 2>/dev/null); then
@@ -601,7 +601,7 @@ update_npm_standard() {
         if [[ "$pkg" == "corepack" ]]; then
           continue
         fi
-        
+
         log_info "Updating global package: $pkg"
         npm install -g "$pkg@latest" || log_warning "Failed to update global package: $pkg"
       done
@@ -610,7 +610,7 @@ update_npm_standard() {
   else
     log_warning "Failed to check for outdated global npm packages"
   fi
-  
+
   # Determine NPM modules directory
   local NPM_DIR
   if [[ -n "$HOMEBREW_PREFIX" ]]; then
@@ -619,36 +619,36 @@ update_npm_standard() {
     NPM_DIR="/usr/local/lib/node_modules"
     log_warning "${BREW_ICON} HOMEBREW_PREFIX not set, using default NPM directory: $NPM_DIR"
   fi
-  
+
   if [[ ! -d "$NPM_DIR" ]]; then
     log_warning "NPM directory not found: $NPM_DIR. Skipping."
     return 0
   fi
-  
+
   # Update individual npm packages
   local current_dir=$(pwd)
-  
+
   for pkg_dir in "$NPM_DIR"/*; do
     if [[ -d "$pkg_dir" && "$(basename "$pkg_dir")" != "npm" && "$(basename "$pkg_dir")" != "adguard" ]]; then
       local pkg_name=$(basename "$pkg_dir")
       log_info "Updating $pkg_name"
-      
+
       cd "$pkg_dir" || {
         log_warning "Could not change to directory: $pkg_dir"
         continue
       }
-      
+
       npm update || log_warning "Failed to update $pkg_name"
     fi
   done
-  
+
   # Special case for AGLint
   if [[ -d "$NPM_DIR/@adguard/aglint" ]]; then
     log_info "Updating AGLint"
     cd "$NPM_DIR/@adguard/aglint" || log_warning "Could not change to AGLint directory"
     npm update || log_warning "Failed to update AGLint"
   fi
-  
+
   # Return to original directory
   cd "$current_dir" || log_warning "Could not return to original directory"
 }
@@ -659,21 +659,21 @@ git_update() {
   local branch="$2"
 
   log_info "\n🔄 Updating $repo on branch $branch"
-  
+
   git checkout "$branch" || {
     log_error "Failed to checkout $branch for $repo"
     return 1
   }
-  
+
   git pull || {
     log_warning "Failed to pull updates for $repo"
     return 1
   }
-  
+
   # Prune remote tracking branches that no longer exist on remote
   log_info "🧹 Pruning remote tracking branches for $repo"
   git remote prune origin || log_warning "Failed to prune remote for $repo"
-  
+
   # Delete all local branches except the primary/default branch
   log_info "🗑️ Deleting non-default local branches for $repo"
   for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
@@ -686,35 +686,35 @@ git_update() {
 update_git_repos() {
   local repo_dir="$1"
   local dir_name="$2"
-  
+
   # Special formatting for VIM Plugged repositories
   if [[ "$dir_name" == "VIM Plugged" ]]; then
     log_info "\n${GIT_ICON} Updating ${VIM_ICON} VIM Plugged repositories"
   else
     log_info "\n${GIT_ICON} Updating $dir_name repositories"
   fi
-  
+
   if [[ ! -d "$repo_dir" ]]; then
     log_warning "$dir_name directory not found: $repo_dir. Skipping."
     return 0
   fi
-  
+
   # Build repo list
   local repolist=()
   for dir in "$repo_dir"/*; do
     [[ -d "$dir/.git" ]] && repolist+=("$(basename "$dir")")
   done
-  
+
   # Check if there are any repositories to update
   if [[ ${#repolist[@]} -eq 0 ]]; then
     log_warning "No git repositories found in $repo_dir"
     return 0
   fi
-  
+
   log_info "Found ${#repolist[@]} repositories to update in $dir_name"
-  
+
   local current_dir=$(pwd)
-  
+
   # 🧵 Parallel update (default: 1 job)
   local JOBS=1
   local pids=()
@@ -722,12 +722,12 @@ update_git_repos() {
     (
       # Save current directory to return to it later
       current_dir=$(pwd)
-      
+
       cd "$repo_dir/$repo" || {
         log_error "Could not change to repository: $repo_dir/$repo"
         exit 1
       }
-      
+
       # Detect primary branch
       if git show-ref --verify --quiet refs/heads/develop; then
         branch="develop"
@@ -738,10 +738,10 @@ update_git_repos() {
       else
         branch="master"
       fi
-      
+
       git_update "$repo" "$branch"
       log_success "$repo updated and cleaned"
-      
+
       # Return to original directory
       cd "$current_dir" || log_warning "Could not return to original directory"
     ) &
@@ -760,12 +760,12 @@ update_git_repos() {
       pids=("${new_pids[@]}")
     fi
   done
-  
+
   # Wait for all jobs to finish
   wait
-  
+
   cd "$current_dir" || log_warning "Could not return to original directory"
-  
+
   # Special formatting for VIM Plugged repositories
   if [[ "$dir_name" == "VIM Plugged" ]]; then
     echo ""
@@ -778,18 +778,18 @@ update_git_repos() {
 # Check for macOS updates
 update_macos() {
   log_info "\n${MACOS_ICON} Checking for macOS updates"
-  
+
   # Check if softwareupdate command exists
   if ! command_exists softwareupdate; then
     log_error "softwareupdate command not found. Cannot check for macOS updates."
     return 1
   fi
-  
+
   # Check for available updates
   local updates_output
   updates_output=$(softwareupdate -l 2>&1)
   local exit_code=$?
-  
+
   # Check if there was an error
   if [[ $exit_code -ne 0 ]]; then
     if [[ "$updates_output" == *"No new software available"* ]]; then
@@ -800,18 +800,18 @@ update_macos() {
       return 1
     fi
   fi
-  
+
   # If we get here, there are updates available
   if [[ "$updates_output" == *"No new software available"* ]]; then
     log_success "Your macOS is up to date"
   else
     log_warning "macOS updates are available:"
     echo "$updates_output" | grep -v "^$" | sed 's/^/    /'
-    
+
     log_info "To install these updates, run: sudo softwareupdate -i -a"
     log_info "For more options, run: softwareupdate --help"
   fi
-  
+
   return 0
 }
 
@@ -821,7 +821,7 @@ main() {
   local skip_components=()
   local run_only=""
   local custom_log_file=""
-  
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --skip=*)
@@ -844,12 +844,12 @@ main() {
     esac
     shift
   done
-  
+
   log_info "🚀 Starting system update process"
-  
+
   # Check for dependencies
   check_dependencies
-  
+
   # Function to check if a component should be skipped
   should_skip() {
     local component="$1"
@@ -858,14 +858,14 @@ main() {
         return 0
       fi
     done
-    
+
     if [[ -n "$run_only" && "$run_only" != "$component" ]]; then
       return 0
     fi
-    
+
     return 1
   }
-  
+
   # Update components
   should_skip "xcode" || update_xcode
   should_skip "macos" || update_macos
@@ -875,14 +875,14 @@ main() {
   should_skip "python" || update_python
   should_skip "ruby" || update_ruby
   should_skip "npm" || update_npm
-  
+
   # Update Git repositories
   if ! should_skip "git"; then
     update_git_repos "$HOME/GitHub/LanikSJ" "LanikSJ"
     update_git_repos "$HOME/GitHub/Mac" "Mac"
     update_git_repos "$HOME/.vim/plugged" "VIM Plugged"
   fi
-  
+
   log_success "System update completed successfully! 🎉"
 }
 
