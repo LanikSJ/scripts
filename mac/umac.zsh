@@ -138,7 +138,7 @@ update_homebrew() {
   git remote prune origin && git checkout main && git pull origin main
 
   log_info "\n${BREW_ICON} Updating Brew Packages & Casks"
-  brew update || log_warning "Brew update failed"
+  brew update --auto-update || log_warning "Brew update failed"
   brew upgrade -y || log_warning "Brew upgrade failed"
 
   # Check if brew cu exists (part of homebrew-cask-upgrade)
