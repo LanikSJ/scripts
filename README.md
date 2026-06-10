@@ -15,9 +15,9 @@ operational tasks.
 ## Table of Contents
 
 - [Directory Structure and Script Overviews](#directory-structure-and-script-overviews)
+  - [🕵️ Agent](#agent)
   - [☁️ AWS](#aws)
   - [✅ Completions](#completions)
-  - [🐚 Cline](#cline)
   - [🐳 Docker](#docker)
   - [🔒 Expect](#expect)
   - [🐙 Git](#git)
@@ -33,6 +33,13 @@ operational tasks.
 
 Here's a breakdown of the main script categories and a brief description of
 their purpose:
+
+### Agent
+
+Scripts related to AI agent configuration.
+
+- `update_rules.sh`: Copies the central `AGENTS.md` from the repository root into each project, ensuring consistent
+  agent rules across all LanikSJ repositories.
 
 ### AWS
 
@@ -50,12 +57,6 @@ Shell completion files ✅ for various command-line tools to enhance productivit
 
 These completion files provide intelligent auto-completion for command arguments, options, and file paths when using the
 respective tools in supported shells (bash, zsh, fish).
-
-### Cline
-
-Scripts and configurations for 🐚 Cline, a powerful command-line interface tool.
-
-- `cline/update_cline_rules.sh`: Updates Cline configuration rules to ensure optimal performance and security settings.
 
 ### Docker
 
