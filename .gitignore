@@ -12,3 +12,42 @@ Icon
 
 # Ignored
 jobs/
+
+# Windows artefacts
+Thumbs.db
+Desktop.ini
+
+# Common IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Shell history (optional)
+.bash_history
+.zsh_history
+
+# Python artefacts
+__pycache__/
+*.py[cod]
+.venv/
+env/
+*.env
+.pytest_cache/
+
+# Node / JS artefacts
+node_modules/
+dist/
+coverage/
+npm-debug.log
+yarn-debug.log*
+yarn-error.log
+
+# Generic temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+.cache/
+*.orig
+*.rej
