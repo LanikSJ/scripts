@@ -183,6 +183,7 @@ if command -v vim >/dev/null 2>&1; then
   alias vi='vim'
   alias vpi='vim -c "PlugInstall" -c "qa"'
   alias vpc='vim -c "PlugClean" -c "qa"'
+  alias vpu='vim -c "PlugUpdate" -c "qa"'
 fi
 
 # Wav2MP3
