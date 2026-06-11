@@ -10,6 +10,7 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 DEFAULT_OUTPUT_DIR="$HOME/Downloads"
 DEFAULT_AUDIO_FORMAT="mp3"
 DEFAULT_AUDIO_QUALITY="0"  # 0 = best quality
+DEFAULT_SPEED_FACTOR="1"  # 1 = normal speed
 DEFAULT_USER_AGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 # Colors for output
@@ -32,6 +33,7 @@ readonly ICON_LINK="🔗"
 readonly ICON_GEAR="⚙️"
 readonly ICON_YOUTUBE="📺"
 readonly ICON_PLAYLIST="📋"
+readonly ICON_INSTAGRAM="📸"
 readonly ICON_SINGLE="🎯"
 readonly ICON_QUALITY="💎"
 readonly ICON_FORMAT="🎛️"
@@ -53,6 +55,7 @@ Download audio from YouTube and SoundCloud.
 SUPPORTED PLATFORMS:
     ${ICON_YOUTUBE}     YouTube Videos, playlists, and music
     🎧 SoundCloud       Tracks, playlists, and albums
+    ${ICON_INSTAGRAM}   Instagram Reels  Short video reels
 
 ARGUMENTS:
     ${ICON_LINK} URL                 Audio content URL from supported platforms
@@ -64,10 +67,12 @@ OPTIONS:
     ${ICON_PLAYLIST} -p, --playlist      Force playlist mode (download entire playlist)
     ${ICON_SINGLE} -s, --single        Force single track mode (download only one track from playlist)
     ${ICON_INFO} -h, --help          Show this help message
+    -t, --speed FACTOR   Speed factor (e.g., 1.5 for 1.5x faster). Default is 1
 
 EXAMPLES:
     ${ICON_EXECUTE} $0 "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     ${ICON_EXECUTE} $0 "https://soundcloud.com/artist/song"
+    ${ICON_EXECUTE} $0 "https://www.instagram.com/reel/CG0UU8aFQmD/"
     ${ICON_EXECUTE} $0 "https://www.youtube.com/playlist?list=..." --format m4a --quality 2
 
 EOF
@@ -123,7 +128,7 @@ validate_url() {
 
     log "VALIDATE" "Validating audio platform URL..."
     # Basic URL validation for supported platforms
-    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com|soundcloud\.com|m\.soundcloud\.com) ]]; then
+    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com|soundcloud\.com|m\.soundcloud\.com|instagram\.com/(reel|p)) ]]; then
         log "ERROR" "Invalid URL: $url"
         log "INFO" "Please provide a valid URL from YouTube or SoundCloud."
         exit 1
@@ -156,6 +161,7 @@ download_audio() {
     local audio_format="$3"
     local audio_quality="$4"
     local playlist_mode="$5"
+    local speed_factor="$6"
     
     log "GEAR" "Configuring download parameters..."
     
@@ -175,6 +181,11 @@ download_audio() {
         --add-metadata
         --output "${output_dir}/%(uploader)s - %(title)s.%(ext)s"
     )
+    
+    # Apply speed factor if not default
+    if [[ "${speed_factor:-$DEFAULT_SPEED_FACTOR}" != "1" ]]; then
+        yt_dlp_args+=(--postprocessor-args "ffmpeg:-filter:a atempo=${speed_factor}")
+    fi
     
     # Add playlist handling
     if [[ "$playlist_mode" == "yes" ]]; then
@@ -216,6 +227,7 @@ main() {
     local audio_format="$DEFAULT_AUDIO_FORMAT"
     local audio_quality="$DEFAULT_AUDIO_QUALITY"
     local playlist_mode="auto"
+    local speed_factor="$DEFAULT_SPEED_FACTOR"
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -243,6 +255,10 @@ main() {
             -s|--single)
                 playlist_mode="no"
                 shift
+                ;;
+            -t|--speed)
+                speed_factor="$2"
+                shift 2
                 ;;
             -*)
                 log "ERROR" "Unknown option: $1"
@@ -278,7 +294,7 @@ main() {
     check_dependencies
     validate_url "$url"
     ensure_output_dir "$output_dir"
-    download_audio "$url" "$output_dir" "$audio_format" "$audio_quality" "$playlist_mode"
+    download_audio "$url" "$output_dir" "$audio_format" "$audio_quality" "$playlist_mode" "$speed_factor"
 }
 
 # Run main function with all arguments
