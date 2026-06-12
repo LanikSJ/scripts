@@ -19,6 +19,8 @@ This is a personal collection of scripts, tools, and projects covering:
 - **Shellcheck Compliance**: ALL shell scripts MUST be shellcheck compliant with zero warnings or errors.
 - Include proper usage documentation and help functions.
 - Use consistent logging with colors and icons (see `TEMPLATE.sh`).
+- **ALL shell scripts MUST use emoji icons in every `log()` / `echo` message that outputs to the console** for visual scannability
+  (e.g., `✅ Success`, `❌ Error`, `⚠️ Warning`, `ℹ️ Info`, `🚫 Fatal`, `⚙️ Processing`, `📋 Summary`, `⏭️ Skipping`).
 - Implement dry-run functionality where applicable.
 
 ### Script Synchronization Requirements (CRITICAL)

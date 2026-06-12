@@ -38,12 +38,12 @@ function detect_api_prefix() {
     return
   fi
   # Neither succeeded – abort with clear message.
-  log "ERROR: Unable to determine whether '${ORG}' is a user or organization."
+  log "🚫 ERROR: Unable to determine whether '${ORG}' is a user or organization."
   exit 1
 }
 
 API_PREFIX=$(detect_api_prefix)
-log "Using API prefix: $API_PREFIX"
+log "ℹ️  Using API prefix: $API_PREFIX"
 
 # ------------------------------------------------------------
 # 1. List all repositories for the determined entity (handles pagination).
@@ -53,7 +53,7 @@ repos_json=$(gh api -X GET "/${API_PREFIX}/${ORG}/repos?per_page=100" --paginate
 printf "%s" "$repos_json" | jq -c '.[]' | while read -r repo; do
   full_name=$(echo "$repo" | jq -r '.full_name')
   default_branch=$(echo "$repo" | jq -r '.default_branch')
-  log "Processing $full_name (default branch: $default_branch)"
+  log "⚙️  Processing $full_name (default branch: $default_branch)"
 
   # ------------------------------------------------------------
   # 2. Retrieve existing rulesets for the repository.
@@ -61,7 +61,7 @@ printf "%s" "$repos_json" | jq -c '.[]' | while read -r repo; do
                  --jq ".[] | select(.name==\"${default_branch}\") | .id" || true)
 
   if [[ -n $existing_id ]]; then
-    log "  Ruleset already exists (ID: $existing_id). Skipping."
+    log "  ⏭️  Ruleset already exists (ID: $existing_id). Skipping."
     continue
   fi
 
@@ -83,11 +83,11 @@ printf "%s" "$repos_json" | jq -c '.[]' | while read -r repo; do
       -d "$payload" "https://api.github.com/repos/${full_name}/rulesets")
 
   if echo "$response" | jq -e '.id' > /dev/null; then
-    log "  Created ruleset successfully."
+    log "  ✅ Created ruleset successfully."
   else
     err=$(echo "$response" | jq -r '.message')
-    log "  Failed to create ruleset: $err"
+    log "  ❌ Failed to create ruleset: $err"
   fi
 done
 
-log "--- Summary completed $(date -u +'%Y-%m-%dT%H:%M:%SZ') ---"
+log "📋 --- Summary completed $(date -u +'%Y-%m-%dT%H:%M:%SZ') ---"
