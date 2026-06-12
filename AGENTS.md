@@ -98,3 +98,17 @@ Before completing any change in `.github/`:
   introduce new coding patterns, utility functions, or bug fixes that
   should be applied consistently.
 - This file serves as the **Single Source of Truth** for coding standards.
+
+### Alias Management
+
+- **Source of truth**: `zsh/aliases.zsh`
+- That file is symlinked to `~/.oh-my-zsh/custom/aliases.zsh` (Oh My Zsh
+  auto-sources it)
+- Aliases are organized into sections with comment headers
+  (`# OS`, `# Brew`, `# Git`, etc.)
+- Commands with rich subcommand trees that are aliased to a different name
+  should include `compdef` for tab-completion
+  (e.g., `alias cz='chezmoi'; compdef cz='chezmoi'`)
+- Aliases that preserve the original command name (e.g., `cat='bat -p'`)
+  don't need `compdef`
+- Aliases pointing to scripts (`~/bin/...`) don't need `compdef`
