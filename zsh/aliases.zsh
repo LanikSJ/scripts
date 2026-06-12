@@ -16,6 +16,12 @@ if command -v aws >/dev/null 2>&1; then
   alias aup='~/bin/aws/aws_version.sh'
 fi
 
+# Chezmoi
+if command -v chezmoi >/dev/null 2>&1; then
+  alias cz='chezmoi'
+  compdef cz='chezmoi'
+fi
+
 # Brew
 if command -v brew >/dev/null 2>&1; then
   alias bcpa='brew cleanup -s --prune=1'
