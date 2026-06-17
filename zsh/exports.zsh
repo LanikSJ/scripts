@@ -16,6 +16,7 @@ export HOMEBREW_FORCE_VENDOR_RUBY="1"
 export HOMEBREW_GITHUB_API_TOKEN=$(security find-generic-password -s "Homebrew" -a "GitHub_API_Token" -w 2>/dev/null || echo "")
 export HOMEBREW_CLEANUP_MAX_AGE_DAYS="7"
 export HOMEBREW_NO_REQUIRE_TAP_TRUST="1"
+export HOMEBREW_NO_ASK="1"
 
 # AWS Pagination
 export AWS_PAGER=""
