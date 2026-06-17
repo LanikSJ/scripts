@@ -78,6 +78,7 @@ fi
 # Fastfetch
 if command -v fastfetch >/dev/null 2>&1; then
   alias fastfetch='fastfetch -c ~/.neofetch.jsonc'
+  alias neofetch='fastfetch'
 fi
 
 # Git
