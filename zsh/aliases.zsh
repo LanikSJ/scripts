@@ -10,6 +10,7 @@ alias ll='ls -alh'                                                     # List al
 alias lltr='ll -tr'                                                    # List all files sorted by time reversed
 alias ls='ls --color=auto'                                             # Colorized directory listing
 alias reload='source ~/.zshrc'                                         # Reload zsh configuration
+alias top="btop"                                                       # System utilization at a glance using btop
 
 # AWS
 if command -v aws >/dev/null 2>&1; then
