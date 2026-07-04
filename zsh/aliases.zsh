@@ -1,16 +1,13 @@
 # User specific aliases and functions
 # OS
 alias c='clear'                                                        # Clear terminal screen
-alias cat='bat -p'                                                     # Use bat as a pager with no decorations
 alias cls='cd ~/;c'                                                    # Go home and clear screen
 alias cp='cp -aR'                                                      # Preserve attributes, recursive copy
 alias free='~/bin/mac/memory.sh'                                       # Show memory usage
-alias htop='sudo htop'                                                 # Interactive process viewer as root
 alias ll='ls -alh'                                                     # List all files with details and human-readable sizes
 alias lltr='ll -tr'                                                    # List all files sorted by time reversed
 alias ls='ls --color=auto'                                             # Colorized directory listing
 alias reload='source ~/.zshrc'                                         # Reload zsh configuration
-alias top='btop'                                                       # System utilization at a glance using btop
 
 # AWS
 if command -v aws >/dev/null 2>&1; then
@@ -156,6 +153,23 @@ alias rsync='rsync --progress --stats'                                 # Verbose
 
 # SSH
 alias cmd_broadcast_mac='~/bin/expect/ssh_mac.sh'                      # SSH command broadcast to all Macs
+
+# Terminal utilities
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat -p'                                                     # Use bat as a pager with no decorations
+fi
+
+if command -v btop >/dev/null 2>&1; then
+  alias top='btop'                                                       # System utilization at a glance using btop
+fi
+
+if command -v htop >/dev/null 2>&1; then
+  alias htop='sudo htop'                                                 # Interactive process viewer as root
+fi
+
+if command -v wget2 >/dev/null 2>&1; then
+  alias wget='wget2'                                                     # Wget alternative with httpie for better download experience
+fi
 
 # Tofu
 if command -v tofu >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
