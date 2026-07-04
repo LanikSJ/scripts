@@ -9,7 +9,7 @@ set -euo pipefail  # Exit on error, undefined variables, and pipe failures
 # Script metadata
 # shellcheck disable=SC2155
 readonly SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_VERSION="2.0"
+readonly SCRIPT_VERSION="2.1"
 
 # Colors for output
 readonly RED='\033[0;31m'
@@ -34,22 +34,22 @@ readonly ERROR_LOG="$LOG_DIR/error.log"
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}${ICON_INFO} [INFO]${NC} $1"
+    echo -e "${BLUE}${ICON_INFO} ${NC} $1"
     [[ -d "$LOG_DIR" ]] && echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: $1" >> "$LOG_FILE"
 }
 
 log_success() {
-    echo -e "${GREEN}${ICON_SUCCESS} [SUCCESS]${NC} $1"
+    echo -e "${GREEN}${ICON_SUCCESS} ${NC} $1"
     [[ -d "$LOG_DIR" ]] && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
 log_warning() {
-    echo -e "${YELLOW}${ICON_WARNING} [WARNING]${NC} $1"
+    echo -e "${YELLOW}${ICON_WARNING} ${NC} $1"
     [[ -d "$LOG_DIR" ]] && echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1" >> "$LOG_FILE"
 }
 
 log_error() {
-    echo -e "${RED}${ICON_ERROR} [ERROR]${NC} $1" >&2
+    echo -e "${RED}${ICON_ERROR} ${NC} $1" >&2
     [[ -d "$LOG_DIR" ]] && echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$ERROR_LOG"
 }
 
@@ -67,7 +67,7 @@ cleanup_logs() {
     if [[ -d "$LOG_DIR" ]]; then
         log_info "${ICON_CLEANUP} Cleaning up log files..."
         rm -rf "$LOG_DIR"
-        echo -e "${GREEN}${ICON_SUCCESS} [SUCCESS]${NC} Log files cleaned up successfully"
+        echo -e "${GREEN}${ICON_SUCCESS} ${NC} Log files cleaned up successfully"
     fi
 }
 
@@ -148,20 +148,55 @@ confirm_action() {
     fi
 }
 
+# Detect whether lsregister supports the -kill option (removed in newer macOS)
+# Returns 0 if -kill is supported (legacy), 1 if not (modern)
+detect_lsregister_mode() {
+    local lsregister_path="$1"
+    # Run lsregister -kill and capture output; check if it mentions "removed" or "unknown option"
+    local output
+    output=$("$lsregister_path" -kill 2>&1 || true)
+    if echo "$output" | grep -qiE "(removed|unknown option)"; then
+        return 1  # Modern macOS: -kill not supported
+    fi
+    return 0  # Legacy macOS: -kill is supported
+}
+
 # Perform the cleanup
 cleanup_open_with() {
     local lsregister_path="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
     
-    log_info "${ICON_GEAR} Starting Launch Services database cleanup..."
+    log_info "Starting Launch Services database cleanup..."
     
-    # Rebuild Launch Services database
-    if ! "$lsregister_path" -kill -r -all local,system,user 2>/dev/null; then
-        log_error "Failed to rebuild Launch Services database."
-        log_error "You may need to run this script with administrator privileges."
-        exit 1
+    if detect_lsregister_mode "$lsregister_path"; then
+        # Older macOS: use -kill approach
+        log_info "Using legacy macOS approach (kill + reregister)..."
+        
+        if ! "$lsregister_path" -kill -r -all local,system,user 2>&1; then
+            log_error "Failed to rebuild Launch Services database."
+            log_error "You may need to run this script with administrator privileges."
+            exit 1
+        fi
+        log_success "Launch Services database rebuilt successfully."
+    else
+        # New macOS: -kill was removed
+        log_info "Using modern macOS approach (delete database)..."
+        
+        # Delete the Launch Services database (must reboot after this)
+        if ! "$lsregister_path" -delete -r -all local,system,user 2>&1; then
+            log_error "Failed to delete Launch Services database."
+            log_error "You may need to run this script with administrator privileges."
+            exit 1
+        fi
+        log_success "Launch Services database deleted successfully."
+        
+        # Reseed the database by scanning default locations
+        log_info "Reseeding Launch Services database..."
+        if ! "$lsregister_path" -seed 2>/dev/null; then
+            log_warning "Automatic reseed incomplete. The system will reseed on next boot."
+        else
+            log_success "Launch Services database reseeded successfully."
+        fi
     fi
-    
-    log_success "Launch Services database rebuilt successfully."
     
     # Restart Dock
     log_info "${ICON_ROCKET} Restarting Dock..."
@@ -238,8 +273,8 @@ main() {
     # Success message
     if [[ "$quiet_mode" == "false" ]]; then
         echo
-        log_success "${ICON_SUCCESS} Open With menu cleanup completed successfully!"
-        log_info "${ICON_INFO} The changes should be visible immediately in context menus."
+        log_success "Open With menu cleanup completed successfully!"
+        log_info "The changes should be visible immediately in context menus."
         echo
     fi
     
