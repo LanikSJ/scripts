@@ -377,12 +377,37 @@ update_ruby() {
     return 0
   fi
 
-  # Fix RDoc: uninstall if multiple versions are found to prevent conflicts
-  if gem list ^rdoc$ | grep -q ','; then
-    local ruby_version
-    ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
-    gem uninstall -i "/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0" rdoc
+  # Fix RDoc: clean stale stubs, ensure directories, uninstall duplicate versions
+  # Stale stubs in the default gem home crash every gem command (list, uninstall, install, update, cleanup)
+  local gem_home
+  gem_home=$(gem environment gemdir 2>/dev/null)
+  if [[ -n "$gem_home" ]]; then
+    # Remove stale rdoc gemspec stubs (use find to avoid glob expansion issues with set -f)
+    find "${gem_home}/specifications" -maxdepth 1 -name 'rdoc-*.gemspec' -delete 2>/dev/null || true
+    # Remove stale rdoc plugin files that cause LoadError
+    rm -f "${gem_home}/plugins/rdoc_plugin.rb" 2>/dev/null || true
   fi
+
+  # Uninstall rdoc from the Cellar path if an old 7.0.x version is present (avoids conflicts between Cellar and default gem home)
+  local ruby_version
+  ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
+  local rdoc_dir="/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0"
+
+  # Check if rdoc 7.0.x exists in the Cellar gems directory (the version that causes conflicts)
+  # Use find to avoid glob expansion issues with set -f
+  if find "${rdoc_dir}/gems" -maxdepth 1 -name 'rdoc-7.0.*' 2>/dev/null | head -1 >/dev/null 2>&1; then
+    # Create bin directory if missing (fixes "No write perm" error)
+    if [[ ! -d "${rdoc_dir}/bin" ]]; then
+      mkdir -p "${rdoc_dir}/bin"
+    fi
+    yes | gem uninstall -i "${rdoc_dir}" --ignore-dependencies rdoc
+  fi
+
+  # Clean stale rdoc plugin in Cellar path that causes LoadError
+  rm -f "${rdoc_dir}/plugins/rdoc_plugin.rb" 2>/dev/null || true
+
+  # Ensure rdoc is installed (gem install is idempotent)
+  gem install rdoc 2>/dev/null || true
 
   # Update RubyGems system
   gem update --system || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
