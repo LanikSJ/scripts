@@ -223,7 +223,7 @@ update_zinit() {
       source "${ZINIT_HOME}/zinit.zsh" 2>/dev/null
 
       if command_exists zinit; then
-        zinit update --all 2>/dev/null || echo "Zinit update failed" >&2
+        zinit update -a -p 2>/dev/null || echo "Zinit update failed" >&2
       else
         echo "Zinit command not available after sourcing" >&2
       fi
