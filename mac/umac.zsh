@@ -29,11 +29,6 @@ set -f
 # Array to track temporary files and directories for cleanup
 TEMP_FILES=()
 
-# Error handling function
-handle_error() {
-  log_warning "Command failed but continuing execution"
-}
-
 # Cleanup function to remove temporary files and logs
 cleanup_temp_files() {
   if [[ ${#TEMP_FILES[@]} -gt 0 ]]; then
@@ -143,14 +138,12 @@ update_homebrew() {
 
   # Check if brew cu exists (part of homebrew-cask-upgrade)
   if brew_subcommand_exists cu; then
-    local cmd="brew cu -ay --include-mas"
-    eval "$cmd" || log_warning "Brew cask upgrade failed"
+    brew cu -ay --include-mas || log_warning "Brew cask upgrade failed"
   else
     log_warning "brew-cask-upgrade not installed."
     log_info "Installing with: brew tap buo/cask-upgrade"
     brew tap buo/cask-upgrade || log_warning "Failed to tap buo/cask-upgrade"
-    local cmd="brew cu -ay --include-mas"
-    eval "$cmd" || log_warning "Brew cask upgrade failed"
+    brew cu -ay --include-mas || log_warning "Brew cask upgrade failed"
   fi
 
   log_info "\n${BREW_ICON} Removing Homebrew Caches"
@@ -216,9 +209,6 @@ update_zinit() {
       # Temporarily disable strict error handling for the subshell
       set +e
 
-      # Save current directory
-      local current_dir=$(pwd)
-
       # Source zinit
       source "${ZINIT_HOME}/zinit.zsh" 2>/dev/null
 
@@ -227,9 +217,6 @@ update_zinit() {
       else
         echo "Zinit command not available after sourcing" >&2
       fi
-
-      # Return to original directory
-      cd "$current_dir" 2>/dev/null || true
     ) || log_warning "Zinit update process failed"
 
     # Clean up zcompdump files
@@ -250,8 +237,6 @@ update_python() {
 
   # Define excluded packages (can be a regex pattern)
   local exclude="(pip|setuptools|wheel)"
-  # Always use verbose mode for Python updates
-  local verbose=true
 
   # Function to detect installed Python versions
   detect_python_versions() {
@@ -740,14 +725,8 @@ update_git_repos() {
 
   local current_dir=$(pwd)
 
-  # 🧵 Parallel update (default: 1 job)
-  local JOBS=1
-  local pids=()
   for repo in "${repolist[@]}"; do
     (
-      # Save current directory to return to it later
-      current_dir=$(pwd)
-
       cd "$repo_dir/$repo" || {
         log_error "Could not change to repository: $repo_dir/$repo"
         exit 1
@@ -766,28 +745,8 @@ update_git_repos() {
 
       git_update "$repo" "$branch"
       log_success "$repo updated and cleaned"
-
-      # Return to original directory
-      cd "$current_dir" || log_warning "Could not return to original directory"
-    ) &
-    pids+=($!)
-    # Limit parallel jobs
-    if (( ${#pids[@]} >= JOBS )); then
-      # Wait for any job to finish (zsh compatible)
-      wait
-      # Remove finished jobs from array (zsh compatible)
-      local new_pids=()
-      for pid in "${pids[@]}"; do
-        if kill -0 "$pid" 2>/dev/null; then
-          new_pids+=("$pid")
-        fi
-      done
-      pids=("${new_pids[@]}")
-    fi
+    )
   done
-
-  # Wait for all jobs to finish
-  wait
 
   cd "$current_dir" || log_warning "Could not return to original directory"
 
