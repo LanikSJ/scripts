@@ -28,10 +28,10 @@ export RPROMPT="${RPROMPT//\$\(aws_prompt_info\)}"
 export SHOW_AWS_PROMPT="false"
 
 # Colima
-export XDG_CONFIG_HOME="${HOME}/.colima_home"
+export COLIMA_HOME="${HOME}/.colima_home"
 
 # Docker Host
-export DOCKER_HOST="unix://${HOME}/.colima_home/colima/default/docker.sock"
+export DOCKER_HOST="unix://${COLIMA_HOME}/default/docker.sock"
 
 # iTerm
 export ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX="YES"
