@@ -769,7 +769,15 @@ update_macos() {
     return 1
   fi
 
-  # Check for available updates
+  # Trigger background scan and update operation (non-blocking, no sudo required)
+  log_info "${MACOS_ICON} Triggering background update scan and download..."
+  if softwareupdate --background --force 2>/dev/null; then
+    log_success "Background update scan and download triggered successfully"
+  else
+    log_warning "Background update trigger returned non-zero (may already be running or no updates available)"
+  fi
+
+  # Check for available updates (list what's pending)
   local updates_output
   updates_output=$(softwareupdate -l 2>&1)
   local exit_code=$?
@@ -789,11 +797,11 @@ update_macos() {
   if [[ "$updates_output" == *"No new software available"* ]]; then
     log_success "Your macOS is up to date"
   else
-    log_warning "macOS updates are available:"
+    log_warning "macOS updates are available (background download in progress):"
     echo "$updates_output" | grep -v "^$" | sed 's/^/    /'
 
-    log_info "To install these updates, run: sudo softwareupdate -i -a"
-    log_info "For more options, run: softwareupdate --help"
+    log_info "Updates are being downloaded in the background and will install automatically."
+    log_info "Some updates may require a restart to complete installation."
   fi
 
   return 0
