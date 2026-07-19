@@ -22,10 +22,10 @@ export HOMEBREW_NO_ASK="1"
 export AWS_PAGER=""
 
 # AWS Profile
-export RPROMPT="${RPROMPT//\$\(aws_prompt_info\)}"
+RPROMPT="${RPROMPT//\$\(aws_prompt_info\)}"
 
 # AWS Prompt
-export SHOW_AWS_PROMPT="false"
+SHOW_AWS_PROMPT="false"
 
 # Colima
 export COLIMA_HOME="${HOME}/.colima_home"
@@ -42,18 +42,17 @@ export NODE_OPTIONS="--disable-warning=ExperimentalWarning"
 # PIP Columns
 export PIP_FORMAT="columns"
 
-# Ruby
-# Temp SSL Error Fix https://github.com/rubygems/rubygems/issues/8390
-export RUBY_TCP_NO_FAST_FALLBACK="1"
-
-# Set JAVA Home
-export JAVA_HOME="/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home"
+# Set JAVA Home (Homebrew JDK)
+export JAVA_HOME="/opt/homebrew/opt/openjdk"
 
 # Bitwarden
 export BW_SESSION=$(security find-generic-password -s "Bitwarden" -a "Session" -w 2>/dev/null || echo "")
 
 # IPInfo.io Token
 export IPINFO_TOKEN=$(security find-generic-password -s "IPInfo" -a "Token" -w 2>/dev/null || echo "")
+
+# XDG Base Directory
+export XDG_CONFIG_HOME="${HOME}/.config"
 
 # XML Catalog Pages
 export XML_CATALOG_FILES="/opt/homebrew/etc/xml/catalog"
