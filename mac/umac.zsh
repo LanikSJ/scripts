@@ -220,8 +220,8 @@ update_zinit() {
     ) || log_warning "Zinit update process failed"
 
     # Clean up zcompdump files
-    if ls "$HOME"/.zcompdump* 1> /dev/null 2>&1; then
-      rm -rf "$HOME"/.zcompdump*
+    if find "$HOME" -maxdepth 1 -name '.zcompdump*' 1> /dev/null 2>&1; then
+      find "$HOME" -maxdepth 1 -name '.zcompdump*' -delete 2>/dev/null
       log_success "Removed zcompdump files"
     fi
   else
