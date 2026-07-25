@@ -6,6 +6,10 @@
 export CLICOLOR="1"
 export LSCOLORS="ExFxCxDxBxegedabagacad"
 
+# Prevent Oh My Zsh from setting LS_COLORS (overrides eza theme)
+export DISABLE_LS_COLORS="true"
+unset LS_COLORS
+
 # GitHub Homebrew Token
 export HOMEBREW_EDITOR="vim"
 export HOMEBREW_NO_ENV_HINTS="1"

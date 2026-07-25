@@ -6,7 +6,6 @@ alias cp='cp -aR'                                                      # Preserv
 alias free='~/bin/mac/memory.sh'                                       # Show memory usage
 alias ll='ls -alh'                                                     # List all files with details and human-readable sizes
 alias lltr='ll -tr'                                                    # List all files sorted by time reversed
-alias ls='ls --color=auto'                                             # Colorized directory listing
 alias reload='source ~/.zshrc'                                         # Reload zsh configuration
 
 # AWS
@@ -71,6 +70,19 @@ if command -v docker >/dev/null 2>&1; then
   alias dksp='docker system prune -a -f'                               # Prune entire Docker system
   alias dkspa='docker system prune -af'                                # Prune all, force (alternative syntax)
   alias dkvp='docker volume prune -f'                                  # Prune unused volumes
+fi
+
+# Eza — modern ls replacement with colors, icons, and git status
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza'                                                       # Colorized directory listing with eza
+  alias la='eza -la'                                                   # List all with details
+  alias ll='eza -la'                                                   # List all files with details
+  alias lt='eza --tree'                                                # Tree view
+  alias lltr='eza -la --sort=modified --reverse'                       # List all sorted by time reversed
+  alias lsl='eza -l'                                                   # List with details
+  alias lsh='eza -lh'                                                  # List with details, human readable sizes
+else
+  alias ls='ls --color=auto'                                           # Fallback: colorized directory listing
 fi
 
 # Fastfetch
