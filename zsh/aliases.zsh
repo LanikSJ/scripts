@@ -4,8 +4,6 @@ alias c='clear'                                                        # Clear t
 alias cls='cd ~/;c'                                                    # Go home and clear screen
 alias cp='cp -aR'                                                      # Preserve attributes, recursive copy
 alias free='~/bin/mac/memory.sh'                                       # Show memory usage
-alias ll='ls -alh'                                                     # List all files with details and human-readable sizes
-alias lltr='ll -tr'                                                    # List all files sorted by time reversed
 alias reload='source ~/.zshrc'                                         # Reload zsh configuration
 
 # AWS
@@ -76,11 +74,11 @@ fi
 if command -v eza >/dev/null 2>&1; then
   alias ls='eza'                                                       # Colorized directory listing with eza
   alias la='eza -la'                                                   # List all with details
-  alias ll='eza -la'                                                   # List all files with details
+  alias ll='eza -lah'                                                  # List all files with details, human readable sizes
   alias lt='eza --tree'                                                # Tree view
-  alias lltr='eza -la --sort=modified --reverse'                       # List all sorted by time reversed
+  alias lltr='eza -lah --sort=modified'                                # List all sorted by time, newest on bottom, human readable sizes
   alias lsl='eza -l'                                                   # List with details
-  alias lsh='eza -lh'                                                  # List with details, human readable sizes
+  alias lsh='eza -lh'                                                  # List with details, header row
 else
   alias ls='ls --color=auto'                                           # Fallback: colorized directory listing
 fi
