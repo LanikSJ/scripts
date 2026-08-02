@@ -73,12 +73,12 @@ fi
 # Eza — modern ls replacement with colors, icons, and git status
 if command -v eza >/dev/null 2>&1; then
   alias ls='eza'                                                       # Colorized directory listing with eza
-  alias la='eza -la'                                                   # List all with details
-  alias ll='eza -lah'                                                  # List all files with details, human readable sizes
+  alias la='eza -lag'                                                  # List all with details (including group)
+  alias ll='eza -lahg'                                                 # List all files with details, group, human readable sizes
   alias lt='eza --tree'                                                # Tree view
-  alias lltr='eza -lah --sort=modified'                                # List all sorted by time, newest on bottom, human readable sizes
-  alias lsl='eza -l'                                                   # List with details
-  alias lsh='eza -lh'                                                  # List with details, header row
+  alias lltr='eza -lahg --sort=modified'                               # List all sorted by time, newest on bottom, human readable sizes
+  alias lsl='eza -lg'                                                  # List with details (including group)
+  alias lsh='eza -lhg'                                                 # List with details, header row, group
 else
   alias ls='ls --color=auto'                                           # Fallback: colorized directory listing
 fi
