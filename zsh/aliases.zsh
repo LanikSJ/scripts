@@ -103,7 +103,7 @@ if command -v git >/dev/null 2>&1; then
   alias gst='git status'                                               # Git status
   alias gstb='git stash branch'                                        # Stash to new branch
   alias gtba='~/bin/git/git_branch_all.sh'                             # Show all branches
-  alias gtd='git tag -l | xargs git tag -d'                           # Delete local tags
+  alias gtd='git tag -l | xargs git tag -d'                            # Delete local tags
   alias gurl='git config --get remote.origin.url'                      # Get remote URL
   alias gurlw="git remote get-url origin | sed -e 's/:/\//g' -e 's/git@/https:\/\//g' -e 's/\.git$//g'"  # Get remote URL and convert to clickable link
   alias gwho='~/bin/git/gwho.sh'                                       # Custom git who
@@ -166,19 +166,19 @@ alias cmd_broadcast_mac='~/bin/expect/ssh_mac.sh'                      # SSH com
 
 # Terminal utilities
 if command -v bat >/dev/null 2>&1; then
-  alias cat='bat -p'                                                     # Use bat as a pager with no decorations
+  alias cat='bat -p'                                                   # Use bat as a pager with syntax highlighting
 fi
 
 if command -v btop >/dev/null 2>&1; then
-  alias top='btop'                                                       # System utilization at a glance using btop
+  alias top='btop'                                                     # System utilization at a glance using btop
 fi
 
 if command -v htop >/dev/null 2>&1; then
-  alias htop='sudo htop'                                                 # Interactive process viewer as root
+  alias htop='sudo htop'                                               # Interactive process viewer as root
 fi
 
 if command -v wget2 >/dev/null 2>&1; then
-  alias wget='wget2'                                                     # Wget alternative with httpie for better download experience
+  alias wget='wget2'                                                   # Wget alternative with httpie for better download experience
 fi
 
 # Tofu
