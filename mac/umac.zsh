@@ -375,9 +375,15 @@ update_ruby() {
   fi
 
   # Uninstall rdoc from the Cellar path if an old 7.0.x version is present (avoids conflicts between Cellar and default gem home)
+  # Resolve the actual Cellar directory via brew to handle revision suffixes (e.g. 4.0.6_1)
   local ruby_version
   ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
-  local rdoc_dir="/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0"
+  local rdoc_dir
+  rdoc_dir="$(brew --cellar ruby 2>/dev/null)/lib/ruby/gems/${ruby_version%.*}.0"
+  # Fallback to the hardcoded path if brew --cellar fails
+  if [[ ! -d "$rdoc_dir" ]]; then
+    rdoc_dir="/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0"
+  fi
 
   # Check if rdoc 7.0.x exists in the Cellar gems directory (the version that causes conflicts)
   # Use find to avoid glob expansion issues with set -f
