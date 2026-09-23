@@ -55,7 +55,7 @@ export BW_SESSION=$(security find-generic-password -s "Bitwarden" -a "Session" -
 export IPINFO_TOKEN=$(security find-generic-password -s "IPInfo" -a "Token" -w 2>/dev/null || echo "")
 
 # XDG Base Directory
-export XDG_CONFIG_HOME="${HOME}/.config"
+#export XDG_CONFIG_HOME="${HOME}/.config"
 
 # XML Catalog Pages
 export XML_CATALOG_FILES="/opt/homebrew/etc/xml/catalog"
