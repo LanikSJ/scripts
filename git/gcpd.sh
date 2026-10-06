@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Clean Old Branches and Pull Latest
 # This script checks out a primary branch (develop, dev, main, or master),
-# pulls the latest changes, and deletes orphaned local branches whose
-# upstream remote branch has been deleted.
+# pulls the latest changes, and deletes:
+#   1. Orphaned local branches whose upstream remote branch has been deleted
+#   2. Branches already merged into the primary branch
+#   3. Local-only branches (no upstream) whose commits are already in the
+#      primary branch (covers squash merges that "git branch --merged" misses)
 # shellcheck disable=SC2162
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -63,25 +66,74 @@ delete_orphaned_branches() {
   echo "${UPDATE_ICON} Pruning remote-tracking references..."
   git fetch --prune 2>/dev/null || true
 
+  local active_branch
+  active_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+
   # Find branches whose upstream remote branch has been deleted
   local orphaned_branches
-  orphaned_branches=$(git branch -vv | grep ': gone]' | awk '{print $1}' | grep -v "^${primary_branch}$" || true)
+  orphaned_branches=$(git branch -vv | grep ': gone]' | awk '{print $1}' | grep -v "^${primary_branch}$" | grep -v "^${active_branch}$" || true)
 
   if [[ -z "$orphaned_branches" ]]; then
-    echo "${SUCCESS_ICON} No orphaned branches to delete."
-    return 0
+    echo "${SUCCESS_ICON} No orphaned branches (deleted upstream) to delete."
+  else
+    echo "${CLEAN_ICON} The following orphaned branches will be deleted:"
+    echo "$orphaned_branches"
+
+    # Delete each orphaned branch
+    while IFS= read -r branch; do
+      if [[ -n "$branch" ]]; then
+        echo "${CLEAN_ICON} Deleting orphaned branch: $branch"
+        git branch -D "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
+      fi
+    done <<< "$orphaned_branches"
   fi
 
-  echo "${CLEAN_ICON} The following orphaned branches will be deleted:"
-  echo "$orphaned_branches"
+  # Find branches already merged into the primary branch (safe to delete)
+  local merged_branches
+  merged_branches=$(git branch --merged "$primary_branch" | awk '{print $1}' | grep -v '^\*$' | grep -v "^${primary_branch}$" | grep -v "^${active_branch}$" || true)
 
-  # Delete each orphaned branch
-  while IFS= read -r branch; do
-    if [[ -n "$branch" ]]; then
-      echo "${CLEAN_ICON} Deleting orphaned branch: $branch"
-      git branch -D "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
-    fi
-  done <<< "$orphaned_branches"
+  if [[ -z "$merged_branches" ]]; then
+    echo "${SUCCESS_ICON} No merged branches to delete."
+  else
+    echo "${CLEAN_ICON} The following merged branches will be deleted:"
+    echo "$merged_branches"
+
+    while IFS= read -r branch; do
+      if [[ -n "$branch" ]]; then
+        echo "${CLEAN_ICON} Deleting merged branch: $branch"
+        git branch -d "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
+      fi
+    done <<< "$merged_branches"
+  fi
+
+  # Clean local-only branches (never pushed, or pushed without -u). These can
+  # never show as "gone", so delete them only when every commit already exists
+  # in the primary branch (covers squash merges, which --merged misses).
+  local local_only_branches branch kept_branches=""
+  local_only_branches=$(git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads/ \
+    | awk '$2 == "" {print $1}' \
+    | grep -v "^${primary_branch}$" \
+    | grep -v "^${active_branch}$" || true)
+
+  if [[ -n "$local_only_branches" ]]; then
+    while IFS= read -r branch; do
+      if [[ -z "$branch" ]]; then
+        continue
+      fi
+      if git cherry "$primary_branch" "$branch" 2>/dev/null | grep -q '^+'; then
+        kept_branches+="${branch}"$'\n'
+      else
+        echo "${CLEAN_ICON} Deleting local-only branch (commits already in ${primary_branch}): $branch"
+        git branch -D "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
+      fi
+    done <<< "$local_only_branches"
+    kept_branches=${kept_branches%$'\n'}
+  fi
+
+  if [[ -n "$kept_branches" ]]; then
+    echo "${BRANCH_ICON} Local-only branches kept (unpushed and not yet in ${primary_branch}):"
+    echo "$kept_branches"
+  fi
 
   echo "${SUCCESS_ICON} Orphaned branch cleanup completed."
 }
