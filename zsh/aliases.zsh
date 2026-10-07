@@ -85,7 +85,6 @@ fi
 
 # Fastfetch
 if command -v fastfetch >/dev/null 2>&1; then
-  alias fastfetch='fastfetch -c ~/.neofetch.jsonc'                     # System info with neofetch config
   alias neofetch='fastfetch'                                           # Map neofetch to fastfetch
 fi
 
