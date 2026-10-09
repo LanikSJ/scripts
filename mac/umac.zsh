@@ -398,8 +398,10 @@ update_ruby() {
   # Clean stale rdoc plugin in Cellar path that causes LoadError
   rm -f "${rdoc_dir}/plugins/rdoc_plugin.rb" 2>/dev/null || true
 
-  # Ensure rdoc is installed (gem install is idempotent)
-  gem install rdoc 2>/dev/null || true
+  # Ensure rdoc is installed only if missing
+  if ! gem list --local rdoc -i >/dev/null 2>&1; then
+    gem install rdoc 2>/dev/null || true
+  fi
 
   # Update RubyGems system
   gem update --system || log_warning "Failed to update ${RUBY_ICON} RubyGems system"
@@ -411,13 +413,6 @@ update_ruby() {
   gem cleanup || log_warning "Failed to clean up gems"
 
   log_success "Ruby Gems ${RUBY_ICON} Updated"
-
-  # Uncomment if using RVM
-  # if command_exists rvm; then
-  #   log_info "Updating gems for all RVM gemsets"
-  #   rvm all-gemsets do gem update
-  #   rvm all-gemsets do gem cleanup
-  # fi
 }
 
 # Update NPM packages
