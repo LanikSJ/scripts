@@ -363,44 +363,69 @@ update_ruby() {
     return 0
   fi
 
-  # Fix RDoc: clean stale stubs, ensure directories, uninstall duplicate versions
-  # Stale stubs in the default gem home crash every gem command (list, uninstall, install, update, cleanup)
-  local gem_home
-  gem_home=$(gem environment gemdir 2>/dev/null)
-  if [[ -n "$gem_home" ]]; then
-    # Remove stale rdoc gemspec stubs (use find to avoid glob expansion issues with set -f)
-    find "${gem_home}/specifications" -maxdepth 1 -name 'rdoc-*.gemspec' -delete 2>/dev/null || true
-    # Remove stale rdoc plugin files that cause LoadError
-    rm -f "${gem_home}/plugins/rdoc_plugin.rb" 2>/dev/null || true
-  fi
-
-  # Uninstall rdoc from the Cellar path if an old 7.0.x version is present (avoids conflicts between Cellar and default gem home)
-  # Resolve the actual Cellar directory via brew to handle revision suffixes (e.g. 4.0.6_1)
+  # Fix RDoc: stale/broken rdoc gemspec stubs in the default gem home crash every
+  # gem command (list, uninstall, install, update, cleanup), so they must be removed.
+  #
+  # The old logic deleted EVERY rdoc gemspec up front and then only reinstalled when
+  # rdoc had been missing *before* that deletion. A healthy install therefore got
+  # destroyed on one run and reinstalled on the next, forever (install ping-pong).
+  # Now: a healthy rdoc is left untouched; cleanup + (re)install only happen when
+  # rdoc is actually missing or its stubs are broken.
+  #
+  # Uninstall rdoc from the Cellar path first if an old 7.0.x version is present
+  # (avoids conflicts between Cellar and the default gem home). The Cellar version
+  # dir may carry a revision suffix (e.g. 4.0.7_1), so resolve it with find instead
+  # of assuming RUBY_VERSION.
   local ruby_version
   ruby_version=$(ruby -e 'print RUBY_VERSION' 2>/dev/null)
-  local rdoc_dir
-  rdoc_dir="$(brew --cellar ruby 2>/dev/null)/lib/ruby/gems/${ruby_version%.*}.0"
-  # Fallback to the hardcoded path if brew --cellar fails
-  if [[ ! -d "$rdoc_dir" ]]; then
-    rdoc_dir="/opt/homebrew/Cellar/ruby/${ruby_version}/lib/ruby/gems/${ruby_version%.*}.0"
+  local ruby_cellar rdoc_dir=""
+  ruby_cellar=$(brew --cellar ruby 2>/dev/null)
+  if [[ -n "$ruby_cellar" && -d "$ruby_cellar" ]]; then
+    local cellar_dir
+    cellar_dir=$(find "$ruby_cellar" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort | tail -1)
+    [[ -n "$cellar_dir" ]] && rdoc_dir="${cellar_dir}/lib/ruby/gems/${ruby_version%.*}.0"
   fi
 
-  # Check if rdoc 7.0.x exists in the Cellar gems directory (the version that causes conflicts)
-  # Use find to avoid glob expansion issues with set -f
-  if find "${rdoc_dir}/gems" -maxdepth 1 -name 'rdoc-7.0.*' 2>/dev/null | head -1 >/dev/null 2>&1; then
+  # Only run the uninstall when an rdoc-7.0.x dir actually exists. The old
+  # `find ... | head -1 >/dev/null` guard always succeeded (the pipeline status is
+  # head's, which is 0 even with no input), so the uninstall ran unconditionally
+  # and printed "Gem 'rdoc' is not installed" on every update.
+  if [[ -n "$rdoc_dir" ]] && [[ -n "$(find "${rdoc_dir}/gems" -maxdepth 1 -name 'rdoc-7.0.*' -print -quit 2>/dev/null)" ]]; then
     # Create bin directory if missing (fixes "No write perm" error)
     if [[ ! -d "${rdoc_dir}/bin" ]]; then
       mkdir -p "${rdoc_dir}/bin"
     fi
-    yes | gem uninstall -i "${rdoc_dir}" --ignore-dependencies rdoc
+    yes | gem uninstall -i "${rdoc_dir}" --ignore-dependencies rdoc || true
+    # Clean stale rdoc plugin in Cellar path that causes LoadError
+    rm -f "${rdoc_dir}/plugins/rdoc_plugin.rb" 2>/dev/null || true
   fi
 
-  # Clean stale rdoc plugin in Cellar path that causes LoadError
-  rm -f "${rdoc_dir}/plugins/rdoc_plugin.rb" 2>/dev/null || true
+  local gem_home
+  gem_home=$(gem environment gemdir 2>/dev/null)
 
-  # Ensure rdoc is installed only if missing
-  if ! gem list --local rdoc -i >/dev/null 2>&1; then
-    gem install rdoc 2>/dev/null || true
+  if gem list --local -e rdoc -i >/dev/null 2>&1; then
+    # rdoc is healthy — drop only orphaned stubs (gemspec whose gems dir is gone)
+    if [[ -n "$gem_home" && -d "${gem_home}/specifications" ]]; then
+      local spec base
+      while IFS= read -r spec; do
+        [[ -n "$spec" ]] || continue
+        base=$(basename "$spec" .gemspec)
+        if [[ ! -d "${gem_home}/gems/${base}" ]]; then
+          log_info "Removing orphaned rdoc stub: $(basename "$spec")"
+          rm -f "$spec" 2>/dev/null || true
+        fi
+      done < <(find "${gem_home}/specifications" -maxdepth 1 -name 'rdoc-*.gemspec' 2>/dev/null)
+    fi
+    log_success "rdoc is installed ($(gem list --local -e rdoc 2>/dev/null | head -1 | tr -d ' '))"
+  else
+    # rdoc missing or its stubs are broken — remove ALL rdoc stubs/plugins so a
+    # corrupt gemspec cannot break the reinstall, then install fresh
+    if [[ -n "$gem_home" ]]; then
+      find "${gem_home}/specifications" -maxdepth 1 -name 'rdoc-*.gemspec' -delete 2>/dev/null || true
+      rm -f "${gem_home}/plugins/rdoc_plugin.rb" 2>/dev/null || true
+    fi
+    log_info "${RUBY_ICON} Installing rdoc..."
+    gem install rdoc || log_warning "Failed to install rdoc"
   fi
 
   # Update RubyGems system
