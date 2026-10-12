@@ -98,7 +98,7 @@ Scripts for 🐙 Git repository management and operations, including GitHub auto
 - `branch-clean.sh`: Automates the cleanup and removal of old branches
   from Homebrew tap repositories.
 - `cleanup-repos.sh`: A script for general repository cleanup and maintenance.
-- `gcpd.sh`: A Git command alias for `git commit --amend --no-edit`.
+- `gcpd.sh`: A Git utility that pulls the latest changes, cleans up orphaned and local‑only branches, and deletes them automatically.
 - `git-branch-all.sh`: Lists all branches across multiple repositories for comprehensive branch management.
 - `github-label.sh`: Manages GitHub labels for repositories, including creation, deletion, and organization.
 - `github-workflows.sh`: Manages GitHub workflow configurations and automation scripts.
