@@ -106,10 +106,8 @@ delete_orphaned_branches() {
     done <<< "$merged_branches"
   fi
 
-  # Clean local-only branches (never pushed, or pushed without -u). These can
-  # never show as "gone", so delete them only when every commit already exists
-  # in the primary branch (covers squash merges, which --merged misses).
-  local local_only_branches branch kept_branches=""
+  # Clean local-only branches (never pushed, or pushed without -u). These are deleted unconditionally.
+  local local_only_branches
   local_only_branches=$(git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads/ \
     | awk '$2 == "" {print $1}' \
     | grep -v "^${primary_branch}$" \
@@ -117,22 +115,10 @@ delete_orphaned_branches() {
 
   if [[ -n "$local_only_branches" ]]; then
     while IFS= read -r branch; do
-      if [[ -z "$branch" ]]; then
-        continue
-      fi
-      if git cherry "$primary_branch" "$branch" 2>/dev/null | grep -q '^+'; then
-        kept_branches+="${branch}"$'\n'
-      else
-        echo "${CLEAN_ICON} Deleting local-only branch (commits already in ${primary_branch}): $branch"
-        git branch -D "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
-      fi
+      [[ -z "$branch" ]] && continue
+      echo "${CLEAN_ICON} Deleting local-only branch: $branch"
+      git branch -D "$branch" 2>/dev/null || echo "${ERROR_ICON} Failed to delete branch: $branch"
     done <<< "$local_only_branches"
-    kept_branches=${kept_branches%$'\n'}
-  fi
-
-  if [[ -n "$kept_branches" ]]; then
-    echo "${BRANCH_ICON} Local-only branches kept (unpushed and not yet in ${primary_branch}):"
-    echo "$kept_branches"
   fi
 
   echo "${SUCCESS_ICON} Orphaned branch cleanup completed."
