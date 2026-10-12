@@ -68,7 +68,12 @@ This is a personal collection of scripts, tools, and projects covering:
 
 - Use the conventional commit format: `type(scope): description`
 - Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`
+- **Title (first line) MUST be 72 characters or fewer**, including the
+  `type(scope):` prefix
 - Commit descriptions should be a bullet list of changes made
+- **Do NOT wrap description lines** - each bullet is a single line of
+  unlimited character width
+- Separate the title from the description with one blank line
 - Example:
 
   ```text

@@ -24,10 +24,14 @@ operational tasks.
   - [🌐 Hosting](#hosting)
   - [🍎 Mac](#mac)
   - [🗃️ Misc](#misc)
+  - [🐍 Python](#python)
+  - [🧹 Shellcheck](#shellcheck)
   - [🔐 SSL](#ssl)
   - [📝 Sublime](#sublime)
+  - [🕸️ Web](#web)
   - [🧪 Zoxide](#zoxide)
   - [🐚 zsh](#zsh)
+- [Repository Meta Files](#repository-meta-files)
 
 ## Directory Structure and Script Overviews
 
@@ -51,6 +55,7 @@ Scripts related to Amazon Web Services (AWS) ☁️ CLI interactions.
 
 Shell completion files ✅ for various command-line tools to enhance productivity and reduce typing errors.
 
+- `_agy`: Completion definitions for the Antigravity (`agy`) CLI.
 - `_cline`: Completion definitions for Cline command-line interface tool.
 - `_fop`: Completion definitions for FOP (File Operations) utility.
 - `_ttl`: Completion definitions for TTL (Time To Live) related commands.
@@ -64,11 +69,12 @@ Scripts for managing 🐳 Docker and container-related tasks.
 
 - `colima.sh`: Automates the process of adding custom certificates to
   Colima (a container runtime for macOS and Linux) and restarting it.
-- `colima_ssl.sh`: Additional Colima SSL configuration script.
+- `colima_ssl.sh`: Fetches and installs MITM certificates needed to pull
+  images from Docker Hub and GitHub Container Registry in Colima.
 - `dfimage.sh`: A wrapper script to run the `dfimage` Docker image, likely for
-analyzing Docker image layers.
+  analyzing Docker image layers.
 - `tags.sh`: Lists all available tags for a specified Docker image on Docker Hub,
-with optional filtering.
+  with optional filtering.
 
 ### Expect
 
@@ -98,16 +104,21 @@ Scripts for 🐙 Git repository management and operations, including GitHub auto
 - `branch-clean.sh`: Automates the cleanup and removal of old branches
   from Homebrew tap repositories.
 - `cleanup-repos.sh`: A script for general repository cleanup and maintenance.
+- `create_rulesets.sh`: Creates a GitHub ruleset for each repository owned by
+  the LanikSJ account that prevents deleting the default branch.
 - `gcpd.sh`: A Git utility that pulls the latest changes, cleans up orphaned and local‑only branches, and deletes them automatically.
 - `git-branch-all.sh`: Lists all branches across multiple repositories for comprehensive branch management.
 - `github-label.sh`: Manages GitHub labels for repositories, including creation, deletion, and organization.
 - `github-workflows.sh`: Manages GitHub workflow configurations and automation scripts.
 - `gpg-conf.sh`: Configures GPG for Git operations, including key setup and signing configuration.
-- `gwho.sh`: A Git command alias for showing Git user information and configuration.
-- `merge-pr.sh`: Automates merging pull requests with proper validation and conflict checking.
-- `ubit.sh`: A Git command alias for undoing git add operations.
-- `ugh.sh`: A Git command alias for undoing git reset operations.
-- `ugl.sh`: A Git command alias for checking git log with enhanced formatting and filtering options.
+- `gwho.sh`: Shows who modified each line of a file by summarizing `git blame` output with per-author counts.
+- `merge-pr.sh`: Waits for a pull request's checks to complete, then squash-merges it after validation.
+- `ubit.sh`: Updates all BitBucket repositories: prunes remote branches, pulls
+  the latest changes, and cleans up local branches.
+- `ugh.sh`: Updates all GitHub repositories: pulls the latest changes, prunes
+  remote branches, and deletes old local branches.
+- `ugl.sh`: Updates all GitLab repositories, pulling the latest changes and
+  cleaning up stale branches.
 
 ### Hosting
 
@@ -156,6 +167,24 @@ A collection of 🗃️ miscellaneous utility scripts.
 - `array.sh`: Array manipulation utilities.
 - `firefox-update.sh`: Firefox browser update script.
 
+### Python
+
+Standalone 🐍 Python scripts.
+
+- `ring_rename_files.py`: Renames Ring doorbell video files from
+  `Ring_YYYYMMDD_HHMM_UUID.mp4` to `RingVideo_YYYYMMDD_HHMM.mp4`.
+
+### Shellcheck
+
+Helper scripts for automating 🧹 ShellCheck fixes across shell scripts.
+
+- `fix-remaining.py`: Fixes remaining ShellCheck warnings, such as unquoted
+  variable expansions (SC2086) and non-constant `source` paths (SC1091).
+- `fix-shellcheck.py`: Applies common ShellCheck fixes, including `read -r`
+  (SC2162), backtick substitution (SC2006), and `source` disables (SC1090).
+- `fix-targeted.py`: Fixes targeted ShellCheck warnings, such as removing
+  ineffective `$()` wrappers around commands (SC2091).
+
 ### SSL
 
 Scripts related to 🔐 SSL certificate management.
@@ -173,12 +202,21 @@ Scripts or configurations for 📝 Sublime Text editor.
 - `sublime-merge.sh`: Sublime Merge configuration script.
 - `sublime-text.sh`: Sublime Text configuration script.
 
+### Web
+
+Scripts for testing 🕸️ web latency and HTTP response times.
+
+- `curl-response.sh`: Prints a detailed curl timing breakdown
+  (DNS, connect, TLS, transfer) for a request using curl's write-out format.
+- `google-response-time.py`: Measures HTTP response times for a website
+  (default: google.com) and reports min, max, and average latency.
+
 ### Zoxide
 
 Scripts for 🧪 Zoxide (a smarter cd command) integration.
 
-- `clean.sh`: Cleans up Zoxide data.
-- `cleanup.sh`: Zoxide cleanup utility.
+- `clean.sh`: Removes stale or pattern-matching entries from the Zoxide
+  database, with dry-run support.
 - `import.sh`: Imports data into Zoxide.
 - `verify.sh`: Verifies Zoxide installation and configuration.
 
@@ -188,11 +226,26 @@ Scripts or configurations for the 🐚 Zsh shell.
 
 - `aliases.zsh`: Zsh command aliases.
 - `aws-sso.zsh`: AWS SSO authentication integration.
-- `creds.sh`: Credentials management script.
 - `exports.zsh`: Environment variable exports.
-- `fastlane.zsh`: Fastlane configuration script.
+- `fastlane.zsh`: Zsh completion for `bundle exec fastlane`, parsing lane
+  names from the project's Fastfile.
 - `fips.zsh`: FIPS mode configuration script.
 - `ssh.zsh`: SSH configuration and key management script.
+
+## Repository Meta Files
+
+Supporting files at the repository root and under `.github/`:
+
+- `AGENTS.md`: Central coding standards and agent rules, copied into other
+  LanikSJ repositories by `agent/update_rules.sh`.
+- `LICENSE`: Project license.
+- `SECURITY.md`: Security vulnerability reporting policy.
+- `.editorconfig`: Editor formatting conventions (indent style, charset, EOF).
+- `.gitignore`: Ignore rules for generated and operating system files.
+- `.markdownlint.json`: Configuration for markdownlint (line length 200).
+- `.github/`: Contributing guidelines, code of conduct, issue and pull request
+  templates, Dependabot configuration, funding links, and the automated
+  license year update workflow.
 
 ---
 
