@@ -67,8 +67,7 @@ git_update() {
   
   # Pull latest changes
   git pull || {
-    log_message "ERROR: Failed to pull latest changes"
-    return 1
+    log_message "WARNING: Failed to pull latest changes — continuing with cleanup"
   }
   
   # Clean up local branches (excluding the current branch)

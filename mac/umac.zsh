@@ -698,13 +698,11 @@ git_update() {
   log_info "\n🔄 Updating $repo on branch $branch"
 
   git checkout "$branch" || {
-    log_error "Failed to checkout $branch for $repo"
-    return 1
+    log_warning "Failed to checkout $branch for $repo — continuing with cleanup"
   }
 
   git pull || {
-    log_warning "Failed to pull updates for $repo"
-    return 1
+    log_warning "Failed to pull updates for $repo — continuing with cleanup"
   }
 
   # Prune remote tracking branches that no longer exist on remote
