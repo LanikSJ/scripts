@@ -38,6 +38,15 @@ for dir in "$GITHUB"/*; do
   [[ -d "$dir/.git" ]] && repolist+=("$(basename "$dir")")
 done
 
+# 📦 Flush a finished repo's buffered output as one atomic block (shared with umac.zsh)
+flush_repo_log() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    cat "$file"
+    rm -f "$file"
+  fi
+}
+
 # 🛠️ Git update function (shared with umac.zsh)
 git_update() {
   local repo="$1"
@@ -89,10 +98,15 @@ fi
 
 log_info "Found ${#repolist[@]} repositories to update in LanikSJ"
 
+# 📦 Buffer each repo's output so parallel jobs don't interleave on the terminal
+LOG_DIR="$(mktemp -d)"
+trap 'rm -rf "$LOG_DIR"' EXIT
+
 # 🧵 Parallel update (default: one job per CPU core, override with UGH_JOBS) - bash compatible version
 JOBS="${UGH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
-pids=()
+job_logs=()
 for repo in "${repolist[@]}"; do
+  repo_log="$LOG_DIR/$repo.log"
   (
     # Save current directory to return to it later
     current_dir=$(pwd)
@@ -118,29 +132,39 @@ for repo in "${repolist[@]}"; do
     
     # Return to original directory
     cd "$current_dir" || log_warning "Could not return to original directory"
-  ) &
-  pids+=($!)
+  ) >"$repo_log" 2>&1 &
+  job_logs+=("$!|$repo_log")
   # Limit parallel jobs - bash compatible version
-  if (( ${#pids[@]} >= JOBS )); then
+  if (( ${#job_logs[@]} >= JOBS )); then
     # Use wait -n for bash (supported in bash 4.3+)
     if wait -n 2>/dev/null; then
-      # Remove finished jobs from array (bash compatible)
-      new_pids=()
-      for pid in "${pids[@]}"; do
-        if kill -0 "$pid" 2>/dev/null; then
-          new_pids+=("$pid")
+      # Flush finished repos' buffered output as one block each, keep running jobs
+      new_job_logs=()
+      for job in "${job_logs[@]}"; do
+        if kill -0 "${job%%|*}" 2>/dev/null; then
+          new_job_logs+=("$job")
+        else
+          flush_repo_log "${job#*|}"
         fi
       done
-      pids=("${new_pids[@]}")
+      job_logs=("${new_job_logs[@]}")
     else
       # Fallback for older bash versions
       wait
-      pids=()
+      for job in "${job_logs[@]}"; do
+        flush_repo_log "${job#*|}"
+      done
+      job_logs=()
     fi
   fi
 done
 
 # Wait for all jobs to finish
 wait
+
+# 📦 Print buffered output from any jobs not yet flushed
+for job in "${job_logs[@]}"; do
+  flush_repo_log "${job#*|}"
+done
 
 echo -e "\n🎉 All repositories updated!"
