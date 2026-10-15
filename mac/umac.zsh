@@ -690,6 +690,15 @@ update_npm_standard() {
   cd "$current_dir" || log_warning "Could not return to original directory"
 }
 
+# 📦 Flush a finished repo's buffered output as one atomic block (shared with ugh.sh)
+flush_repo_log() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    cat "$file"
+    rm -f "$file"
+  fi
+}
+
 # 🛠️ Git update function (shared with ugh.sh)
 git_update() {
   local repo="$1"
@@ -752,9 +761,15 @@ update_git_repos() {
 
   # 🧵 Parallel update (default: one job per CPU core, override with UGH_JOBS)
   local JOBS="${UGH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
-  local pids=()
-  local new_pids
+  # 📦 Buffer each repo's output so parallel jobs don't interleave on the terminal
+  local log_dir
+  log_dir="$(mktemp -d)"
+  TEMP_FILES+=("$log_dir")
+  local repo_log
+  local job_logs=()
+  local new_job_logs
   for repo in "${repolist[@]}"; do
+    repo_log="$log_dir/$repo.log"
     (
       cd "$repo_dir/$repo" || {
         log_error "Could not change to repository: $repo_dir/$repo"
@@ -774,30 +789,40 @@ update_git_repos() {
 
       git_update "$repo" "$branch"
       log_success "$repo updated and cleaned"
-    ) &
-    pids+=($!)
+    ) >"$repo_log" 2>&1 &
+    job_logs+=("$!|$repo_log")
     # Limit parallel jobs - cross-shell compatible version
-    if (( ${#pids[@]} >= JOBS )); then
+    if (( ${#job_logs[@]} >= JOBS )); then
       # Use wait -n where supported (bash 4.3+)
       if wait -n 2>/dev/null; then
-        # Remove finished jobs from array (cross-shell compatible)
-        new_pids=()
-        for pid in "${pids[@]}"; do
-          if kill -0 "$pid" 2>/dev/null; then
-            new_pids+=("$pid")
+        # Flush finished repos' buffered output as one block each, keep running jobs
+        new_job_logs=()
+        for job in "${job_logs[@]}"; do
+          if kill -0 "${job%%|*}" 2>/dev/null; then
+            new_job_logs+=("$job")
+          else
+            flush_repo_log "${job#*|}"
           fi
         done
-        pids=("${new_pids[@]}")
+        job_logs=("${new_job_logs[@]}")
       else
         # Fallback for shells without wait -n (e.g. zsh, bash 3.2)
         wait
-        pids=()
+        for job in "${job_logs[@]}"; do
+          flush_repo_log "${job#*|}"
+        done
+        job_logs=()
       fi
     fi
   done
 
   # Wait for all jobs to finish
   wait
+
+  # 📦 Print buffered output from any jobs not yet flushed
+  for job in "${job_logs[@]}"; do
+    flush_repo_log "${job#*|}"
+  done
 
   cd "$current_dir" || log_warning "Could not return to original directory"
 
