@@ -42,21 +42,21 @@ done
 git_update() {
   local repo="$1"
   local branch="$2"
-  echo ""
-  log_info "🔄 Updating $repo on branch $branch"
-  
+
+  log_info "\n🔄 Updating $repo on branch $branch"
+
   git checkout "$branch" || {
     log_warning "Failed to checkout $branch for $repo — continuing with cleanup"
   }
-  
+
   git pull || {
     log_warning "Failed to pull updates for $repo — continuing with cleanup"
   }
-  
+
   # Prune remote tracking branches that no longer exist on remote
   log_info "🧹 Pruning remote tracking branches for $repo"
   git remote prune origin || log_warning "Failed to prune remote for $repo"
-  
+
   # Delete all local branches except the primary/default branch
   log_info "🗑️ Deleting non-default local branches for $repo"
   for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
@@ -89,8 +89,8 @@ fi
 
 log_info "Found ${#repolist[@]} repositories to update in LanikSJ"
 
-# 🧵 Parallel update (default: 1 job) - bash compatible version
-JOBS=1
+# 🧵 Parallel update (default: one job per CPU core, override with UGH_JOBS) - bash compatible version
+JOBS="${UGH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
 pids=()
 for repo in "${repolist[@]}"; do
   (

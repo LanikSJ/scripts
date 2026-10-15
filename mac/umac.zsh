@@ -750,6 +750,10 @@ update_git_repos() {
 
   local current_dir=$(pwd)
 
+  # 🧵 Parallel update (default: one job per CPU core, override with UGH_JOBS)
+  local JOBS="${UGH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
+  local pids=()
+  local new_pids
   for repo in "${repolist[@]}"; do
     (
       cd "$repo_dir/$repo" || {
@@ -770,8 +774,30 @@ update_git_repos() {
 
       git_update "$repo" "$branch"
       log_success "$repo updated and cleaned"
-    )
+    ) &
+    pids+=($!)
+    # Limit parallel jobs - cross-shell compatible version
+    if (( ${#pids[@]} >= JOBS )); then
+      # Use wait -n where supported (bash 4.3+)
+      if wait -n 2>/dev/null; then
+        # Remove finished jobs from array (cross-shell compatible)
+        new_pids=()
+        for pid in "${pids[@]}"; do
+          if kill -0 "$pid" 2>/dev/null; then
+            new_pids+=("$pid")
+          fi
+        done
+        pids=("${new_pids[@]}")
+      else
+        # Fallback for shells without wait -n (e.g. zsh, bash 3.2)
+        wait
+        pids=()
+      fi
+    fi
   done
+
+  # Wait for all jobs to finish
+  wait
 
   cd "$current_dir" || log_warning "Could not return to original directory"
 
