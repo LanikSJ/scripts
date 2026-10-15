@@ -106,6 +106,9 @@ Scripts for 🐙 Git repository management and operations, including GitHub auto
 - `cleanup-repos.sh`: A script for general repository cleanup and maintenance.
 - `create_rulesets.sh`: Creates a GitHub ruleset for each repository owned by
   the LanikSJ account that prevents deleting the default branch.
+- `dropbox-safe.sh`: Makes a Dropbox‑synced git repo safe by moving `.git`
+  metadata to `~/.gitdirs/` (outside Dropbox) and leaving a pointer file
+  behind, preventing sync clients from resurrecting deleted branch refs.
 - `gcpd.sh`: A Git utility that pulls the latest changes, cleans up orphaned and local‑only branches, and deletes them automatically.
 - `git-branch-all.sh`: Lists all branches across multiple repositories for comprehensive branch management.
 - `github-label.sh`: Manages GitHub labels for repositories, including creation, deletion, and organization.

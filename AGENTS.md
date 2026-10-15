@@ -62,6 +62,27 @@ This is a personal collection of scripts, tools, and projects covering:
 - Use `markdownlint --fix <filename>` for auto-fixable issues when available
 - Validate markdown files in CI/CD pipelines where applicable
 
+## Git Repos in Cloud Sync Folders (Dropbox/iCloud)
+
+- **CRITICAL**: Never keep a git repository's `.git` directory inside a
+  cloud sync folder (Dropbox, iCloud, OneDrive). Sync clients treat
+  `.git/refs/*` as ordinary files and can resurrect deleted branch refs,
+  silently undoing branch cleanup (`gcpd.sh`, `git branch -D`, etc.).
+- Repos under `~/GitHub` (a symlink to `Dropbox/GitHub`) must use the
+  split layout created by `git/dropbox-safe.sh`:
+  - Working tree stays in `~/GitHub/<repo>` (synced as normal)
+  - `.git` is a pointer file: `gitdir: ~/.gitdirs/<repo>.git`
+  - Git metadata (refs, objects, logs) lives in `~/.gitdirs/<repo>.git`
+    where sync clients cannot touch it
+- Convert a repo with: `dropbox-safe.sh ~/GitHub/<repo>`
+  (supports `--dry-run`; idempotent — safe to run twice)
+- When cloning a new repo into a Dropbox-synced folder, run
+  `dropbox-safe.sh` on it immediately after cloning
+- Diagnosis tip: if branch deletions appear to succeed (`Deleted branch`
+  printed) but branches reappear, check ref file timestamps with
+  `stat -f '%SB %Sc %N' .git/refs/heads/*` — a change time shortly after
+  deletion with an old birth time indicates sync resurrection
+
 ## Development Guidelines
 
 ### Commit Message Convention
