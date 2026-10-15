@@ -36,7 +36,18 @@ This is a personal collection of scripts, tools, and projects covering:
   - Starting message: `"📂 Updating LanikSJ repositories"`
   - Completion message: `"LanikSJ repositories updated"`
   - Icon: `GIT_ICON="📂"`
-  - Log levels: `log_info()`, `log_success()`, `log_warning()`, `log_error()`.
+  - Log levels: `log_info()`, `log_success()`, `log_warning()`,
+    `log_error()`.
+- **Parallel Output Buffering**:
+  - Parallel repo jobs MUST NOT write to the terminal directly: each
+    job's stdout/stderr goes to its own temp log file and is printed as
+    one atomic block by `flush_repo_log()` when the job finishes, so
+    output from concurrent repos never interleaves.
+  - Jobs are tracked as `"<pid>|<logfile>"` strings so one portable
+    value-iteration loop works in both bash and zsh (no `${!array[@]}`
+    and no index-based array access).
+  - Temp logs are cleaned up via an `EXIT` trap (`ugh.sh`) or the
+    `TEMP_FILES` array (`umac.zsh`).
 
 ### Shell Compatibility Requirements
 
