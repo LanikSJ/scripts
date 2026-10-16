@@ -158,7 +158,7 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 
 # Rsync
-alias rsync='rsync --progress --stats'                                 # Verbose rsync with progress
+alias rsync='rsync --progress -h --stats'                              # Verbose rsync with progress
 
 # SSH
 alias cmd_broadcast_mac='~/bin/expect/ssh_mac.sh'                      # SSH command broadcast to all Macs
