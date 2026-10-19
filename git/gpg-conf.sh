@@ -15,6 +15,7 @@ GITHUB_EMAIL_SERVICE="github-email"
 GITHUB_SIGNING_KEY_SERVICE="github-signing-key"
 WORK_EMAIL_SERVICE="git-work-email"
 WORK_SIGNING_KEY_SERVICE="git-work-signing-key"
+WORK_NAME_SERVICE="git-work-name"
 
 # Check if Git is installed
 if ! command -v git &> /dev/null; then
@@ -181,7 +182,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  - Signing Key: Retrieved from keychain service 'github-signing-key'"
     echo ""
     echo "For work profile:"
-    echo "  - Name: LanikSJ"
+    echo "  - Name: Retrieved from keychain service 'git-work-name'"
     echo "  - Email: Retrieved from keychain service 'git-work-email'"
     echo "  - Signing Key: Retrieved from keychain service 'git-work-signing-key'"
     echo ""
@@ -227,7 +228,7 @@ case "$PROFILE" in
         ;;
     work)
         echo "⚙️ Configuring for Work profile..."
-        GIT_NAME="LanikSJ" # Assuming a fixed name for Work
+        GIT_NAME=$(get_keychain_credential "$WORK_NAME_SERVICE" "work")
         
         # Retrieve email and signing key from keychain
         GIT_EMAIL=$(get_keychain_credential "$WORK_EMAIL_SERVICE" "work")
