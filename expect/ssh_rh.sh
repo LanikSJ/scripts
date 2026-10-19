@@ -4,7 +4,12 @@
 log_user 0
 set timeout 10
 set userid  "root"
-set pass  "***REMOVED***"
+if {[info exists env(EXPECT_PASSWORD)]} {
+    set pass $env(EXPECT_PASSWORD)
+} else {
+    puts "ERROR: EXPECT_PASSWORD environment variable is not set."
+    exit 1
+}
 
 set host  [lindex $argv 0] 
 set command [lindex $argv 1]

@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
 Usage: ${0##*/} [--pattern PAT|--stale] [--dry-run] [--verbose]
 
 Remove zoxide database entries matching a pattern or with missing directories.
-Default pattern: youruser
+Default pattern: $USER
 EOF
             exit 0 ;;
         *)  echo "❓ Unknown: $1" >&2; exit 1 ;;
@@ -27,7 +27,7 @@ EOF
 done
 
 # Default to pattern mode
-[[ -z "$pattern" && "$stale" == false ]] && pattern="youruser"
+[[ -z "$pattern" && "$stale" == false ]] && pattern="$USER"
 
 # Guard
 command -v zoxide &>/dev/null || { echo "🚫 Error: zoxide is not installed or not in PATH" >&2; exit 1; }

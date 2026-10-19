@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
 # Configuration Section
+# SFTP credentials come from the environment (never hardcode them):
+#   export SFTP_HOST='ftp.example.com'
+#   export SFTP_USER='your-username'
+#   export SFTP_PASSWORD='...'
 DATE=$(date +"%Y%m%d-%H%M")
-HOST='***REMOVED***'
-USER='***REMOVED***'
+HOST="${SFTP_HOST:?Set SFTP_HOST in the environment}"
+USER="${SFTP_USER:?Set SFTP_USER in the environment}"
 PASSWD="${SFTP_PASSWORD:-}"  # Ensure SFTP_PASSWORD is set in environment
 FILE="/backup/backup-$DATE.tgz"
-PORT='2222'
+PORT="${SFTP_PORT:-22}"
 LOG_FILE="/var/log/sloth_backup.log"
 BACKUP_DIR="/backup"
 SOURCE_DIR="/opt/Sloths"
