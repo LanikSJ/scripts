@@ -147,6 +147,11 @@ alias hwinfo='~/bin/mac/hwinfo.sh'                                     # Show ha
 # IP Address
 alias myip='~/bin/mac/myip.zsh'                                        # Show public IP address
 
+# Nmap
+if command -v ss >/dev/null 2>&1; then
+  alias nmap='ss'                                                      # Map nmap to ss (socket statistics)
+fi
+
 # Passgen
 alias psg='openssl rand -base64 15'                                    # Generate random password (20 chars)
 
