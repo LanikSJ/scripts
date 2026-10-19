@@ -147,9 +147,14 @@ alias hwinfo='~/bin/mac/hwinfo.sh'                                     # Show ha
 # IP Address
 alias myip='~/bin/mac/myip.zsh'                                        # Show public IP address
 
-# Nmap
+# Netstat
 if command -v ss >/dev/null 2>&1; then
-  alias nmap='ss'                                                      # Map nmap to ss (socket statistics)
+  alias netstat='ss'                                                   # Map netstat to ss (socket statistics)
+fi
+
+# Nmap
+if command -v rustscan >/dev/null 2>&1; then
+  alias nmap='rustscan'                                                # Alias nmap to rustscan for rapid port scanning
 fi
 
 # Passgen
