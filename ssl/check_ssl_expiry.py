@@ -37,6 +37,7 @@ def get_ssl_expiry_date(hostname, port=443):
         datetime.datetime: The expiry date of the certificate
     """
     context = ssl.create_default_context()
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     
     try:
         with socket.create_connection((hostname, port), timeout=10) as sock:
