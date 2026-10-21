@@ -32,10 +32,10 @@ TEMP_FILES=()
 # Cleanup function to remove temporary files and logs
 cleanup_temp_files() {
   if [[ ${#TEMP_FILES[@]} -gt 0 ]]; then
-    log_info "🧹 Cleaning up temporary files and logs"
+    log_info "🧹 Temporary files removed"
     for temp_item in "${TEMP_FILES[@]}"; do
       if [[ -e "$temp_item" ]]; then
-        rm -rf "$temp_item" 2>/dev/null && log_success "Removed: $temp_item" || log_warning "Failed to remove: $temp_item"
+        rm -rf "$temp_item" 2>/dev/null || true
       fi
     done
     TEMP_FILES=()
