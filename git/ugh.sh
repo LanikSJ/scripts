@@ -167,4 +167,9 @@ for job in "${job_logs[@]}"; do
   flush_repo_log "${job#*|}"
 done
 
+# 🗑️ Clean up temporary logs
+log_info "\n🗑️ Temporary files removed"
+rm -rf "$LOG_DIR"
+trap - EXIT
+
 echo -e "\n🎉 All repositories updated!"
