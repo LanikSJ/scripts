@@ -24,7 +24,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate workflow syntax
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Validate Workflow Syntax
         run: |
           echo "Validating lock-threads workflow configuration..."
           echo "Basic structure validation complete"
