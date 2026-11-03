@@ -50,20 +50,27 @@ trap 'cleanup_temp_files' EXIT
 
 
 # Log functions for consistent output
+COLOR_RESET='\033[0m'
+COLOR_BOLD='\033[1m'
+COLOR_RED='\033[0;31m'
+COLOR_GREEN='\033[0;32m'
+COLOR_YELLOW='\033[0;33m'
+COLOR_CYAN='\033[0;36m'
+
 log_info() {
-  echo -e "$1"
+  echo -e "${COLOR_CYAN}${COLOR_BOLD}$1${COLOR_RESET}"
 }
 
 log_success() {
-  echo -e "✅ $1"
+  echo -e "${COLOR_GREEN}${COLOR_BOLD}✅ $1${COLOR_RESET}"
 }
 
 log_warning() {
-  echo -e "⚠️ $1"
+  echo -e "${COLOR_YELLOW}${COLOR_BOLD}⚠️ $1${COLOR_RESET}"
 }
 
 log_error() {
-  echo -e "❌ $1"
+  echo -e "${COLOR_RED}${COLOR_BOLD}❌ $1${COLOR_RESET}"
 }
 
 # Check if a command exists
@@ -710,9 +717,16 @@ git_update() {
     log_warning "Failed to checkout $branch for $repo — continuing with cleanup"
   }
 
-  git pull || {
-    log_warning "Failed to pull updates for $repo — continuing with cleanup"
-  }
+  # Pull updates, capturing output so we can filter git's own
+  # "no such ref was fetched" warning which appears when the remote
+  # default branch was renamed/deleted (e.g. master → main on GitHub)
+  if ! pull_output=$(git pull 2>&1); then
+    if [[ "$pull_output" == *"no such ref was fetched"* ]]; then
+      log_warning "Remote branch origin/$branch not found for $repo — skipping pull"
+    else
+      log_warning "Failed to pull updates for $repo — continuing with cleanup"
+    fi
+  fi
 
   # Prune remote tracking branches that no longer exist on remote
   log_info "🧹 Pruning remote tracking branches for $repo"
