@@ -3,15 +3,10 @@ name: Deploy Jekyll with GitHub Pages
 on:
   push:
     branches: ["main"]
-    paths:
-      - README.md
-      - _config.yml
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
@@ -35,11 +30,14 @@ jobs:
           echo "Site contents:"
           ls -la _site/
           echo "Checking for index.html:"
-          [ -f _site/index.html ] && echo "index.html exists" || echo "index.html missing"
+          [ -f _site/index.html ] && echo "index.html exists" || { echo "index.html missing"; exit 1; }
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
 
   deploy:
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
