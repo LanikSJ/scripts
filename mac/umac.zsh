@@ -720,11 +720,27 @@ git_update() {
   # Pull updates, capturing output so we can filter git's own
   # "no such ref was fetched" warning which appears when the remote
   # default branch was renamed/deleted (e.g. master → main on GitHub)
-  if ! pull_output=$(git pull 2>&1); then
+  if ! pull_output=$(LC_ALL=C git pull 2>&1); then
+    # Display git pull output, excluding only the "no such ref was fetched"
+    # message that is deliberately replaced by the targeted warning below
+    local filtered_output
+    filtered_output=$(printf '%s\n' "$pull_output" | grep -v 'no such ref was fetched' | grep -v "Your configuration specifies to merge with the ref")
+    if [[ -n "$filtered_output" ]]; then
+      printf '%s\n' "$filtered_output"
+    fi
     if [[ "$pull_output" == *"no such ref was fetched"* ]]; then
-      log_warning "Remote branch origin/$branch not found for $repo — skipping pull"
+      # Report the branch's configured upstream rather than claiming the ref
+      # does not exist. Git's message means the configured upstream refspec
+      # has no matching ref on the remote, not that the branch is absent.
+      local configured_upstream
+      configured_upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null) || configured_upstream="<unknown>"
+      log_warning "Configured upstream '$configured_upstream' has no matching ref for $repo — skipping pull"
     else
       log_warning "Failed to pull updates for $repo — continuing with cleanup"
+    fi
+  else
+    if [[ -n "$pull_output" ]]; then
+      printf '%s\n' "$pull_output"
     fi
   fi
 
