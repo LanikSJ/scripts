@@ -724,10 +724,13 @@ git_update() {
     # Display git pull output, excluding only the "no such ref was fetched"
     # message that is deliberately replaced by the targeted warning below
     local filtered_output=""
-    if ! filtered_output=$(printf '%s\n' "$pull_output" | grep -v 'no such ref was fetched' | grep -v "Your configuration specifies to merge with the ref"); then
-      local status=$?
-      if (( status > 1 )); then
-        return "$status"
+    if filtered_output=$(printf '%s\n' "$pull_output" | grep -v 'no such ref was fetched' | grep -v "Your configuration specifies to merge with the ref"); then
+      :
+    else
+      local filter_status
+      filter_status=$?
+      if (( filter_status > 1 )); then
+        return "$filter_status"
       fi
     fi
     if [[ -n "$filtered_output" ]]; then
