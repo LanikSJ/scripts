@@ -723,17 +723,30 @@ git_update() {
   if ! pull_output=$(LC_ALL=C git pull 2>&1); then
     # Display git pull output, excluding only the "no such ref was fetched"
     # message that is deliberately replaced by the targeted warning below
-    local filtered_output
-    filtered_output=$(printf '%s\n' "$pull_output" | grep -v 'no such ref was fetched' | grep -v "Your configuration specifies to merge with the ref")
+    local filtered_output=""
+    if ! filtered_output=$(printf '%s\n' "$pull_output" | grep -v 'no such ref was fetched' | grep -v "Your configuration specifies to merge with the ref"); then
+      local status=$?
+      if (( status > 1 )); then
+        return "$status"
+      fi
+    fi
     if [[ -n "$filtered_output" ]]; then
       printf '%s\n' "$filtered_output"
     fi
     if [[ "$pull_output" == *"no such ref was fetched"* ]]; then
-      # Report the branch's configured upstream rather than claiming the ref
-      # does not exist. Git's message means the configured upstream refspec
-      # has no matching ref on the remote, not that the branch is absent.
-      local configured_upstream
-      configured_upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null) || configured_upstream="<unknown>"
+      # Read the branch's configured upstream from git config
+      # (branch.<name>.remote + branch.<name>.merge) without resolving the
+      # upstream ref, so the configured value is preserved even when its
+      # tracking ref has been pruned.
+      local current_branch remote merge_ref configured_upstream
+      current_branch=$(git branch --show-current 2>/dev/null)
+      remote=$(git config "branch.${current_branch}.remote" 2>/dev/null)
+      merge_ref=$(git config "branch.${current_branch}.merge" 2>/dev/null)
+      if [[ -n "$remote" && -n "$merge_ref" ]]; then
+        configured_upstream="${remote}/${merge_ref#refs/heads/}"
+      else
+        configured_upstream="<unknown>"
+      fi
       log_warning "Configured upstream '$configured_upstream' has no matching ref for $repo — skipping pull"
     else
       log_warning "Failed to pull updates for $repo — continuing with cleanup"

@@ -1,5 +1,6 @@
 # Personal Scripts Repository
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4d775699f325485992932cb081ac7383)](https://app.codacy.com/gh/LanikSJ/scripts/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![Scripts](https://img.shields.io/badge/Scripts-blue)
 ![AWS](https://img.shields.io/badge/AWS-orange)
 ![Docker](https://img.shields.io/badge/Docker-informational)
