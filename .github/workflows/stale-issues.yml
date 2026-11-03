@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - .github/workflows/stale-issues.yml
-    branches-ignore:
-      - dependabot/**
+    branches:
+      - main
   schedule:
     # Once every day at midnight UTC
     - cron: "0 0 * * *"
