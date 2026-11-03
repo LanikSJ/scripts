@@ -31,7 +31,7 @@ jobs:
       - name: Check lock-threads config
         run: |
           echo "Checking lock-threads configuration..."
-          grep -q "process-only" /Users/teddy/Library/CloudStorage/Dropbox/GitHub/LanikSJ/scripts/.github/workflows/lock-threads.yml && echo "Config validation passed" || echo "Config validation failed"
+          grep -q '^ *process-only:' .github/workflows/lock-threads.yml
   lock-threads:
     runs-on: ubuntu-latest
     needs: validate
