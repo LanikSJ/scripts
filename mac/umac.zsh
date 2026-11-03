@@ -743,8 +743,8 @@ git_update() {
       # tracking ref has been pruned.
       local current_branch remote merge_ref configured_upstream
       current_branch=$(git branch --show-current 2>/dev/null)
-      remote=$(git config "branch.${current_branch}.remote" 2>/dev/null)
-      merge_ref=$(git config "branch.${current_branch}.merge" 2>/dev/null)
+      remote=$(git config "branch.${current_branch}.remote" 2>/dev/null) || remote=""
+      merge_ref=$(git config "branch.${current_branch}.merge" 2>/dev/null) || merge_ref=""
       if [[ -n "$remote" && -n "$merge_ref" ]]; then
         configured_upstream="${remote}/${merge_ref#refs/heads/}"
       else
