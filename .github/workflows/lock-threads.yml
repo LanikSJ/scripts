@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Validate Workflow Syntax
         run: |
           echo "Validating lock-threads workflow configuration..."
