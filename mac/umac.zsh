@@ -50,20 +50,27 @@ trap 'cleanup_temp_files' EXIT
 
 
 # Log functions for consistent output
+COLOR_RESET='\033[0m'
+COLOR_BOLD='\033[1m'
+COLOR_RED='\033[0;31m'
+COLOR_GREEN='\033[0;32m'
+COLOR_YELLOW='\033[0;33m'
+COLOR_CYAN='\033[0;36m'
+
 log_info() {
-  echo -e "$1"
+  echo -e "${COLOR_CYAN}${COLOR_BOLD}$1${COLOR_RESET}"
 }
 
 log_success() {
-  echo -e "✅ $1"
+  echo -e "${COLOR_GREEN}${COLOR_BOLD}✅ $1${COLOR_RESET}"
 }
 
 log_warning() {
-  echo -e "⚠️ $1"
+  echo -e "${COLOR_YELLOW}${COLOR_BOLD}⚠️ $1${COLOR_RESET}"
 }
 
 log_error() {
-  echo -e "❌ $1"
+  echo -e "${COLOR_RED}${COLOR_BOLD}❌ $1${COLOR_RESET}"
 }
 
 # Check if a command exists
@@ -710,9 +717,48 @@ git_update() {
     log_warning "Failed to checkout $branch for $repo — continuing with cleanup"
   }
 
-  git pull || {
-    log_warning "Failed to pull updates for $repo — continuing with cleanup"
-  }
+  # Pull updates, capturing output so we can filter git's own
+  # "no such ref was fetched" warning which appears when the remote
+  # default branch was renamed/deleted (e.g. master → main on GitHub)
+  if ! pull_output=$(LC_ALL=C git pull 2>&1); then
+    # Display git pull output, excluding only the "no such ref was fetched"
+    # message that is deliberately replaced by the targeted warning below
+    local filtered_output="" filter_status
+    if filtered_output=$(printf '%s\n' "$pull_output" | grep -v -e 'no such ref was fetched' -e "Your configuration specifies to merge with the ref"); then
+      :
+    else
+      filter_status=$?
+      if (( filter_status > 1 )); then
+        return "$filter_status"
+      fi
+      filtered_output=""
+    fi
+    if [[ -n "$filtered_output" ]]; then
+      printf '%s\n' "$filtered_output"
+    fi
+    if [[ "$pull_output" == *"no such ref was fetched"* ]]; then
+      # Read the branch's configured upstream from git config
+      # (branch.<name>.remote + branch.<name>.merge) without resolving the
+      # upstream ref, so the configured value is preserved even when its
+      # tracking ref has been pruned.
+      local current_branch remote merge_ref configured_upstream
+      current_branch=$(git branch --show-current 2>/dev/null)
+      remote=$(git config "branch.${current_branch}.remote" 2>/dev/null) || remote=""
+      merge_ref=$(git config "branch.${current_branch}.merge" 2>/dev/null) || merge_ref=""
+      if [[ -n "$remote" && -n "$merge_ref" ]]; then
+        configured_upstream="${remote}/${merge_ref#refs/heads/}"
+      else
+        configured_upstream="<unknown>"
+      fi
+      log_warning "Configured upstream '$configured_upstream' has no matching ref for $repo — skipping pull"
+    else
+      log_warning "Failed to pull updates for $repo — continuing with cleanup"
+    fi
+  else
+    if [[ -n "$pull_output" ]]; then
+      printf '%s\n' "$pull_output"
+    fi
+  fi
 
   # Prune remote tracking branches that no longer exist on remote
   log_info "🧹 Pruning remote tracking branches for $repo"
