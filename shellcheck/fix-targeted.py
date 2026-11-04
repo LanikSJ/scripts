@@ -4,6 +4,11 @@ import re
 
 
 def fix_file(path):
+    """
+
+    :param path: 
+
+    """
     with open(path, "r") as f:
         content = f.read()
     original = content

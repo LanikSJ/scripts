@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 
 class Colors:
+    """ """
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
     RED = "\033[91m"
@@ -21,6 +22,7 @@ class Colors:
 
 
 class Icons:
+    """ """
     INFO = "ℹ"
     SUCCESS = "✓"
     WARNING = "⚠"
@@ -28,15 +30,15 @@ class Icons:
 
 
 def get_ssl_expiry_date(hostname, port=443):
-    """
-    Get the expiry date of an SSL certificate for a given hostname.
+    """Get the expiry date of an SSL certificate for a given hostname.
 
-    Args:
-        hostname (str): The hostname to check
-        port (int): The port to connect to (default: 443)
+    :param hostname: The hostname to check
+    :type hostname: str
+    :param port: The port to connect to (default: 443)
+    :type port: int
+    :returns: The expiry date of the certificate
+    :rtype: datetime.datetime
 
-    Returns:
-        datetime.datetime: The expiry date of the certificate
     """
     context = ssl.create_default_context()
     context.minimum_version = ssl.TLSVersion.TLSv1_2
@@ -59,15 +61,15 @@ def get_ssl_expiry_date(hostname, port=443):
 
 
 def check_ssl_expiry(url, days_warning=30):
-    """
-    Check if an SSL certificate is expired or will expire soon.
+    """Check if an SSL certificate is expired or will expire soon.
 
-    Args:
-        url (str): The URL to check
-        days_warning (int): Number of days to warn before expiry
+    :param url: The URL to check
+    :type url: str
+    :param days_warning: Number of days to warn before expiry (Default value = 30)
+    :type days_warning: int
+    :returns: (is_expired, days_remaining, expiry_date)
+    :rtype: tuple
 
-    Returns:
-        tuple: (is_expired, days_remaining, expiry_date)
     """
     parsed_url = urlparse(url)
 
