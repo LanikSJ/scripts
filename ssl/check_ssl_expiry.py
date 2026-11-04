@@ -13,18 +13,18 @@ from urllib.parse import urlparse
 
 
 class Colors:
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BLUE = '\033[94m'
-    RESET = '\033[0m'
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BLUE = "\033[94m"
+    RESET = "\033[0m"
 
 
 class Icons:
-    INFO = 'ℹ'
-    SUCCESS = '✓'
-    WARNING = '⚠'
-    ERROR = '✗'
+    INFO = "ℹ"
+    SUCCESS = "✓"
+    WARNING = "⚠"
+    ERROR = "✗"
 
 
 def get_ssl_expiry_date(hostname, port=443):
@@ -45,14 +45,16 @@ def get_ssl_expiry_date(hostname, port=443):
         with socket.create_connection((hostname, port), timeout=10) as sock:
             with context.wrap_socket(sock, server_hostname=hostname) as ssock:
                 cert = ssock.getpeercert()
-                expire_date_str = cert['notAfter']
+                expire_date_str = cert["notAfter"]
                 # Certificate date format: 'May 30 00:00:00 2023 GMT'
                 expire_date = datetime.datetime.strptime(
-                    expire_date_str, "%b %d %H:%M:%S %Y %Z")
+                    expire_date_str, "%b %d %H:%M:%S %Y %Z"
+                )
                 return expire_date
     except (socket.gaierror, socket.timeout, ssl.SSLError, ConnectionRefusedError) as e:
         print(
-            f"{Colors.RED}{Icons.ERROR} Error connecting to {hostname}:{port} - {e}{Colors.RESET}")
+            f"{Colors.RED}{Icons.ERROR} Error connecting to {hostname}:{port} - {e}{Colors.RESET}"
+        )
         sys.exit(1)
 
 
@@ -75,8 +77,8 @@ def check_ssl_expiry(url, days_warning=30):
         hostname = parsed_url.path
 
     # Remove port if present in the hostname
-    if ':' in hostname:
-        hostname = hostname.split(':')[0]
+    if ":" in hostname:
+        hostname = hostname.split(":")[0]
 
     # Get the expiry date
     expiry_date = get_ssl_expiry_date(hostname)
@@ -94,38 +96,49 @@ def check_ssl_expiry(url, days_warning=30):
 def main():
     """Main function to parse arguments and check SSL expiry."""
     parser = argparse.ArgumentParser(
-        description='Check if an SSL certificate is expired.')
+        description="Check if an SSL certificate is expired."
+    )
     parser.add_argument(
-        'url', help='URL to check (e.g., example.com or https://example.com)')
-    parser.add_argument('-w', '--warning', type=int, default=30,
-                        help='Days before expiry to give warning (default: 30)')
+        "url", help="URL to check (e.g., example.com or https://example.com)"
+    )
+    parser.add_argument(
+        "-w",
+        "--warning",
+        type=int,
+        default=30,
+        help="Days before expiry to give warning (default: 30)",
+    )
     args = parser.parse_args()
 
     # Ensure URL has a scheme
     url = args.url
-    if not url.startswith(('http://', 'https://')):
+    if not url.startswith(("http://", "https://")):
         url = f"https://{url}"
 
     try:
-        is_expired, days_remaining, expiry_date = check_ssl_expiry(
-            url, args.warning)
+        is_expired, days_remaining, expiry_date = check_ssl_expiry(url, args.warning)
 
         print(
-            f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Checking SSL certificate for: {url}")
+            f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Checking SSL certificate for: {url}"
+        )
         print(
-            f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Expiry date: {expiry_date.strftime('%Y-%m-%d')}")
+            f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Expiry date: {expiry_date.strftime('%Y-%m-%d')}"
+        )
 
         if is_expired:
             print(
-                f"{Colors.RED}{Icons.ERROR} EXPIRED: Certificate has expired {abs(days_remaining)} days ago!{Colors.RESET}")
+                f"{Colors.RED}{Icons.ERROR} EXPIRED: Certificate has expired {abs(days_remaining)} days ago!{Colors.RESET}"
+            )
             sys.exit(2)
         elif days_remaining <= args.warning:
             print(
-                f"{Colors.YELLOW}{Icons.WARNING} WARNING: Certificate expires in {days_remaining} days!{Colors.RESET}")
+                f"{Colors.YELLOW}{Icons.WARNING} WARNING: Certificate expires in {days_remaining} days!{Colors.RESET}"
+            )
             sys.exit(1)
         else:
             print(
-                f"{Colors.GREEN}{Icons.SUCCESS} OK: Certificate is valid for {days_remaining} more days.{Colors.RESET}")
+                f"{Colors.GREEN}{Icons.SUCCESS} OK: Certificate is valid for {days_remaining} more days.{Colors.RESET}"
+            )
             sys.exit(0)
     except Exception as e:
         print(f"{Colors.RED}{Icons.ERROR} Error: {e}{Colors.RESET}")
