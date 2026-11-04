@@ -2,7 +2,6 @@
 """
 Script to check if an SSL certificate for a given website has expired.
 """
-
 import argparse
 import datetime
 import socket
