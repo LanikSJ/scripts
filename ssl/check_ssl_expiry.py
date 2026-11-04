@@ -6,6 +6,7 @@ import argparse
 import datetime
 import socket
 import ssl
+import sys
 from urllib.parse import urlparse
 
 # Terminal colors and icons
