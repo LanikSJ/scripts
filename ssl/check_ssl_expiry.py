@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 class Colors:
     """ """
+
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
     RED = "\033[91m"
@@ -22,6 +23,7 @@ class Colors:
 
 class Icons:
     """ """
+
     INFO = "ℹ"
     SUCCESS = "✓"
     WARNING = "⚠"
@@ -66,7 +68,7 @@ def check_ssl_expiry(url, days_warning=30):
     :type url: str
     :param days_warning: Number of days to warn before expiry (Default value = 30)
     :type days_warning: int
-    :returns: (is_expired, days_remaining, expiry_date)
+    :returns: is_expired, days_remaining, expiry_date)
     :rtype: tuple
 
     """
