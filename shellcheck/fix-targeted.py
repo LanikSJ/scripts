@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import re
+
+
 def fix_file(path):
     with open(path, 'r') as f:
         content = f.read()
@@ -35,12 +37,14 @@ def fix_file(path):
     content = re.sub(r'source\s+"~/', 'source "$HOME/', content)
 
     # Fix SC2066: for var in "${ARR}"; -> for var in ${ARR};
-    content = re.sub(r'for\s+\w+\s+in\s+"\$\{(\w+)\}";', r'for \1 in ${ARR};', content)
+    content = re.sub(
+        r'for\s+\w+\s+in\s+"\$\{(\w+)\}";', r'for \1 in ${ARR};', content)
 
     if content != original:
         with open(path, 'w') as f:
             f.write(content)
         print(f'Fixed: {path}')
+
 
 for root, dirs, files in os.walk('.'):
     for f in files:
