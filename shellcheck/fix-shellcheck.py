@@ -54,9 +54,10 @@ def fix_file(filename):
     content = "".join(new_lines)
 
     # Fix SC2155: local x=$(cmd) -> local x; x=$(cmd)
-    content = re.sub(
-        r"^(local\s+)(\w+=\$\([^)]+\))", r"\1\2; \2", content, flags=re.MULTILINE
-    )
+    content = re.sub(r"^(local\s+)(\w+=\$\([^)]+\))",
+                     r"\1\2; \2",
+                     content,
+                     flags=re.MULTILINE)
 
     # Fix SC2207: arr=($(cmd)) -> mapfile -t arr < <(cmd)
     content = re.sub(
