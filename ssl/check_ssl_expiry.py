@@ -7,7 +7,6 @@ import ssl
 import socket
 import datetime
 import argparse
-import sys
 from urllib.parse import urlparse
 
 # Terminal colors and icons
@@ -28,17 +27,17 @@ class Icons:
 def get_ssl_expiry_date(hostname, port=443):
     """
     Get the expiry date of an SSL certificate for a given hostname.
-    
+
     Args:
         hostname (str): The hostname to check
         port (int): The port to connect to (default: 443)
-        
+
     Returns:
         datetime.datetime: The expiry date of the certificate
     """
     context = ssl.create_default_context()
     context.minimum_version = ssl.TLSVersion.TLSv1_2
-    
+
     try:
         with socket.create_connection((hostname, port), timeout=10) as sock:
             with context.wrap_socket(sock, server_hostname=hostname) as ssock:
@@ -55,35 +54,35 @@ def get_ssl_expiry_date(hostname, port=443):
 def check_ssl_expiry(url, days_warning=30):
     """
     Check if an SSL certificate is expired or will expire soon.
-    
+
     Args:
         url (str): The URL to check
         days_warning (int): Number of days to warn before expiry
-        
+
     Returns:
         tuple: (is_expired, days_remaining, expiry_date)
     """
     parsed_url = urlparse(url)
-    
+
     # Extract hostname from the URL
     hostname = parsed_url.netloc
     if not hostname:
         hostname = parsed_url.path
-    
+
     # Remove port if present in the hostname
     if ':' in hostname:
         hostname = hostname.split(':')[0]
-    
+
     # Get the expiry date
     expiry_date = get_ssl_expiry_date(hostname)
-    
+
     # Calculate days remaining
     current_date = datetime.datetime.now()
     days_remaining = (expiry_date - current_date).days
-    
+
     # Check if expired
     is_expired = days_remaining < 0
-    
+
     return is_expired, days_remaining, expiry_date
 
 
@@ -94,18 +93,18 @@ def main():
     parser.add_argument('-w', '--warning', type=int, default=30,
                         help='Days before expiry to give warning (default: 30)')
     args = parser.parse_args()
-    
+
     # Ensure URL has a scheme
     url = args.url
     if not url.startswith(('http://', 'https://')):
         url = f"https://{url}"
-    
+
     try:
         is_expired, days_remaining, expiry_date = check_ssl_expiry(url, args.warning)
-        
+
         print(f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Checking SSL certificate for: {url}")
         print(f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Expiry date: {expiry_date.strftime('%Y-%m-%d')}")
-        
+
         if is_expired:
             print(f"{Colors.RED}{Icons.ERROR} EXPIRED: Certificate has expired {abs(days_remaining)} days ago!{Colors.RESET}")
             sys.exit(2)

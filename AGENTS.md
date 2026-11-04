@@ -11,6 +11,13 @@ This is a personal collection of scripts, tools, and projects covering:
 
 ## Code Standards and Practices
 
+### Glossary
+
+- **BASH**: Bourne Again SHell — the standard shell for bash scripts (used with `#!/usr/bin/env bash`)
+- **EXIT**: Shell trap signal — used for cleanup code that runs when the script exits (`trap cleanup EXIT`)
+- **SB**: `stat -f '%SB'` — macOS stat format for showing last modification time of shell scripts
+- **NOT**: Logical negation operator — used in conditions and security directives
+
 ### Shell Scripts (BASH & ZSH)
 
 - Use `#!/usr/bin/env bash` for bash and `#!/usr/bin/env zsh` for zsh.

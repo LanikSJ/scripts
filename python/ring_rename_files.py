@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-Script to rename Ring doorbell video files from the format
+Script to rename Ring doorbell video files from the format.
 Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4.
 """
 
 import os
 import re
-import sys
 from collections import defaultdict
 
 # Terminal colors and icons

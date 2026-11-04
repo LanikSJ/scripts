@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import os
 import re
-import sys
-
 def fix_file(path):
     with open(path, 'r') as f:
         content = f.read()
