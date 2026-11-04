@@ -163,7 +163,7 @@ EOF
   echo "${INFO_ICON} Running npm-check for global packages..."
   
   # Run npm-check globally with proper flags (minor updates only, no new installs)
-  local cmd="npm-check -g -u -y --skip-unused --minor --no-install"
+  local cmd="npm-check -g -u -y --skip-unused --no-install"
   
   # Use a subshell to prevent npm-check from causing the script to exit
   if (eval $cmd); then
@@ -204,8 +204,8 @@ update_module() {
   
   # Change to the module directory
   if cd "$NPM/$module"; then
-    # Always use -y, --skip-unused, and --minor flags to avoid prompts and update only minor versions (no new installs)
-    local cmd="npm-check -u -y --skip-unused --minor --no-install"
+    # Always use -y, --skip-unused, and --no-install flags to avoid prompts and update (any version)
+    local cmd="npm-check -u -y --skip-unused --no-install"
     
     # Run npm-check with error handling
     { eval $cmd ; } > /dev/null 2>&1 || true
