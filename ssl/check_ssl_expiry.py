@@ -2,6 +2,7 @@
 """
 Script to check if an SSL certificate for a given website has expired.
 """
+
 import argparse
 import datetime
 import socket
@@ -13,6 +14,7 @@ from urllib.parse import urlparse
 
 class Colors:
     """ """
+
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
     RED = "\033[91m"
@@ -22,6 +24,7 @@ class Colors:
 
 class Icons:
     """ """
+
     INFO = "ℹ"
     SUCCESS = "✓"
     WARNING = "⚠"
@@ -49,10 +52,10 @@ def get_ssl_expiry_date(hostname, port=443):
                 expire_date_str = cert["notAfter"]
                 # Certificate date format: 'May 30 00:00:00 2023 GMT'
                 expire_date = datetime.datetime.strptime(
-                    expire_date_str, "%b %d %H:%M:%S %Y %Z")
+                    expire_date_str, "%b %d %H:%M:%S %Y %Z"
+                )
                 return expire_date
-    except (socket.gaierror, socket.timeout, ssl.SSLError,
-            ConnectionRefusedError) as e:
+    except (socket.gaierror, socket.timeout, ssl.SSLError, ConnectionRefusedError) as e:
         print(
             f"{Colors.RED}{Icons.ERROR} Error connecting to {hostname}:{port} - {e}{Colors.RESET}"
         )
@@ -97,9 +100,11 @@ def check_ssl_expiry(url, days_warning=30):
 def main():
     """Main function to parse arguments and check SSL expiry."""
     parser = argparse.ArgumentParser(
-        description="Check if an SSL certificate is expired.")
+        description="Check if an SSL certificate is expired."
+    )
     parser.add_argument(
-        "url", help="URL to check (e.g., example.com or https://example.com)")
+        "url", help="URL to check (e.g., example.com or https://example.com)"
+    )
     parser.add_argument(
         "-w",
         "--warning",
@@ -115,8 +120,7 @@ def main():
         url = f"https://{url}"
 
     try:
-        is_expired, days_remaining, expiry_date = check_ssl_expiry(
-            url, args.warning)
+        is_expired, days_remaining, expiry_date = check_ssl_expiry(url, args.warning)
 
         print(
             f"{Colors.BLUE}{Icons.INFO}{Colors.RESET} Checking SSL certificate for: {url}"
