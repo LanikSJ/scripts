@@ -447,7 +447,6 @@ update_ruby() {
   log_success "Ruby Gems ${RUBY_ICON} Updated"
 }
 
-log_info "\n${NPM_ICON} Updating NPM packages"
 update_npm() {
   log_info "\n${NPM_ICON} Updating NPM packages"
 
