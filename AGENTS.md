@@ -14,8 +14,12 @@ This is a personal collection of scripts, tools, and projects covering:
 ### Glossary
 
 - **BASH**: Bourne Again SHell — the standard shell for bash scripts (used with `#!/usr/bin/env bash`)
-- **EXIT**: Bash pseudo-signal / trap condition — used for cleanup code that runs when the script exits (`trap cleanup EXIT`); a Bash built-in signal, not an OS signal
-- **SB**: `stat -f '%Sm'` — macOS stat format for showing last modification time (human-readable); `%SB` represents the file birth time (epoch timestamp)
+- **EXIT**: Bash pseudo-signal / trap condition — used for cleanup code that
+  runs when the script exits (`trap cleanup EXIT`); a Bash built-in signal, not
+  an OS signal
+- **SB**: `stat -f '%Sm'` — macOS stat format for showing last modification
+  time (human-readable); `%SB` represents the file birth time (epoch
+  timestamp)
 - **NOT**: Logical negation operator — used in conditions and security directives
 
 ### Shell Scripts (BASH & ZSH)
