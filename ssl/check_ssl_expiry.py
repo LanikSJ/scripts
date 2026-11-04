@@ -3,10 +3,10 @@
 Script to check if an SSL certificate for a given website has expired.
 """
 
-import ssl
-import socket
-import datetime
 import argparse
+import datetime
+import socket
+import ssl
 from urllib.parse import urlparse
 
 # Terminal colors and icons
