@@ -97,12 +97,12 @@ check_dependencies() {
 # Build exclude pattern for grep
 build_exclude_pattern() {
   local pattern=""
-  
+
   if [[ ${#EXCLUDE_MODULES[@]} -gt 0 ]]; then
     pattern=$(printf "|%s" "${EXCLUDE_MODULES[@]}")
     pattern=${pattern:1}  # Remove leading |
   fi
-  
+
   echo $pattern
 }
 
@@ -110,15 +110,15 @@ build_exclude_pattern() {
 get_modules_to_update() {
   local exclude_pattern=$(build_exclude_pattern)
   local result_modules=()
-  
+
   export NPM="$HOMEBREW_PREFIX/lib/node_modules"
-  
+
   if [[ -z $exclude_pattern ]]; then
     result_modules=($(ls -lh $NPM | grep drwx | awk '{print $NF}' | grep -v "^@"))
   else
     result_modules=($(ls -lh $NPM | grep drwx | awk '{print $NF}' | grep -v "^@" | grep -Ev "$exclude_pattern"))
   fi
-  
+
   # Add scoped packages (those starting with @)
   for scope in $(ls -lh $NPM | grep drwx | awk '{print $NF}' | grep "^@"); do
     if [[ -z $exclude_pattern ]]; then
@@ -128,23 +128,23 @@ get_modules_to_update() {
     fi
     result_modules+=($scope_modules)
   done
-  
+
   echo "${result_modules[@]}"
 }
 
 # Update npm globally
 update_npm_global() {
   echo "${UPDATE_ICON} Updating NPM Global..."
-  
+
   if [[ $DRY_RUN == true ]]; then
     echo "${INFO_ICON} Dry run: Would update npm globally"
     return
   fi
-  
+
   # Create a temporary directory with a minimal package.json for npm-check
   local tmp_dir=$(mktemp -d)
   local current_dir=$(pwd)
-  
+
   # Create a minimal package.json in the temp directory
   cat > "$tmp_dir/package.json" << EOF
 {
@@ -153,63 +153,63 @@ update_npm_global() {
   "description": "Temporary package.json for npm-check global updates"
 }
 EOF
-  
+
   # Change to the temporary directory
   cd "$tmp_dir" || {
     echo "${WARNING_ICON} Could not create temporary directory for npm-check operations"
     return 1
   }
-  
+
   echo "${INFO_ICON} Running npm-check for global packages..."
-  
+
   # Run npm-check globally with proper flags (minor updates only, no new installs)
-  local cmd="npm-check -g -u -y --skip-unused --minor --no-install"
-  
+  local cmd="npm-check -g -u -y --skip-unused --no-install"
+
   # Use a subshell to prevent npm-check from causing the script to exit
   if (eval $cmd); then
     echo "${SUCCESS_ICON} Global packages updated successfully"
   else
     echo "${WARNING_ICON} Failed to update some global packages"
   fi
-  
+
   # Clean up
   cd "$current_dir"
   rm -rf "$tmp_dir"
-  
+
   return 0
 }
 
 # Update a specific module
 update_module() {
   local module=$1
-  
+
   echo "${PACKAGE_ICON} Updating $module..."
-  
+
   if [[ $DRY_RUN == true ]]; then
     echo "${INFO_ICON} Dry run: Would update $module"
     return 0
   fi
-  
+
   export NPM="$HOMEBREW_PREFIX/lib/node_modules"
-  
+
   # Create a temporary directory for npm-check operations
   local tmp_dir=$(mktemp -d)
   local current_dir=$(pwd)
-  
+
   # Change to the temporary directory
   cd "$tmp_dir" || {
     echo "${WARNING_ICON} Could not create temporary directory for npm-check operations"
     return 1
   }
-  
+
   # Change to the module directory
   if cd "$NPM/$module"; then
-    # Always use -y, --skip-unused, and --minor flags to avoid prompts and update only minor versions (no new installs)
-    local cmd="npm-check -u -y --skip-unused --minor --no-install"
-    
+    # Always use -y, --skip-unused, and --no-install flags to avoid prompts and update (any version)
+    local cmd="npm-check -u -y --skip-unused --no-install"
+
     # Run npm-check with error handling
     { eval $cmd ; } > /dev/null 2>&1 || true
-    
+
     if [[ $? -eq 0 ]]; then
       echo "${SUCCESS_ICON} $module updated successfully"
       cd "$tmp_dir"
@@ -233,7 +233,7 @@ main() {
   check_dependencies
 
   export NPM="$HOMEBREW_PREFIX/lib/node_modules"
-  
+
   # Show configuration
   echo "${CONFIG_ICON} Configuration:"
   echo "${NODE_ICON} NPM modules directory: $NPM"
@@ -241,11 +241,11 @@ main() {
   echo "${INFO_ICON} Dry run: $DRY_RUN"
   echo "${INFO_ICON} Global only: $GLOBAL_ONLY"
   echo
-  
+
   # Get modules to update
   echo "${INFO_ICON} Getting module list..."
   local node_modules=($(get_modules_to_update))
-  
+
   # Show what will be updated
   echo "${PACKAGE_ICON} Modules to update (${#node_modules[@]}):"
   if [[ $VERBOSE == true ]]; then
@@ -264,14 +264,14 @@ main() {
     fi
   fi
   echo
-  
+
   # Update npm globally
   update_npm_global
-  
+
   # Update each module
   local success_count=0
   local fail_count=0
-  
+
   if [[ $GLOBAL_ONLY != true ]]; then
     for module in "${node_modules[@]}"; do
       echo
@@ -284,7 +284,7 @@ main() {
   else
     echo "${INFO_ICON} Skipping individual modules (--global-only specified)"
   fi
-  
+
   # Summary
   echo
   echo "${INFO_ICON} Update Summary:"

@@ -447,7 +447,6 @@ update_ruby() {
   log_success "Ruby Gems ${RUBY_ICON} Updated"
 }
 
-# Update NPM packages
 update_npm() {
   log_info "\n${NPM_ICON} Updating NPM packages"
 
@@ -508,8 +507,8 @@ update_npm() {
   for pkg in $global_packages; do
     log_info "Checking ${pkg}..."
 
-    # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
-    { npm-check -g -u -y --skip-unused --minor --no-install "$pkg" ; } > /dev/null 2>&1 || true
+    # Run npm-check with error handling - use flag to update only minor versions (no new installs)
+    { npm-check -g -u -y --skip-unused --no-install "$pkg" ; } > /dev/null 2>&1 || true
 
     # Check if the package was updated by checking if it's still outdated
     if npm outdated -g "$pkg" | grep -q "$pkg"; then
@@ -561,8 +560,8 @@ update_npm() {
 
       # Change to the package directory
       if cd "$pkg_dir"; then
-        # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
-        { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
+        # Run npm-check with error handling - use flag to update only minor versions (no new installs)
+        { npm-check -u -y --skip-unused --no-install ; } > /dev/null 2>&1 || true
 
         if [[ $? -eq 0 ]]; then
           log_success "Updated $pkg_name successfully"
@@ -586,8 +585,8 @@ update_npm() {
     log_info "\n${NPM_ICON} Updating AGLint using npm-check"
 
     if cd "$NPM_DIR/@adguard/aglint"; then
-      # Run npm-check with error handling - use --minor flag to update only minor versions (no new installs)
-      { npm-check -u -y --skip-unused --minor --no-install ; } > /dev/null 2>&1 || true
+      # Run npm-check with error handling - use flag to update only minor versions (no new installs)
+      { npm-check -u -y --skip-unused --no-install ; } > /dev/null 2>&1 || true
 
       if [[ $? -eq 0 ]]; then
         log_success "Updated AGLint successfully"
