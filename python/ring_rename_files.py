@@ -2,7 +2,6 @@
 """
 Script to rename Ring doorbell video files from the format.
 """
-
 import os
 import re
 from collections import defaultdict
