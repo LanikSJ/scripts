@@ -11,7 +11,7 @@ from collections import defaultdict
 
 
 class Colors:
-    """Color Codes"""
+    """Color Codes."""
 
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
@@ -21,7 +21,7 @@ class Colors:
 
 
 class Icons:
-    """Icons"""
+    """Icons."""
 
     INFO = "ℹ"
     SUCCESS = "✓"
@@ -30,7 +30,8 @@ class Icons:
 
 
 def rename_ring_files(folder):
-    """Rename Ring video files in the specified folder.
+    """
+    Rename Ring video files in the specified folder.
 
     :param folder: Path to the folder containing Ring video files
     :type folder: str
