@@ -90,8 +90,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description=
-        "Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4"
+        description="Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4"
     )
     parser.add_argument("folders",
                         nargs="+",
