@@ -25,8 +25,8 @@ wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i ha
 wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 
 # Link Status
-wiredlink=$(ifconfig --interface $wired 2>/dev/null |grep "inet address" |awk '{print $1}')
-wirelesslink=$(ifconfig --interface $wireless 2>/dev/null |grep "inet address" |awk '{print $1}')
+wiredlink=$(ifconfig $wired 2>/dev/null |grep "inet " |awk '{print $1}')
+wirelesslink=$(ifconfig $wireless 2>/dev/null |grep "inet " |awk '{print $1}')
 
 # Internet IPs
 inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
@@ -42,7 +42,7 @@ fi
 display_ipinfo() {
     if [[ ! -z $wiredlink ]]; then
         # Wired IPv4
-        localv4=$(ifconfig --interface $wired |grep "inet address" |awk '{print $NF}')
+        localv4=$(ifconfig $wired |grep "inet " |awk '{print $2}')
         echo && echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv4:${RESET} ${GREEN}`echo $localv4`${RESET}"
     fi
 
@@ -72,7 +72,7 @@ display_ipinfo() {
 
     if [[ ! -z $wirelesslink ]]; then
         # Wireless IPv4
-        wirelessv4=$(ifconfig --interface $wireless |grep "inet address" |awk '{print $NF}')
+        wirelessv4=$(ifconfig $wireless |grep "inet " |awk '{print $2}')
         echo && echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv4:${RESET} ${GREEN}`echo $wirelessv4`${RESET}"
     fi
 
