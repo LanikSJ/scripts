@@ -14,7 +14,7 @@ We take security seriously and appreciate your efforts to responsibly disclose y
 ### How to Report
 
 **Do NOT open a public issue** for security vulnerabilities. Instead, please report security issues through one of these
- channels:
+channels:
 
 1. **GitHub Security Advisories** (Preferred): [Report via GitHub](https://github.com/LanikSJ/scripts/security/advisories/new)
 2. **Security Discussions**: Open a discussion in our [GitHub Discussions](https://github.com/LanikSJ/scripts/discussions/categories/security)
