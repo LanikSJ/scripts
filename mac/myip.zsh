@@ -21,18 +21,34 @@ CYAN="\033[36m"
 GRAY="\033[37m"
 
 # Interfaces
+# Get wired interface: prefer first in service order with IPv4
 wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
-wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
-
-# Link Status
 wiredlink=""
 if [[ -n "$wired" ]]; then
-    wiredlink=$(ifconfig "$wired" 2>/dev/null | grep "inet " | awk '{print $1}')
+    # Iterate through all USB 10/100 entries in service order, pick first with IPv4
+    while IFS= read -r iface; do
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet "; then
+            wired=$iface
+            wiredlink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
+            break
+        fi
+    done <<< "$wired"
 fi
+
+# Get wireless interface: prefer first in service order with IPv4
+wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wirelesslink=""
 if [[ -n "$wireless" ]]; then
-    wirelesslink=$(ifconfig "$wireless" 2>/dev/null | grep "inet " | awk '{print $1}')
+    # Iterate through all Wi-Fi entries in service order, pick first with IPv4
+    while IFS= read -r iface; do
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet "; then
+            wireless=$iface
+            wirelesslink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
+            break
+        fi
+    done <<< "$wireless"
 fi
+
 
 # Internet IPs
 inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
