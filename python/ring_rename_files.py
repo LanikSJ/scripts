@@ -30,8 +30,7 @@ class Icons:
 
 
 def rename_ring_files(folder):
-    """
-    Rename Ring video files in the specified folder.
+    """Rename Ring video files in the specified folder.
 
     :param folder: Path to the folder containing Ring video files
     :type folder: str
