@@ -22,7 +22,7 @@ GRAY="\033[37m"
 
 # Interfaces
 # Get wired interface: prefer first in service order with IPv4 and active link
-wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+wired=$(networksetup -listnetworkserviceorder |grep -E "10/100|Ethernet" -A1 |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wiredlink=""
 if [[ -n "$wired" ]]; then
     # Iterate through all USB 10/100 entries in service order, pick first with IPv4 AND active link
