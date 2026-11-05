@@ -21,13 +21,13 @@ CYAN="\033[36m"
 GRAY="\033[37m"
 
 # Interfaces
-# Get wired interface: prefer first in service order with IPv4
+# Get wired interface: prefer first in service order with IPv4 and active link
 wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wiredlink=""
 if [[ -n "$wired" ]]; then
-    # Iterate through all USB 10/100 entries in service order, pick first with IPv4
+    # Iterate through all USB 10/100 entries in service order, pick first with IPv4 AND active link
     while IFS= read -r iface; do
-        if ifconfig "$iface" 2>/dev/null | grep -q "inet "; then
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet " && ifconfig "$iface" 2>/dev/null | grep -q "status: active"; then
             wired=$iface
             wiredlink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
             break
@@ -35,13 +35,13 @@ if [[ -n "$wired" ]]; then
     done <<< "$wired"
 fi
 
-# Get wireless interface: prefer first in service order with IPv4
+# Get wireless interface: prefer first in service order with IPv4 and active link
 wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 wirelesslink=""
 if [[ -n "$wireless" ]]; then
-    # Iterate through all Wi-Fi entries in service order, pick first with IPv4
+    # Iterate through all Wi-Fi entries in service order, pick first with IPv4 and active link
     while IFS= read -r iface; do
-        if ifconfig "$iface" 2>/dev/null | grep -q "inet "; then
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet " && ifconfig "$iface" 2>/dev/null | grep -q "status: active"; then
             wireless=$iface
             wirelesslink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
             break
