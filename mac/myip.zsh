@@ -25,8 +25,14 @@ wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i ha
 wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
 
 # Link Status
-wiredlink=$(ifconfig $wired 2>/dev/null |grep "inet " |awk '{print $1}')
-wirelesslink=$(ifconfig $wireless 2>/dev/null |grep "inet " |awk '{print $1}')
+wiredlink=""
+if [[ -n "$wired" ]]; then
+    wiredlink=$(ifconfig "$wired" 2>/dev/null | grep "inet " | awk '{print $1}')
+fi
+wirelesslink=""
+if [[ -n "$wireless" ]]; then
+    wirelesslink=$(ifconfig "$wireless" 2>/dev/null | grep "inet " | awk '{print $1}')
+fi
 
 # Internet IPs
 inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
