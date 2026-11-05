@@ -3,13 +3,12 @@ import os
 import re
 
 
-def fix_file(filename):
+def fix_file(path):
     """Fix shellcheck errors in a file.
 
-    :param filename: Path to the file to fix.
-
+    :param path: Path to the file to fix.
     """
-    with open(filename, "r") as f:
+    with open(path, "r") as f:
         lines = f.readlines()
 
     new_lines = []
@@ -70,7 +69,7 @@ def fix_file(filename):
     content = re.sub(r"^(\s*)echo\s+`", r"\1", content, flags=re.MULTILINE)
     content = re.sub(r"^(\s*)echo\s+\$\(", r"\1", content, flags=re.MULTILINE)
 
-    with open(filename, "w") as f:
+    with open(path, "w") as f:
         f.write(content)
 
 
