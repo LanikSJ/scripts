@@ -12,18 +12,18 @@ from collections import defaultdict
 
 
 class Colors:
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BLUE = '\033[94m'
-    RESET = '\033[0m'
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BLUE = "\033[94m"
+    RESET = "\033[0m"
 
 
 class Icons:
-    INFO = 'ℹ'
-    SUCCESS = '✓'
-    WARNING = '⚠'
-    ERROR = '✗'
+    INFO = "ℹ"
+    SUCCESS = "✓"
+    WARNING = "⚠"
+    ERROR = "✗"
 
 
 def rename_ring_files(folder):
@@ -37,8 +37,8 @@ def rename_ring_files(folder):
         int: Number of files renamed
     """
     pattern = re.compile(
-        r'^Ring_(\d{8}_\d{4})_'
-        r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.mp4$'
+        r"^Ring_(\d{8}_\d{4})_"
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.mp4$"
     )
 
     if not os.path.isdir(folder):
@@ -48,7 +48,7 @@ def rename_ring_files(folder):
     target_names = defaultdict(list)
 
     for filename in os.listdir(folder):
-        if filename == '.DS_Store':
+        if filename == ".DS_Store":
             continue
         match = pattern.match(filename)
         if match:
@@ -64,7 +64,8 @@ def rename_ring_files(folder):
             dst = os.path.join(folder, target)
             os.rename(src, dst)
             print(
-                f"{Colors.GREEN}{Icons.SUCCESS} Renamed: {sources[0]} -> {target}{Colors.RESET}")
+                f"{Colors.GREEN}{Icons.SUCCESS} Renamed: {sources[0]} -> {target}{Colors.RESET}"
+            )
             renamed_count += 1
         else:
             for i, src_name in enumerate(sorted(sources), 1):
@@ -74,7 +75,8 @@ def rename_ring_files(folder):
                 dst = os.path.join(folder, dst_name)
                 os.rename(src, dst)
                 print(
-                    f"{Colors.YELLOW}{Icons.WARNING} Renamed: {src_name} -> {dst_name}{Colors.RESET}")
+                    f"{Colors.YELLOW}{Icons.WARNING} Renamed: {src_name} -> {dst_name}{Colors.RESET}"
+                )
                 renamed_count += 1
 
     return renamed_count
@@ -83,11 +85,13 @@ def rename_ring_files(folder):
 def main():
     """Main function to parse arguments and rename Ring files."""
     import argparse
+
     parser = argparse.ArgumentParser(
-        description='Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4'
+        description="Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4"
     )
-    parser.add_argument('folders', nargs='+',
-                        help='Folder(s) containing Ring video files')
+    parser.add_argument(
+        "folders", nargs="+", help="Folder(s) containing Ring video files"
+    )
     args = parser.parse_args()
 
     total_renamed = 0
@@ -97,7 +101,9 @@ def main():
         count = rename_ring_files(folder)
         total_renamed += count
 
-    print(f"{Colors.GREEN}{Icons.SUCCESS} Done! Renamed {total_renamed} files total.{Colors.RESET}")
+    print(
+        f"{Colors.GREEN}{Icons.SUCCESS} Done! Renamed {total_renamed} files total.{Colors.RESET}"
+    )
 
 
 if __name__ == "__main__":
