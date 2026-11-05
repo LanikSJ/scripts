@@ -4,10 +4,10 @@ import re
 
 
 def fix_file(filename):
-    """
-    Fix shellcheck errors in a file.
+    """Fix shellcheck errors in a file.
 
     :param filename: Path to the file to fix.
+
     """
     with open(filename, "r") as f:
         lines = f.readlines()
