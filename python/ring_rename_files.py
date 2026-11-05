@@ -9,12 +9,15 @@ import re
 from collections import defaultdict
 
 # Terminal colors and icons
+
+
 class Colors:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
     BLUE = '\033[94m'
     RESET = '\033[0m'
+
 
 class Icons:
     INFO = 'ℹ'
@@ -60,7 +63,8 @@ def rename_ring_files(folder):
             src = os.path.join(folder, sources[0])
             dst = os.path.join(folder, target)
             os.rename(src, dst)
-            print(f"{Colors.GREEN}{Icons.SUCCESS} Renamed: {sources[0]} -> {target}{Colors.RESET}")
+            print(
+                f"{Colors.GREEN}{Icons.SUCCESS} Renamed: {sources[0]} -> {target}{Colors.RESET}")
             renamed_count += 1
         else:
             for i, src_name in enumerate(sorted(sources), 1):
@@ -69,7 +73,8 @@ def rename_ring_files(folder):
                 dst_name = f"{base}_{i}{ext}"
                 dst = os.path.join(folder, dst_name)
                 os.rename(src, dst)
-                print(f"{Colors.YELLOW}{Icons.WARNING} Renamed: {src_name} -> {dst_name}{Colors.RESET}")
+                print(
+                    f"{Colors.YELLOW}{Icons.WARNING} Renamed: {src_name} -> {dst_name}{Colors.RESET}")
                 renamed_count += 1
 
     return renamed_count
@@ -81,7 +86,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4'
     )
-    parser.add_argument('folders', nargs='+', help='Folder(s) containing Ring video files')
+    parser.add_argument('folders', nargs='+',
+                        help='Folder(s) containing Ring video files')
     args = parser.parse_args()
 
     total_renamed = 0
