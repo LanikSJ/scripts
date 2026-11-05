@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Display IP information for all active Interfaces and VPN
-# Usage: myip.zsh 
+# Usage: myip.zsh
 
 # Icons
 ETHERNET_ICON="🔌"
