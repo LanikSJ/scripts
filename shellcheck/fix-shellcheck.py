@@ -5,9 +5,9 @@ import re
 
 def fix_file(filename):
     """
+    Fix shellcheck errors in a file.
 
-    :param filename:
-
+    :param filename: Path to the file to fix.
     """
     with open(filename, "r") as f:
         lines = f.readlines()
@@ -54,10 +54,9 @@ def fix_file(filename):
     content = "".join(new_lines)
 
     # Fix SC2155: local x=$(cmd) -> local x; x=$(cmd)
-    content = re.sub(r"^(local\s+)(\w+=\$\([^)]+\))",
-                     r"\1\2; \2",
-                     content,
-                     flags=re.MULTILINE)
+    content = re.sub(
+        r"^(local\s+)(\w+=\$\([^)]+\))", r"\1\2; \2", content, flags=re.MULTILINE
+    )
 
     # Fix SC2207: arr=($(cmd)) -> mapfile -t arr < <(cmd)
     content = re.sub(
