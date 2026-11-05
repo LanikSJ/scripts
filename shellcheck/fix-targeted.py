@@ -4,10 +4,10 @@ import re
 
 
 def fix_file(path):
-    """
-    Fix shellcheck errors in a file.
+    """Fix shellcheck errors in a file.
 
     :param path: Path to the file to fix.
+
     """
     with open(path, "r") as f:
         content = f.read()
@@ -42,7 +42,8 @@ def fix_file(path):
     content = re.sub(r'source\s+"~/', 'source "$HOME/', content)
 
     # Fix SC2066: for var in "${ARR}"; -> for var in ${ARR};
-    content = re.sub(r'for\s+\w+\s+in\s+"\$\{(\w+)\}";', r"for \1 in ${ARR};", content)
+    content = re.sub(r'for\s+\w+\s+in\s+"\$\{(\w+)\}";', r"for \1 in ${ARR};",
+                     content)
 
     if content != original:
         with open(path, "w") as f:
