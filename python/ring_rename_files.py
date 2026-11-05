@@ -3,6 +3,7 @@
 Script to rename Ring doorbell video files from the format
 Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4.
 """
+
 import os
 import re
 from collections import defaultdict
@@ -41,12 +42,11 @@ def rename_ring_files(folder):
     """
     pattern = re.compile(
         r"^Ring_(\d{8}_\d{4})_"
-        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.mp4$")
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.mp4$"
+    )
 
     if not os.path.isdir(folder):
-        print(
-            f"{Colors.RED}{Icons.ERROR} Folder not found: {folder}{Colors.RESET}"
-        )
+        print(f"{Colors.RED}{Icons.ERROR} Folder not found: {folder}{Colors.RESET}")
         return 0
 
     target_names = defaultdict(list)
@@ -93,9 +93,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Rename Ring video files from Ring_YYYYMMDD_HHMM_UUID.mp4 to RingVideo_YYYYMMDD_HHMM.mp4"
     )
-    parser.add_argument("folders",
-                        nargs="+",
-                        help="Folder(s) containing Ring video files")
+    parser.add_argument(
+        "folders", nargs="+", help="Folder(s) containing Ring video files"
+    )
     args = parser.parse_args()
 
     total_renamed = 0
