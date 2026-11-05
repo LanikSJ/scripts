@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Display IP information for all active Interfaces and VPN
-# Usage: myip.zsh 
+# Usage: myip.zsh
 
 # Icons
 ETHERNET_ICON="🔌"
@@ -21,12 +21,34 @@ CYAN="\033[36m"
 GRAY="\033[37m"
 
 # Interfaces
-wired=$(networksetup -listnetworkserviceorder |grep -A1 "USB 10/100" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
-wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+# Get wired interface: prefer first in service order with IPv4 and active link
+wired=$(networksetup -listnetworkserviceorder |grep -E "10/100|Ethernet" -A1 |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+wiredlink=""
+if [[ -n "$wired" ]]; then
+    # Iterate through all USB 10/100 entries in service order, pick first with IPv4 AND active link
+    while IFS= read -r iface; do
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet " && ifconfig "$iface" 2>/dev/null | grep -q "status: active"; then
+            wired=$iface
+            wiredlink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
+            break
+        fi
+    done <<< "$wired"
+fi
 
-# Link Status
-wiredlink=$(ifconfig --interface $wired 2>/dev/null |grep "inet address" |awk '{print $1}')
-wirelesslink=$(ifconfig --interface $wireless 2>/dev/null |grep "inet address" |awk '{print $1}')
+# Get wireless interface: prefer first in service order with IPv4 and active link
+wireless=$(networksetup -listnetworkserviceorder |grep -A1 "Wi-Fi" |grep -i hardware |awk '{print $NF}' |sed 's/)//')
+wirelesslink=""
+if [[ -n "$wireless" ]]; then
+    # Iterate through all Wi-Fi entries in service order, pick first with IPv4 and active link
+    while IFS= read -r iface; do
+        if ifconfig "$iface" 2>/dev/null | grep -q "inet " && ifconfig "$iface" 2>/dev/null | grep -q "status: active"; then
+            wireless=$iface
+            wirelesslink=$(ifconfig "$iface" 2>/dev/null | grep "inet " | awk '{print $1}')
+            break
+        fi
+    done <<< "$wireless"
+fi
+
 
 # Internet IPs
 inetv4=$(dig +short myip.opendns.com @resolver1.opendns.com)
@@ -42,7 +64,7 @@ fi
 display_ipinfo() {
     if [[ ! -z $wiredlink ]]; then
         # Wired IPv4
-        localv4=$(ifconfig --interface $wired |grep "inet address" |awk '{print $NF}')
+        localv4=$(ifconfig $wired |grep "inet " |awk '{print $2}')
         echo && echo "${BLUE}${BOLD}${ETHERNET_ICON} Ethernet IPv4:${RESET} ${GREEN}`echo $localv4`${RESET}"
     fi
 
@@ -72,7 +94,7 @@ display_ipinfo() {
 
     if [[ ! -z $wirelesslink ]]; then
         # Wireless IPv4
-        wirelessv4=$(ifconfig --interface $wireless |grep "inet address" |awk '{print $NF}')
+        wirelessv4=$(ifconfig $wireless |grep "inet " |awk '{print $2}')
         echo && echo "${YELLOW}${BOLD}${WIFI_ICON} Wireless IPv4:${RESET} ${GREEN}`echo $wirelessv4`${RESET}"
     fi
 
