@@ -6,7 +6,7 @@ import re
 def fix_file(path):
     """
 
-    :param path: 
+    :param path:
 
     """
     with open(path, "r") as f:
