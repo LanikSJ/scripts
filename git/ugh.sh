@@ -104,7 +104,7 @@ git_update() {
     fi
   else
     if [[ -n "$pull_output" ]]; then
-      printf '%s\n' "$pull_output"
+      printf '%s\n' "$(colorize_diff_stats "$pull_output")"
     fi
   fi
 
@@ -119,6 +119,43 @@ git_update() {
     git branch -D "$b" || log_warning "Failed to delete local branch $b"
   done
 }
+
+# 🎨 Colorize diff stats from git pull output
+# Handles lines like:
+#   |  4 ++--     → + in green, - in red (per-character)
+#   |  12 ++++++------ → + green, - red
+#   |  2 +-       → + green, - red
+#   |  5 ++++     → all green
+#   |  3 -----    → all red
+colorize_diff_stats() {
+  local input="$1"
+  local line prefix sign_pattern colored_sign char i
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Match lines like "|  4 ++--" or "|  12 ++++++------"
+    if [[ "$line" =~ (\|[[:space:]]+[0-9]+[[:space:]])([+-]+) ]]; then
+      prefix="${BASH_REMATCH[1]}"
+      sign_pattern="${BASH_REMATCH[2]}"
+
+      # Build colored sign string: + → green, - → red (per-character)
+      colored_sign=""
+      for (( i=0; i<${#sign_pattern}; i++ )); do
+        char="${sign_pattern:$i:1}"
+        if [[ "$char" == "+" ]]; then
+          colored_sign+="${COLOR_GREEN}+${COLOR_RESET}"
+        elif [[ "$char" == "-" ]]; then
+          colored_sign+="${COLOR_RED}-${COLOR_RESET}"
+        else
+          colored_sign+="$char"
+        fi
+      done
+
+      line="${line/${prefix}${sign_pattern}/${prefix}${colored_sign}}"
+    fi
+    printf '%b\n' "$line"
+  done <<< "$input"
+}
+
 
 log_info "🚀 Starting GitHub repository update process"
 
