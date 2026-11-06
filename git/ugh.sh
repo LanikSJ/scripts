@@ -76,7 +76,7 @@ git_update() {
       :
     else
       filter_status=$?
-      if (( filter_status > 1 )); then
+      if ((filter_status > 1)); then
         return "$filter_status"
       fi
       filtered_output=""
@@ -139,7 +139,7 @@ colorize_diff_stats() {
 
       # Build colored sign string: + → green, - → red (per-character)
       colored_sign=""
-      for (( i=0; i<${#sign_pattern}; i++ )); do
+      for ((i = 0; i < ${#sign_pattern}; i++)); do
         char="${sign_pattern:$i:1}"
         if [[ "$char" == "+" ]]; then
           colored_sign+="${COLOR_GREEN}+${COLOR_RESET}"
@@ -153,9 +153,8 @@ colorize_diff_stats() {
       line="${line/${prefix}${sign_pattern}/${prefix}${colored_sign}}"
     fi
     printf '%b\n' "$line"
-  done <<< "$input"
+  done <<<"$input"
 }
-
 
 log_info "🚀 Starting GitHub repository update process"
 
@@ -193,12 +192,12 @@ for repo in "${repolist[@]}"; do
   (
     # Save current directory to return to it later
     current_dir=$PWD
-    
+
     cd "$GITHUB/$repo" || {
       log_error "Could not change to repository: $GITHUB/$repo"
       exit 1
     }
-    
+
     # Detect primary branch
     if git show-ref --verify --quiet refs/heads/develop; then
       branch="develop"
@@ -209,16 +208,16 @@ for repo in "${repolist[@]}"; do
     else
       branch="master"
     fi
-    
+
     git_update "$repo" "$branch"
     log_success "✅ $repo updated and cleaned"
-    
+
     # Return to original directory
     cd "$current_dir" || log_warning "Could not return to original directory"
   ) >"$repo_log" 2>&1 &
   job_logs+=("$!|$repo_log")
   # Limit parallel jobs - bash compatible version
-  if (( ${#job_logs[@]} >= JOBS )); then
+  if ((${#job_logs[@]} >= JOBS)); then
     # Use wait -n for bash (supported in bash 4.3+)
     if wait -n 2>/dev/null; then
       # Flush finished repos' buffered output as one block each, keep running jobs
