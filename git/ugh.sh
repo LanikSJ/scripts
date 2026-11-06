@@ -114,7 +114,7 @@ git_update() {
 
   # Delete all local branches except the primary/default branch
   log_info "🗑️ Deleting non-default local branches for $repo"
-  for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
+  for b in "$(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}')"; do
     log_info "  🗑️ Deleting local branch: $b"
     git branch -D "$b" || log_warning "Failed to delete local branch $b"
   done
