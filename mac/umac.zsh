@@ -50,12 +50,12 @@ trap 'cleanup_temp_files' EXIT
 
 
 # Log functions for consistent output
-COLOR_RESET='\033[0m'
-COLOR_BOLD='\033[1m'
-COLOR_RED='\033[0;31m'
-COLOR_GREEN='\033[0;32m'
-COLOR_YELLOW='\033[0;33m'
-COLOR_CYAN='\033[0;36m'
+COLOR_RESET=$'\033[0m'
+COLOR_BOLD=$'\033[1m'
+COLOR_RED=$'\033[0;31m'
+COLOR_GREEN=$'\033[0;32m'
+COLOR_YELLOW=$'\033[0;33m'
+COLOR_CYAN=$'\033[0;36m'
 
 log_info() {
   echo -e "${COLOR_CYAN}${COLOR_BOLD}$1${COLOR_RESET}"
@@ -737,7 +737,7 @@ colorize_diff_stats() {
 
       line="${line/${prefix}${sign_pattern}/${prefix}${colored_sign}}"
     fi
-    printf '%b\n' "$line"
+    printf '%s\n' "$line"
   done <<< "$input"
 }
 
