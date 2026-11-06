@@ -50,12 +50,12 @@ trap 'cleanup_temp_files' EXIT
 
 
 # Log functions for consistent output
-COLOR_RESET='\033[0m'
-COLOR_BOLD='\033[1m'
-COLOR_RED='\033[0;31m'
-COLOR_GREEN='\033[0;32m'
-COLOR_YELLOW='\033[0;33m'
-COLOR_CYAN='\033[0;36m'
+COLOR_RESET=$'\033[0m'
+COLOR_BOLD=$'\033[1m'
+COLOR_RED=$'\033[0;31m'
+COLOR_GREEN=$'\033[0;32m'
+COLOR_YELLOW=$'\033[0;33m'
+COLOR_CYAN=$'\033[0;36m'
 
 log_info() {
   echo -e "${COLOR_CYAN}${COLOR_BOLD}$1${COLOR_RESET}"
@@ -705,6 +705,42 @@ flush_repo_log() {
   fi
 }
 
+# 🎨 Colorize diff stats from git pull output
+# Handles lines like:
+#   |  4 ++--     → + in green, - in red (per-character)
+#   |  12 ++++++------ → + green, - red
+#   |  2 +-       → + green, - red
+#   |  5 ++++     → all green
+#   |  3 -----    → all red
+colorize_diff_stats() {
+  local input="$1"
+  local line prefix sign_pattern colored_sign char i
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Match lines like "|  4 ++--" or "|  12 ++++++------"
+    if [[ "$line" =~ (\|[[:space:]]+[0-9]+[[:space:]])([+-]+) ]]; then
+      prefix="${match[1]}"
+      sign_pattern="${match[2]}"
+
+      # Build colored sign string: + → green, - → red (per-character)
+      colored_sign=""
+      for (( i=0; i<${#sign_pattern}; i++ )); do
+        char="${sign_pattern:$i:1}"
+        if [[ "$char" == "+" ]]; then
+          colored_sign+="${COLOR_GREEN}+${COLOR_RESET}"
+        elif [[ "$char" == "-" ]]; then
+          colored_sign+="${COLOR_RED}-${COLOR_RESET}"
+        else
+          colored_sign+="$char"
+        fi
+      done
+
+      line="${line/${prefix}${sign_pattern}/${prefix}${colored_sign}}"
+    fi
+    printf '%s\n' "$line"
+  done <<< "$input"
+}
+
 # 🛠️ Git update function (shared with ugh.sh)
 git_update() {
   local repo="$1"
@@ -723,7 +759,7 @@ git_update() {
     # Display git pull output, excluding only the "no such ref was fetched"
     # message that is deliberately replaced by the targeted warning below
     local filtered_output="" filter_status
-    if filtered_output=$(printf '%s\n' "$pull_output" | grep -v -e 'no such ref was fetched' -e "Your configuration specifies to merge with the ref"); then
+    if filtered_output=$(printf '%b\n' "$pull_output" | grep -v -e 'no such ref was fetched' -e "Your configuration specifies to merge with the ref"); then
       :
     else
       filter_status=$?
@@ -733,7 +769,7 @@ git_update() {
       filtered_output=""
     fi
     if [[ -n "$filtered_output" ]]; then
-      printf '%s\n' "$filtered_output"
+      printf '%b\n' "$(colorize_diff_stats "$filtered_output")"
     fi
     if [[ "$pull_output" == *"no such ref was fetched"* ]]; then
       # Read the branch's configured upstream from git config
@@ -755,7 +791,7 @@ git_update() {
     fi
   else
     if [[ -n "$pull_output" ]]; then
-      printf '%s\n' "$pull_output"
+      printf '%b\n' "$(colorize_diff_stats "$pull_output")"
     fi
   fi
 

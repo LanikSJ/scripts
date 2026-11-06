@@ -7,12 +7,12 @@ set -euo pipefail
 GIT_ICON="📂"
 
 # ANSI colors for consistent, colorful output
-COLOR_RESET='\033[0m'
-COLOR_BOLD='\033[1m'
-COLOR_RED='\033[0;31m'
-COLOR_GREEN='\033[0;32m'
-COLOR_YELLOW='\033[0;33m'
-COLOR_CYAN='\033[0;36m'
+COLOR_RESET=$'\033[0m'
+COLOR_BOLD=$'\033[1m'
+COLOR_RED=$'\033[0;31m'
+COLOR_GREEN=$'\033[0;32m'
+COLOR_YELLOW=$'\033[0;33m'
+COLOR_CYAN=$'\033[0;36m'
 
 # Log functions for consistent output
 log_info() {
@@ -76,7 +76,7 @@ git_update() {
       :
     else
       filter_status=$?
-      if (( filter_status > 1 )); then
+      if ((filter_status > 1)); then
         return "$filter_status"
       fi
       filtered_output=""
@@ -104,7 +104,7 @@ git_update() {
     fi
   else
     if [[ -n "$pull_output" ]]; then
-      printf '%s\n' "$pull_output"
+      printf '%s\n' "$(colorize_diff_stats "$pull_output")"
     fi
   fi
 
@@ -118,6 +118,42 @@ git_update() {
     log_info "  🗑️ Deleting local branch: $b"
     git branch -D "$b" || log_warning "Failed to delete local branch $b"
   done
+}
+
+# 🎨 Colorize diff stats from git pull output
+# Handles lines like:
+#   |  4 ++--     → + in green, - in red (per-character)
+#   |  12 ++++++------ → + green, - red
+#   |  2 +-       → + green, - red
+#   |  5 ++++     → all green
+#   |  3 -----    → all red
+colorize_diff_stats() {
+  local input="$1"
+  local line prefix sign_pattern colored_sign char i
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Match lines like "|  4 ++--" or "|  12 ++++++------"
+    if [[ "$line" =~ (\|[[:space:]]+[0-9]+[[:space:]])([+-]+) ]]; then
+      prefix="${BASH_REMATCH[1]}"
+      sign_pattern="${BASH_REMATCH[2]}"
+
+      # Build colored sign string: + → green, - → red (per-character)
+      colored_sign=""
+      for ((i = 0; i < ${#sign_pattern}; i++)); do
+        char="${sign_pattern:$i:1}"
+        if [[ "$char" == "+" ]]; then
+          colored_sign+="${COLOR_GREEN}+${COLOR_RESET}"
+        elif [[ "$char" == "-" ]]; then
+          colored_sign+="${COLOR_RED}-${COLOR_RESET}"
+        else
+          colored_sign+="$char"
+        fi
+      done
+
+      line="${line/${prefix}${sign_pattern}/${prefix}${colored_sign}}"
+    fi
+    printf '%s\n' "$line"
+  done <<<"$input"
 }
 
 log_info "🚀 Starting GitHub repository update process"
@@ -155,13 +191,13 @@ for repo in "${repolist[@]}"; do
   repo_log="$LOG_DIR/$repo.log"
   (
     # Save current directory to return to it later
-    current_dir=$(pwd)
-    
+    current_dir=$PWD
+
     cd "$GITHUB/$repo" || {
       log_error "Could not change to repository: $GITHUB/$repo"
       exit 1
     }
-    
+
     # Detect primary branch
     if git show-ref --verify --quiet refs/heads/develop; then
       branch="develop"
@@ -172,16 +208,16 @@ for repo in "${repolist[@]}"; do
     else
       branch="master"
     fi
-    
+
     git_update "$repo" "$branch"
     log_success "✅ $repo updated and cleaned"
-    
+
     # Return to original directory
     cd "$current_dir" || log_warning "Could not return to original directory"
   ) >"$repo_log" 2>&1 &
   job_logs+=("$!|$repo_log")
   # Limit parallel jobs - bash compatible version
-  if (( ${#job_logs[@]} >= JOBS )); then
+  if ((${#job_logs[@]} >= JOBS)); then
     # Use wait -n for bash (supported in bash 4.3+)
     if wait -n 2>/dev/null; then
       # Flush finished repos' buffered output as one block each, keep running jobs
