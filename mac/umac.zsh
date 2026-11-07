@@ -804,7 +804,7 @@ git_update() {
   git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}' | while IFS= read -r b; do
     log_info "  🗑️ Deleting local branch: $b"
     git branch -D "$b" || log_warning "Failed to delete local branch $b"
-  done
+  done || true
 }
 
 # Update Git repositories
