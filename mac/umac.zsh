@@ -718,7 +718,7 @@ colorize_diff_stats() {
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Match lines like "|  4 ++--" or "|  12 ++++++------"
-    if [[ "$line" =~ (\|[[:space:]]+[0-9]+[[:space:]])([+-]+) ]]; then
+    if [[ "$line" =~ ([|][[:space:]]+[0-9]+[[:space:]])([+-]+) ]]; then
       prefix="${match[1]}"
       sign_pattern="${match[2]}"
 
@@ -801,7 +801,7 @@ git_update() {
 
   # Delete all local branches except the primary/default branch
   log_info "🗑️ Deleting non-default local branches for $repo"
-  for b in $(git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}'); do
+  git branch | grep -v " $branch\$" | grep -v "^\*" | awk '{print $NF}' | while IFS= read -r b; do
     log_info "  🗑️ Deleting local branch: $b"
     git branch -D "$b" || log_warning "Failed to delete local branch $b"
   done
