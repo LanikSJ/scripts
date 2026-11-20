@@ -83,19 +83,19 @@ Scripts utilizing 🔒 `expect` for automating interactions with command-line pr
 particularly for SSH and SCP operations.
 
 - `expect.sh`: A generic `expect` script for automating SSH logins and executing
-commands on remote hosts.
+  commands on remote hosts.
 - `ldap_sync.sh`: A wrapper script that uses `scp_ubu.sh` to synchronize LDAP configuration
   files across multiple Ubuntu servers.
 - `scp_rh.sh`: An `expect` script for secure copying files to/from
-Red Hat-based systems.
+  Red Hat-based systems.
 - `scp_ubu.sh`: An `expect` script for secure copying files to/from
-Ubuntu-based systems.
+  Ubuntu-based systems.
 - `ssh_co.sh`: An `expect` script for SSH connections to CentOS systems.
 - `ssh_mac.sh`: An `expect` script for SSH connections to macOS systems.
 - `ssh_rh.sh`: An `expect` script for SSH connections to Red Hat-based
-systems.
+  systems.
 - `ssh_ubu.sh`: An `expect` script for SSH connections to Ubuntu-based
-systems.
+  systems.
 - `wrapper.sh`: A general wrapper script for other `expect` scripts.
 
 ### Git
@@ -129,7 +129,7 @@ Scripts for 🐙 Git repository management and operations, including GitHub auto
 Scripts for hosting-related tasks, particularly for the "Sloth" project.
 
 - `sloth/backup.sh`: A script to perform backups of specified directories and upload
-them to an FTP server.
+  them to an FTP server.
 
 ### Mac
 
@@ -256,7 +256,6 @@ Supporting files at the repository root and under `.github/`:
 This `README.md` provides a better overview of the repository's
 contents, making it easier to understand the purpose and functionality
 of the scripts within.
-
 
 ## ⚙️ Skills Automation
 
