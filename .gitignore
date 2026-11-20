@@ -51,3 +51,6 @@ yarn-error.log
 .cache/
 *.orig
 *.rej
+
+# Global .agents folder (using global .agents configuration)
+.agents/
